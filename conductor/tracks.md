@@ -2,9 +2,6 @@
 
 This file tracks all major tracks for the project.
 
-- [x] **Track: Automated generation → repo-creation → push → CI pipeline**
-  *Link: [./tracks/gen-publish-pipeline_20260929/](./tracks/gen-publish-pipeline_20260929/)*
-
 ---
 
 ## Backlog
