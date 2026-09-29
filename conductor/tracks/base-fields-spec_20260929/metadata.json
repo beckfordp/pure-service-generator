@@ -1,0 +1,8 @@
+{
+  "track_id": "base-fields-spec_20260929",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-09-29T19:03:34Z",
+  "updated_at": "2026-09-29T19:03:34Z",
+  "description": "Make the base entity fields (currently fixed item/quantity/status on top of id/createdAt/updatedAt) themselves field-spec-driven"
+}
