@@ -38,11 +38,11 @@
       interactive walkthrough. [04b5b11]
 
 ## Phase 4: Add `DELETE /orders/{id}`
-- [ ] Task: Write failing tests (Red) — extend `OrderStoreSuite` with a `delete` test; confirm
-      it fails to compile.
-- [ ] Task: Implement (Green) — add `delete(id): F[Boolean]` to `OrderStore[F]`, both backends;
+- [x] Task: Write failing tests (Red) — extend `OrderStoreSuite` with a `delete` test; confirm
+      it fails to compile. [17b99a4]
+- [x] Task: Implement (Green) — add `delete(id): F[Boolean]` to `OrderStore[F]`, both backends;
       add a tapir `DELETE /orders/{id}` endpoint (204, subsequent `GET` 404s) + routing; extend
-      `OrderRoutesSuite`. Run the suite, confirm green.
+      `OrderRoutesSuite`. Run the suite, confirm green. [a76958e]
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Add DELETE /orders/{id}' (Protocol in
       workflow.md)
 
