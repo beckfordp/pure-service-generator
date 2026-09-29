@@ -55,6 +55,12 @@
       (Protocol in workflow.md)
 
 ## Phase 6: Full CRUD lifecycle integration test, README, and final polish
+- [x] Task: Add `ClientResilienceExampleSuite` (`src/test/scala/orderservice/examples/`) —
+      wraps a dummy `Client[F]` with purerest's `Resilience.middleware`, demonstrating the
+      retry + circuit-breaker pattern for whoever adapts this template to call a real downstream
+      service, since it's dropped from the live service per the Phase 1 deviation (spec.md
+      amendment, 2026-09-29). README points to it ("Calling other services with resilience").
+      Pulled forward from this phase and done now, per explicit user request. [d3ef76d]
 - [ ] Task: Write failing test (Red) — extend `OrderStorePostgresSuite` (Testcontainers) with a
       full lifecycle test: create → read → patch → delete → read-404, plus a readiness-check
       test against the real container. Confirm it fails for the right reason if run against a
