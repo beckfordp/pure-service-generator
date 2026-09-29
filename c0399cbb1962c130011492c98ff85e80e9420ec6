@@ -1,0 +1,24 @@
+Task: Implement (Green) - PUT /orders/{id} full-replace endpoint
+
+Summary:
+Added a tapir PUT /orders/{id} endpoint (replaceOrderEndpoint), same shape as
+PATCH's (UpdateOrderRequest body: quantity, status; 200 + OrderResponse; 404
+via notFoundOutput for an unknown id). Both PATCH and PUT delegate to
+OrderStore.update - there's no behavioral difference between them at the
+store layer, since this resource has no other client-writable fields; PUT
+exists purely so clients get REST-conventional idempotent-full-replace
+semantics as a distinct verb from PATCH's partial-update semantics, per the
+user's explicit request.
+
+Refactored: extracted the PATCH handler's store-call/logging block into a
+shared updateLogic(store, logger, httpMethod)(id, req) helper, parameterized
+only by the logged HTTP method string ("PATCH" vs "PUT") - avoids duplicating
+the whole block for what is otherwise identical logic.
+
+Files changed:
+- src/main/scala/orderservice/{Main,OrderRoutes}.scala
+
+Why: Implements this track's Phase 7 scope addition (spec.md FR4 update,
+2026-09-29) - completes the CRUD surface to five endpoints.
+
+Verification: sbt scalafmtCheck Test/scalafmtCheck test - 52/52 pass.
