@@ -128,6 +128,10 @@ sbt scalafmt test   # one reformat pass is expected: identifier-length differenc
 docker compose up -d && sbt run
 ```
 
+The generated service's base entity is just `id`/`createdAt`/`updatedAt` — it has no
+domain-specific fields (and so a genuinely empty `create`/`update` body) until you add some via
+the field-codegen tool below.
+
 ### Known limitation: naive pluralization
 
 REST paths pluralize `domain_name` by appending `s` (`/widgets`, `/invoices`) — this doesn't
@@ -137,30 +141,28 @@ domain name needs an irregular plural.
 
 ## Adding domain fields with the field-codegen tool
 
-The generated service always ships with a fixed set of fields — `item`/`quantity`/`status` plus
-`id`/`createdAt`/`updatedAt` — as a working, runnable example. To add fields specific to your
-domain (beyond those), use the `tools/codegen/` tool as a post-generation step: it takes a small
-YAML field-spec and rewrites the generated project's case class, DTOs, SQL, store (in-memory +
-Postgres), and tests to add each field — every field appears in `create`/`update`/the JSON
-response, and is exercised through the generated CRUD test suite (create/get/update/delete, plus
-the full-lifecycle test).
+The generated service's base entity is just `id`/`createdAt`/`updatedAt` — every domain-specific
+field is added via the `tools/codegen/` tool as a post-generation step: it takes a small YAML
+field-spec and rewrites the generated project's case class, DTOs, SQL, store (in-memory +
+Postgres), and tests to add each field, and is exercised through the generated CRUD test suite
+(create/get/update/delete, plus the full-lifecycle test).
 
 ### Field-spec format
 
 ```yaml
 fields:
-  - name: color
+  - name: item
     type: String
-    example: "red"
-  - name: weight
+    example: "widget"
+    visibility: create-only
+  - name: quantity
     type: Int
-    example: "7"
-  - name: fragile
-    type: Boolean
-    example: "true"
-  - name: expiresAt
-    type: Instant
-    example: "2026-06-01T00:00:00Z"
+    example: "4"
+  - name: status
+    type: String
+    example: "shipped"
+    visibility: server-defaulted
+    default: "created"
 ```
 
 - `name` — a camelCase Scala identifier (e.g. `expiresAt`); its Postgres column name is derived by
@@ -169,6 +171,16 @@ fields:
   `TIMESTAMPTZ`). No other types are supported.
 - `example` — a literal value (as a string) used to rewrite existing test call sites whose arity
   changes when the field is added, and to assert on in the full-lifecycle test.
+- `visibility` (optional, default `create-and-update`) — how the field participates in
+  `create`/`update`:
+  - `create-and-update` — the client sets it at create, and can change it via update (the
+    default).
+  - `create-only` — the client sets it at create; immutable after (excluded from `UpdateRequest`
+    and update SQL).
+  - `server-defaulted` — the server assigns a `default` value at create (never client-settable
+    there — excluded from `CreateRequest`); settable via update like `create-and-update`.
+- `default` — required for, and only valid on, `server-defaulted` fields: a literal (of `type`)
+  used for the generated `private val default<Field>` constant.
 
 ### Running it
 
@@ -188,10 +200,6 @@ build) — it operates on an already-generated project directory, not on the tem
   comments as it rewrites each file, so it isn't idempotent: running it twice against the same
   generated project will fail (the anchors are gone after the first run). Generate fresh from the
   template if you need to change the field spec.
-- **No per-field visibility** — every field is required and appears in `create`, `update`, and the
-  JSON response uniformly. The fixed `item`/`quantity`/`status` fields have asymmetric visibility
-  (e.g. `status` is server-defaulted, not client-settable at create) that this tool's field model
-  doesn't support — see the backlog item in `conductor/tracks.md` for generalizing this.
 - **No optional/nullable fields** — v1 only supports required fields.
 
 ## Automated generate → publish → CI pipeline
