@@ -1,0 +1,24 @@
+Phase 1 Completion: Scaffold the template structure and non-Scala files
+
+Automated tests: N/A for this phase (no Scala test suite touched); the
+verification is scripts/verify-g8-phase1-scaffold.sh's own checks, plus a
+sanity compile of this repo's own reference service (step 5).
+
+Manual verification: prompting is off for this project (.claude/prompt-off),
+so this phase's manual verification ran via a committed script instead of an
+interactive walkthrough.
+
+Command: ./scripts/verify-g8-phase1-scaffold.sh
+
+Result: all checks passed.
+1. default.properties defines domain_name and package - OK
+2. all 7 expected Phase 1 files present - OK
+3. no stale order-service/orderservice/hardcoded-"order"-value references - OK
+4. migration SQL's CREATE TABLE correctly templated to "$domain_name$" - OK
+5. this repo's own reference service still compiles, unaffected by the new
+   src/main/g8/ tree - OK
+
+Scope: all changes since the track's first commit (no prior phase checkpoint
+exists).
+Changed files: conductor/tracks.md, conductor/tracks/g8-template_20260929/plan.md,
+scripts/verify-g8-phase1-scaffold.sh (new), src/main/g8/** (new).
