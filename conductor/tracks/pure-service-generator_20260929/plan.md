@@ -87,7 +87,7 @@
       `scripts/verify-docker-image.sh` plus the README's own verified quickstart, instead of an
       interactive walkthrough. [f818aa2]
 
-## Phase 7: Add `PUT /orders/{id}` (full replace)
+## Phase 7: Add `PUT /orders/{id}` (full replace) [checkpoint: 2fd72f9]
 Scope addition, user-requested 2026-09-29 (after the CRUD/health phases above were already
 complete) — see spec.md's Functional Requirements for the updated endpoint list. `PUT` is
 idempotent full-record replacement (both `quantity`/`status` required, same as `PATCH`'s body —
@@ -106,5 +106,6 @@ semantics; both return 404 for an unknown id (this repo doesn't support client-c
       `PUT`. spec.md's endpoint list/acceptance criteria were already updated to the five-endpoint
       surface when this phase was added (0b3af44). README walkthrough updated and verified
       against a live instance. [aae1093]
-- [ ] Task: Conductor - User Manual Verification 'Phase 7: Add PUT /orders/{id}' (Protocol in
-      workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 7: Add PUT /orders/{id}' (Protocol in
+      workflow.md). Prompting off: verified via `scripts/verify-put-endpoint.sh` instead of an
+      interactive walkthrough. [2fd72f9]
