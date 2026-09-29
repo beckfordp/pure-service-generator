@@ -1,0 +1,22 @@
+Task: Update README's quickstart curl walkthrough for PUT
+
+Summary:
+Added a PUT /orders/{id} example to the README's quickstart curl walkthrough,
+right after the PATCH example, noting it's idempotent full-replace with the
+same required body as PATCH (this resource has no other client-writable
+fields). spec.md's endpoint list/acceptance criteria were already updated to
+the five-endpoint surface in the commit that added this phase
+(0b3af44) - only the README walkthrough needed updating here.
+
+Verified against a real running instance before writing it down: docker
+compose up -d + sbt run, then POST to create an order, PUT to replace its
+quantity/status, confirmed 200 with the updated fields in the response.
+
+Files changed:
+- README.md
+
+Why: Keeps the README's documented API surface complete and accurate now
+that PUT exists.
+
+Verification: manually exercised the exact curl command against a live
+instance (see summary).
