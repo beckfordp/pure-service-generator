@@ -46,15 +46,25 @@ infrastructure, not new runtime behavior - verified by "still compiles/passes", 
       which undercounted by one); 29/29 tests green, scalafmt clean.
 
 ## Phase 4: Wire transformations to real files + CLI entrypoint
-- [ ] Task: Write failing test (Red) - an integration-style munit test that runs the tool's
+- [x] Task: Write failing test (Red) - an integration-style munit test that runs the tool's
       `main()` against a checked-in fixture project (mirroring Phase 1's anchors) with a sample
       field-spec, asserting the resulting files match expected content; confirm it fails (no
-      `Main` yet).
-- [ ] Task: Implement (Green) - `Main.scala` (args: generated-project-dir, field-spec path),
+      `Main` yet). `28e889c`
+
+      Implemented as `CodegenToolSuite` against temp-dir fixtures built at test time (not
+      checked-in files) so the test can assert on before/after content without mutating
+      tracked fixtures.
+- [x] Task: Implement (Green) - `Main.scala` (args: generated-project-dir, field-spec path),
       applying every transformation from Phase 3 across all anchor points. Run the suite, confirm
-      green.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Wire transformations to real files +
-      CLI entrypoint' (Protocol in workflow.md)
+      green. `28e889c`
+
+      `CodegenTool.runOn` is directory-agnostic about package/domain naming - it scans for any
+      file containing a `codegen:fields:` marker rather than hardcoding paths, since those vary
+      per generation.
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Wire transformations to real files +
+      CLI entrypoint' (Protocol in workflow.md) - verified directly (prompting off): 34/34 tests
+      green, scalafmt clean; covers rewrite-in-place, target/-skip, missing-file/dir errors, and
+      unknown-tag errors.
 
 ## Phase 5: End-to-end generation verification
 - [ ] Task: Write `scripts/verify-codegen-tool.sh` - generates a real `widget` service via
