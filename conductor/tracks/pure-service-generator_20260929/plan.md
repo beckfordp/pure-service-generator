@@ -102,7 +102,9 @@ semantics; both return 404 for an unknown id (this repo doesn't support client-c
 - [x] Task: Implement (Green) — add a tapir `PUT /orders/{id}` endpoint + `OrderRoutes`/`Main`
       wiring, reusing `OrderStore.update` (same semantics as `PATCH`). Run the suite, confirm
       green. [c0399cb]
-- [ ] Task: Update README's quickstart curl walkthrough and spec.md's endpoint list to include
-      `PUT`.
+- [x] Task: Update README's quickstart curl walkthrough and spec.md's endpoint list to include
+      `PUT`. spec.md's endpoint list/acceptance criteria were already updated to the five-endpoint
+      surface when this phase was added (0b3af44). README walkthrough updated and verified
+      against a live instance. [aae1093]
 - [ ] Task: Conductor - User Manual Verification 'Phase 7: Add PUT /orders/{id}' (Protocol in
       workflow.md)
