@@ -30,7 +30,7 @@
       (see Phase 4 note on why not `sbt new`) and ran `sbt scalafmt scalafmtCheck test` against
       it — 52/52 pass. [ee5da7b]
 
-## Phase 3: Template the generated README; document the template in this repo's own README
+## Phase 3: Template the generated README; document the template in this repo's own README [checkpoint: 5dca445]
 - [x] Task: Write `src/main/g8/README.md` (templated — documents the *generated* service,
       mirroring this repo's current README with `$domain_name$`/`$package$` substitutions).
       [3f15a4c] Verified end-to-end against a real generated "widget-service" (every
@@ -43,8 +43,9 @@
       pointed at the repo root; plain `sbt new file://` is documented as worth trying first
       (works in some sbt configurations) but was NOT independently verified to succeed here —
       it's the same command already confirmed broken in this environment/sbt version.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Template the generated README; document
-      the template in this repo's own README' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Template the generated README; document
+      the template in this repo's own README' (Protocol in workflow.md). Prompting off: verified
+      directly instead of an interactive walkthrough. [5dca445]
 
 ## Phase 4: End-to-end generation verification
 **Note (discovered during Phase 2):** `sbt new file://<path>` does not work in this environment —
