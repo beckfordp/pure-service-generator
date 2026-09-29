@@ -44,17 +44,33 @@ Infrastructure, not Red/Green — a static template file, verified by generation
 This phase has real, external side effects (creates public GitHub repos, uses your `gh`
 credentials) — proceeds directly per explicit user decision, using disposable timestamped repo
 names, cleaned up afterward.
-- [ ] Task: Run the script for real with a disposable domain name; confirm: repo created
+- [x] Task: Run the script for real with a disposable domain name; confirm: repo created
       (public), pushed, `GH_PACKAGES_TOKEN` secret set, and the triggered GitHub Actions run
-      passes.
-- [ ] Task: Run again with `--field-spec` against a second disposable domain name; confirm CI
+      passes. `dd6f41a`
+
+      First attempt (`pipelinecheck1790706669`) surfaced a real bug — CI's `scalafmtCheck`
+      failed because the script never ran the documented `sbt scalafmt` reformat pass before
+      committing. Fixed (see `dd6f41a`), throwaway repo deleted, re-run
+      (`pipelinecheck1790706825-service`) passed CI in 1m27s:
+      https://github.com/beckfordp/pipelinecheck1790706825-service/actions/runs/36612993355
+- [x] Task: Run again with `--field-spec` against a second disposable domain name; confirm CI
       still passes with the extra fields.
-- [ ] Task: Run with a `--repo-name` that already exists; confirm a clean abort with no changes
+
+      `fspec1790706958-service`, CI passed in 1m23s (confirmed via `gh run list`).
+- [x] Task: Run with a `--repo-name` that already exists; confirm a clean abort with no changes
       to the existing repo.
-- [ ] Task: Delete the throwaway repos created during this phase's verification
+
+      Re-ran against the just-created `fspec1790706958-service` name — aborted cleanly at the
+      existence check, before any git/gh mutation.
+- [x] Task: Delete the throwaway repos created during this phase's verification
       (`gh repo delete`).
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Live end-to-end verification'
-      (Protocol in workflow.md)
+
+      Both `pipelinecheck1790706825-service` and `fspec1790706958-service` deleted; confirmed
+      via `gh repo list` that neither remains.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Live end-to-end verification'
+      (Protocol in workflow.md) - verified directly (prompting off) via the three real runs
+      above; all three GitHub side effects (repo creation, secret, push, CI) and the collision
+      guard behaved exactly as specified.
 
 ## Phase 4: Documentation
 - [ ] Task: Document the pipeline in the README — usage, required `gh auth` scopes, the
