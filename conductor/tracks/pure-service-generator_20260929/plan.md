@@ -65,6 +65,12 @@
       service, since it's dropped from the live service per the Phase 1 deviation (spec.md
       amendment, 2026-09-29). README points to it ("Calling other services with resilience").
       Pulled forward from this phase and done now, per explicit user request. [d3ef76d]
+      **Follow-up (user-requested, 2026-09-29):** added an `example-client` block to
+      `application.conf` (retry + circuit breaker settings, commented as example-only) and
+      changed `ClientResilienceExampleSuite` to load it via PureConfig (deriving `ConfigReader`
+      for purerest's resilience case classes) instead of hardcoding `ResilienceConfig` literals —
+      demonstrates the full config-file → PureConfig → `Resilience.middleware` pattern, not just
+      the middleware call in isolation. [cff2954]
 - [x] Task: Write failing test (Red) — extend `OrderStorePostgresSuite` (Testcontainers) with a
       full lifecycle test: create → read → patch → delete → read-404, plus a readiness-check
       test against the real container. Confirm it fails for the right reason if run against a
