@@ -1,0 +1,22 @@
+Phase 6 Completion: Full CRUD lifecycle integration test, README, and final polish
+
+Automated tests: sbt -batch scalafmtCheck Test/scalafmtCheck test - 50/50 passed,
+0 failures.
+
+Manual verification: prompting is off for this project (.claude/prompt-off), so
+this phase's manual verification ran via committed scripts instead of an
+interactive walkthrough. No new script needed for this checkpoint specifically -
+the phase's own last task (scripts/verify-docker-image.sh) already proved the
+built Docker image works end-to-end against real Postgres (POST/GET/PATCH/DELETE
+/orders, health, ready, Swagger UI), and the README task independently verified
+every quickstart command against a live sbt-run instance before being written
+down. Together these cover this phase's manual-verification requirement.
+
+Scope: all changes since the Phase 5 checkpoint (8a5861e).
+Changed files: conductor/tracks/pure-service-generator_20260929/{plan,spec}.md,
+README.md, src/test/scala/orderservice/OrderStorePostgresSuite.scala,
+scripts/verify-docker-image.sh (new).
+
+Note: Phase 7 (PUT /orders/{id}) was added to plan.md/spec.md mid-track as a
+user-requested scope addition, discovered while working through this phase -
+it follows this phase, not part of its own scope.
