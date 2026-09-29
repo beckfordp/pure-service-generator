@@ -33,15 +33,17 @@ infrastructure, not new runtime behavior - verified by "still compiles/passes", 
       rejected).
 
 ## Phase 3: Field-insertion transformation logic
-- [ ] Task: Write failing tests (Red) - unit tests (small in-memory string fixtures, not real
+- [x] Task: Write failing tests (Red) - unit tests (small in-memory string fixtures, not real
       files) for the anchor-based line-insertion engine and each per-file-type field-renderer
       (case class field syntax, SQL column/type mapping for String/Int/Boolean/Instant, tuple
       (de)construction, test call-site argument insertion using `example` values); confirm they
-      fail (no implementation yet).
-- [ ] Task: Implement (Green) - the transformation engine + renderers. Run the suite, confirm
-      green.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Field-insertion transformation logic'
-      (Protocol in workflow.md)
+      fail (no implementation yet). `8926e8f`
+- [x] Task: Implement (Green) - the transformation engine + renderers. Run the suite, confirm
+      green. `8926e8f`
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Field-insertion transformation logic'
+      (Protocol in workflow.md) - verified directly (prompting off): `AnchorTransformer` and
+      `FieldRenderers` cover all 27 anchor tags placed in Phase 1 (corrects that phase's note,
+      which undercounted by one); 29/29 tests green, scalafmt clean.
 
 ## Phase 4: Wire transformations to real files + CLI entrypoint
 - [ ] Task: Write failing test (Red) - an integration-style munit test that runs the tool's
