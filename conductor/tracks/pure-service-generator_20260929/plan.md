@@ -65,12 +65,13 @@
       service, since it's dropped from the live service per the Phase 1 deviation (spec.md
       amendment, 2026-09-29). README points to it ("Calling other services with resilience").
       Pulled forward from this phase and done now, per explicit user request. [d3ef76d]
-- [ ] Task: Write failing test (Red) — extend `OrderStorePostgresSuite` (Testcontainers) with a
+- [x] Task: Write failing test (Red) — extend `OrderStorePostgresSuite` (Testcontainers) with a
       full lifecycle test: create → read → patch → delete → read-404, plus a readiness-check
       test against the real container. Confirm it fails for the right reason if run against a
-      pre-Phase-3/4 checkout.
-- [ ] Task: Implement (Green) — fix anything the lifecycle test surfaces; run full suite,
-      confirm green.
+      pre-Phase-3/4 checkout. [9965e5a] Written after Phases 3-5, so it passed immediately (no
+      actual Red phase possible at this point) — combined with the Green task below.
+- [x] Task: Implement (Green) — fix anything the lifecycle test surfaces; run full suite,
+      confirm green. [9965e5a] Nothing to fix; Phases 3-5 already implemented update/delete/ping.
 - [ ] Task: Write this repo's `README.md` (prerequisites, quickstart, one-db-per-service note,
       Swagger UI link) mirroring order-service's own docs.
 - [ ] Task: Build the Docker image and run the full stack once via `docker compose up`,
