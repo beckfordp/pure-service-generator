@@ -135,6 +135,65 @@ handle irregular English plurals (e.g. a domain named `company` generates `/comp
 `/companies`). Hand-edit the generated `*Routes.scala`/`*RoutesSuite.scala` path segments if your
 domain name needs an irregular plural.
 
+## Adding domain fields with the field-codegen tool
+
+The generated service always ships with a fixed set of fields — `item`/`quantity`/`status` plus
+`id`/`createdAt`/`updatedAt` — as a working, runnable example. To add fields specific to your
+domain (beyond those), use the `tools/codegen/` tool as a post-generation step: it takes a small
+YAML field-spec and rewrites the generated project's case class, DTOs, SQL, store (in-memory +
+Postgres), and tests to add each field — every field appears in `create`/`update`/the JSON
+response, and is exercised through the generated CRUD test suite (create/get/update/delete, plus
+the full-lifecycle test).
+
+### Field-spec format
+
+```yaml
+fields:
+  - name: color
+    type: String
+    example: "red"
+  - name: weight
+    type: Int
+    example: "7"
+  - name: fragile
+    type: Boolean
+    example: "true"
+  - name: expiresAt
+    type: Instant
+    example: "2026-06-01T00:00:00Z"
+```
+
+- `name` — a camelCase Scala identifier (e.g. `expiresAt`); its Postgres column name is derived by
+  converting to snake_case (`expires_at`).
+- `type` — one of `String`, `Int`, `Boolean`, `Instant` (`java.time.Instant`, stored as
+  `TIMESTAMPTZ`). No other types are supported.
+- `example` — a literal value (as a string) used to rewrite existing test call sites whose arity
+  changes when the field is added, and to assert on in the full-lifecycle test.
+
+### Running it
+
+```
+cd tools/codegen
+sbt "runMain codegen.Main /absolute/path/to/widget-service /absolute/path/to/field-spec.yaml"
+cd /absolute/path/to/widget-service
+sbt scalafmt test   # reformats the tool's inserted lines to this project's style, then verifies
+```
+
+`tools/codegen/` is a standalone sbt project (sibling to, not aggregated into, this repo's own
+build) — it operates on an already-generated project directory, not on the template itself.
+
+### Limitations
+
+- **Additive only, one-shot** — the tool consumes the g8 template's `codegen:fields:` anchor
+  comments as it rewrites each file, so it isn't idempotent: running it twice against the same
+  generated project will fail (the anchors are gone after the first run). Generate fresh from the
+  template if you need to change the field spec.
+- **No per-field visibility** — every field is required and appears in `create`, `update`, and the
+  JSON response uniformly. The fixed `item`/`quantity`/`status` fields have asymmetric visibility
+  (e.g. `status` is server-defaulted, not client-settable at create) that this tool's field model
+  doesn't support — see the backlog item in `conductor/tracks.md` for generalizing this.
+- **No optional/nullable fields** — v1 only supports required fields.
+
 ## Calling other services with resilience
 
 This reference service doesn't call any other service, so purerest's retry + circuit-breaker
