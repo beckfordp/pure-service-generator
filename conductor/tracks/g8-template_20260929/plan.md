@@ -31,13 +31,18 @@
       it — 52/52 pass. [ee5da7b]
 
 ## Phase 3: Template the generated README; document the template in this repo's own README
-- [ ] Task: Write `src/main/g8/README.md` (templated — documents the *generated* service,
+- [x] Task: Write `src/main/g8/README.md` (templated — documents the *generated* service,
       mirroring this repo's current README with `$domain_name$`/`$package$` substitutions).
-- [ ] Task: Add a "Generating a new service from this template" section to this repo's own
+      [3f15a4c] Verified end-to-end against a real generated "widget-service" (every
+      documented curl command works).
+- [x] Task: Add a "Generating a new service from this template" section to this repo's own
       top-level `README.md`: prerequisites, the generation command (see Phase 4 note — not
       `sbt new file://<path>`, which doesn't work in this environment/sbt version), both
       properties (`domain_name`, `package`) and their defaults, and the naive-pluralization
-      caveat.
+      caveat. [31ad74c] Verified the giter8-launcher fallback command works against this repo,
+      pointed at the repo root; plain `sbt new file://` is documented as worth trying first
+      (works in some sbt configurations) but was NOT independently verified to succeed here —
+      it's the same command already confirmed broken in this environment/sbt version.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Template the generated README; document
       the template in this repo's own README' (Protocol in workflow.md)
 
