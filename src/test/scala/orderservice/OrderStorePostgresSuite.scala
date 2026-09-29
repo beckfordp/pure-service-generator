@@ -185,6 +185,26 @@ class OrderStorePostgresSuite extends CatsEffectSuite with TestContainerForAll {
     }
   }
 
+  test("ping returns true against a real, reachable database") {
+    withContainers { postgres =>
+      val config = configFor(postgres)
+      Migrations.run[IO](config) *> OrderStore
+        .postgres[IO](config, Meter.noop[IO])
+        .use { store =>
+          store.ping.map(assert(_))
+        }
+    }
+  }
+
+  test("ping returns false when the database is unreachable") {
+    withContainers { postgres =>
+      val unreachableConfig = configFor(postgres).copy(port = 1)
+      OrderStore.postgres[IO](unreachableConfig, Meter.noop[IO]).use { store =>
+        store.ping.map(ready => assert(!ready))
+      }
+    }
+  }
+
   test(
     "create and get each record a db.client.operation.duration measurement, tagged by operation"
   ) {

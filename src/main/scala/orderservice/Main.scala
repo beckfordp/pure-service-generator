@@ -40,7 +40,9 @@ object Main extends IOApp.Simple {
                       OrderRoutes.serverEndpoint[IO](store, logger),
                       OrderRoutes.getOrderServerEndpoint[IO](store, logger),
                       OrderRoutes.updateOrderServerEndpoint[IO](store, logger),
-                      OrderRoutes.deleteOrderServerEndpoint[IO](store, logger)
+                      OrderRoutes.deleteOrderServerEndpoint[IO](store, logger),
+                      HealthRoutes.healthServerEndpoint[IO],
+                      HealthRoutes.readyServerEndpoint[IO](store)
                     )
                   )
                   val tracedRoutes =

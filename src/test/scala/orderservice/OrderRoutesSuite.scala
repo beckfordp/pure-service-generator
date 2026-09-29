@@ -23,6 +23,7 @@ class OrderRoutesSuite extends CatsEffectSuite {
       def update(id: String, quantity: Int, status: String): IO[Option[Order]] =
         IO.raiseError(error)
       def delete(id: String): IO[Boolean] = IO.raiseError(error)
+      def ping: IO[Boolean] = IO.raiseError(error)
     }
 
   test("POST /orders returns 201 with the created order") {

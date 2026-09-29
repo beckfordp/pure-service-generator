@@ -28,6 +28,7 @@ trait OrderStore[F[_]] {
   def get(id: String): F[Option[Order]]
   def update(id: String, quantity: Int, status: String): F[Option[Order]]
   def delete(id: String): F[Boolean]
+  def ping: F[Boolean]
 }
 
 object OrderStore {
@@ -73,6 +74,8 @@ object OrderStore {
           ref.modify { orders =>
             if (orders.contains(id)) (orders - id, true) else (orders, false)
           }
+
+        def ping: F[Boolean] = Sync[F].pure(true)
       }
     }
 
@@ -111,6 +114,10 @@ object OrderStore {
       WHERE id = $uuid
       RETURNING id
     """.query(uuid)
+
+  private val pingQuery: skunk.Query[skunk.Void, Int] = sql"SELECT 1".query(
+    int4
+  )
 
   def postgres[F[_]: Async: Console: Network](
       config: PostgresConfig,
@@ -245,6 +252,11 @@ object OrderStore {
                       }
                     }
                 }
+
+              def ping: F[Boolean] =
+                timed("ping") {
+                  pool.use(_.unique(pingQuery))
+                }.attempt.map(_.isRight)
             }
           }
       }
