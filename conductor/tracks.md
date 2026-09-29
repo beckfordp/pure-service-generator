@@ -2,7 +2,7 @@
 
 This file tracks all major tracks for the project.
 
-- [~] **Track: Build a giter8 (g8) template for service/domain/package renaming**
+- [x] **Track: Build a giter8 (g8) template for service/domain/package renaming**
   *Link: [./tracks/g8-template_20260929/](./tracks/g8-template_20260929/)*
 
 ---
