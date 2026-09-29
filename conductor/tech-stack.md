@@ -40,10 +40,6 @@
 - **Logging**: **log4cats** (slf4j backend) + **Logback**, via purerest.
 - **Metrics**: otel4s's `Meter[F]`, via purerest.
 
-## Resilience
-- **Retry** and **circuit breaker**, via purerest's `purerest.resilience` combinators —
-  configured from `application.conf`, not hardcoded.
-
 ## Testing
 - **munit** + **munit-cats-effect**.
 
@@ -57,3 +53,11 @@
 ## Known Constraints
 - **No generator machinery yet.** This repo currently holds one hand-adapted reference service,
   not a parameterized template — see `product.md`'s Non-Goals/Future Direction.
+- **No inventory-service coupling, no resilience wiring (2026-09-29 deviation).** order-service's
+  `POST /orders` calls a live inventory-service over HTTP at runtime to reserve stock
+  (`InventoryClient`), and purerest's retry/circuit-breaker resilience middleware exists in
+  order-service solely to wrap that one outbound call. Both conflict with this repo's
+  standalone, Postgres-only footprint, so both are dropped in the port: `POST /orders` persists
+  directly, no `reservation_id`/`reserved_quantity` columns, no outbound HTTP client, no
+  resilience middleware. See `conductor/tracks/pure-service-generator_20260929/spec.md`'s
+  "Deviations from order-service" for the full reasoning.

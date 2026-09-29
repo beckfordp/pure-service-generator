@@ -25,9 +25,10 @@ CI/CD generation are explicitly deferred to follow-on backlog tracks.
    - `DELETE /orders/{id}` — delete (new — 204, subsequent GET 404s)
    `OrderStore[F]` gains `update`/`delete` methods, implemented for both the in-memory
    (unit-test) and Postgres (integration) backends.
-5. Carry over order-service's full wiring as-is: tracing, structured logging, metrics,
-   resilience (retry + circuit breaker), tapir routes/OpenAPI/Swagger docs, PureConfig-driven
-   `application.conf`, Flyway migrations, Docker image via sbt-native-packager.
+5. Carry over order-service's tracing, structured logging, metrics, tapir routes/OpenAPI/Swagger
+   docs, PureConfig-driven `application.conf`, Flyway migrations, Docker image via
+   sbt-native-packager. (Resilience — retry + circuit breaker — is **not** carried over; see
+   "Deviations from order-service" below.)
 6. Add missing standard production-quality endpoints:
    - `GET /health` — liveness, always 200.
    - `GET /health/ready` — readiness, verifies real Postgres connectivity, 200/503.
@@ -47,6 +48,34 @@ CI/CD generation are explicitly deferred to follow-on backlog tracks.
 - `GET /health` / `GET /health/ready` implemented and unit-tested.
 - A Testcontainers integration test proves the full CRUD lifecycle end-to-end against real
   Postgres.
+
+## Deviations from order-service (recorded 2026-09-29)
+While planning Phase 1's port, reading order-service's actual code (not just its build.sbt
+comments) surfaced a coupling the original spec didn't account for: `POST /orders` calls a real
+`inventory-service` over HTTP at runtime (`InventoryClient.reserve`, wired in `Main.scala`) to
+reserve stock before persisting the order, and the `orders` table stores the resulting
+`reservation_id`/`reserved_quantity`. This is a genuine runtime dependency, not just the
+test-scope `.dependsOn(inventoryService % Test)` purerest's `tech-stack.md` describes — and it
+directly conflicts with this track's "own `docker-compose.yml` (Postgres only)" requirement:
+with no inventory-service running, every `POST /orders` would 503. It's also the *only* place
+order-service's resilience (retry + circuit breaker) wiring applies — that middleware wraps an
+http4s `Client[F]`, and the inventory call is the only outbound HTTP call in the service.
+
+**Decision (user-confirmed):**
+- Drop `InventoryClient`/`ReservationView` and the `reservation_id`/`reserved_quantity` columns
+  entirely. `POST /orders` creates the order directly against Postgres — no outbound HTTP call,
+  fully self-sufficient with just the `order` database.
+- Drop the resilience (retry + circuit breaker) requirement from this track's scope — there is no
+  other outbound call to wrap it around, and adding one purely to exercise unused middleware
+  would be scope creep beyond what this track needs.
+- Test suites that only exist to exercise the inventory-service integration
+  (`OrderServiceIntegrationSuite`, `OrderServicePostgresIntegrationSuite`,
+  `OrderServiceTraceContinuitySuite` — all import `inventoryservice.*` directly, which isn't
+  available as this repo has no dependency on inventory-service's source) are not ported.
+  `OrderRoutesSuite`, `OrderStoreSuite`, `OrderStorePostgresSuite`, `OrderServiceConfigSuite`,
+  `OrderDocsSuite`, and `MigrationsSuite` have no such dependency and are ported.
+
+See `tech-stack.md`'s "Known Constraints" for the corresponding tech-stack note.
 
 ## Out of Scope (separate follow-on backlog items)
 - g8-based rename templating (service/domain/package name)
