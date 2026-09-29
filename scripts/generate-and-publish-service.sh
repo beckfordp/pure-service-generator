@@ -195,6 +195,34 @@ echo "$STEP. Pushing to $OWNER/$REPO_NAME..."
   exit 1
 }
 echo "   OK: pushed"
+STEP=$((STEP + 1))
 
 echo
-echo "(wait-for-CI step not yet implemented)"
+echo "$STEP. Waiting for the triggered GitHub Actions run to complete..."
+PUSHED_SHA="$(cd "$GEN_DIR" && git rev-parse HEAD)"
+
+RUN_ID=""
+for _ in $(seq 1 30); do
+  RUN_ID="$(gh run list --repo "$OWNER/$REPO_NAME" --json databaseId,headSha \
+    --jq ".[] | select(.headSha == \"$PUSHED_SHA\") | .databaseId" 2>/dev/null | head -1)"
+  if [ -n "$RUN_ID" ]; then
+    break
+  fi
+  sleep 2
+done
+
+if [ -z "$RUN_ID" ]; then
+  echo "   FAIL: no GitHub Actions run appeared for commit $PUSHED_SHA within the timeout." >&2
+  exit 1
+fi
+
+echo "   Found run $RUN_ID, watching..."
+if gh run watch "$RUN_ID" --repo "$OWNER/$REPO_NAME" --exit-status; then
+  echo "   OK: CI run $RUN_ID passed"
+else
+  echo "   FAIL: CI run $RUN_ID did not pass - see https://github.com/$OWNER/$REPO_NAME/actions/runs/$RUN_ID" >&2
+  exit 1
+fi
+
+echo
+echo "Done: https://github.com/$OWNER/$REPO_NAME"
