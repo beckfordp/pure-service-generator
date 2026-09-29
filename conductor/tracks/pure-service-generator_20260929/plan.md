@@ -48,12 +48,12 @@
       an interactive walkthrough. [3c0e2e2]
 
 ## Phase 5: Add `GET /health` and `GET /health/ready`
-- [ ] Task: Write failing tests (Red) — new `HealthRoutesSuite`; confirm it fails to compile (no
-      `HealthRoutes` yet).
-- [ ] Task: Implement (Green) — `HealthRoutes` with a liveness endpoint (always 200) and a
+- [x] Task: Write failing tests (Red) — new `HealthRoutesSuite`; confirm it fails to compile (no
+      `HealthRoutes` yet). [2b6469f]
+- [x] Task: Implement (Green) — `HealthRoutes` with a liveness endpoint (always 200) and a
       readiness endpoint backed by a new `OrderStore.ping: F[Boolean]` (a trivial `SELECT 1`
       against Postgres, always `true` for the in-memory backend), wired into `Docs.routes`
-      alongside the order endpoints. Run the suite, confirm green.
+      alongside the order endpoints. Run the suite, confirm green. [4bc21fd]
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Add GET /health and GET /health/ready'
       (Protocol in workflow.md)
 
