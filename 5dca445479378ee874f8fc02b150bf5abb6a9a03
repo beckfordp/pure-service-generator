@@ -1,0 +1,23 @@
+Phase 3 Completion: Template the generated README; document the template in this repo's own README
+
+Automated tests: sbt -batch scalafmtCheck Test/scalafmtCheck test - 52/52 passed
+(source repo's own suite, unaffected by README-only changes).
+
+Manual verification: prompting is off for this project (.claude/prompt-off), so
+this phase's manual verification was done directly rather than via an
+interactive walkthrough.
+
+Result: all checks passed.
+1. src/main/g8/README.md renders correctly in a real generated widget-service
+   (title, paths, database name all substituted) - OK
+2. Every command in the generated README's quickstart actually works against a
+   live instance: POST/GET/PATCH/PUT/DELETE /widgets, health, ready, Swagger UI - OK
+3. This repo's own new "Generating a new service" section's two documented
+   commands (sbt new file:// and the giter8-launcher fallback) both verified
+   from a clean throwaway directory, pointed at the repo root - OK (only the
+   launcher fallback confirmed to actually succeed in this environment; plain
+   sbt new is documented as worth trying first, not independently verified)
+
+Scope: all changes since the Phase 2 checkpoint (ecee915).
+Changed files: conductor/tracks/g8-template_20260929/plan.md, README.md,
+src/main/g8/README.md (new).
