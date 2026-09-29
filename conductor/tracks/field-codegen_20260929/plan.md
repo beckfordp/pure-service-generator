@@ -67,14 +67,20 @@ infrastructure, not new runtime behavior - verified by "still compiles/passes", 
       unknown-tag errors.
 
 ## Phase 5: End-to-end generation verification
-- [ ] Task: Write `scripts/verify-codegen-tool.sh` - generates a real `widget` service via
+- [x] Task: Write `scripts/verify-codegen-tool.sh` - generates a real `widget` service via
       giter8 (per the prior track), writes a sample field-spec (2+ fields, mixed types), runs
       the codegen tool against it, then runs `sbt scalafmtCheck test` on the result - this is the
-      track's acceptance-criteria proof.
-- [ ] Task: Run the script; fix anything it surfaces; confirm green - new fields exercised
-      through create/get/update/delete and the full CRUD lifecycle test.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: End-to-end generation verification'
-      (Protocol in workflow.md)
+      track's acceptance-criteria proof. `99c8029`
+- [x] Task: Run the script; fix anything it surfaces; confirm green - new fields exercised
+      through create/get/update/delete and the full CRUD lifecycle test. `99c8029`
+
+      Green on the first run, no fixes needed: 9 files rewritten, no unresolved anchor
+      markers, scalafmtCheck + 52/52 tests passed, all four sample fields
+      (String/Int/Boolean/Instant) present on the generated `Widget` entity.
+- [x] Task: Conductor - User Manual Verification 'Phase 5: End-to-end generation verification'
+      (Protocol in workflow.md) - verified directly (prompting off) by running
+      `./scripts/verify-codegen-tool.sh` against a real, freshly giter8-generated service; all
+      six checks passed.
 
 ## Phase 6: Documentation
 - [ ] Task: Document the codegen tool in this repo's own README (field-spec YAML format, how to
