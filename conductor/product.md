@@ -46,8 +46,10 @@ actually use.
    service's domain/package via two properties (`domain_name`, `package`).
 3. **The field-codegen tool** (`tools/codegen/`, Iteration 3) — a standalone post-generation
    step that extends a generated service with extra domain fields (beyond the fixed
-   `item`/`quantity`/`status` example fields), driven by a small YAML field-spec. Generation-time
-   CI/CD wiring remains future work, built on top of this once needed.
+   `item`/`quantity`/`status` example fields), driven by a small YAML field-spec.
+4. **The publish pipeline** (`scripts/generate-and-publish-service.sh`, Iteration 4) — chains
+   generation (+ optional field-codegen) into a single command that creates a public GitHub repo,
+   pushes the generated service, and waits for its GitHub Actions CI run to go green.
 
 ## Key Features (built)
 1. Standalone sbt project (own `build.sbt`, no source link back to purerest) consuming
@@ -78,6 +80,12 @@ actually use.
    case class, DTOs, SQL, store (in-memory + Postgres), and tests via stable anchor comments
    embedded in the giter8 template. Verified end-to-end: generates a service, applies a
    4-field/all-types spec, and the result passes its full (field-extended) test suite.
+10. A publish pipeline (`scripts/generate-and-publish-service.sh`) that generates a service,
+    optionally applies a field-spec, reformats it, creates a public GitHub repo, pushes, wires
+    up a `GH_PACKAGES_TOKEN` CI secret (the automatic built-in `GITHUB_TOKEN` can't resolve
+    another repo's GitHub Packages), and waits for the triggered GitHub Actions run to pass.
+    Verified against three real runs: a plain generate+publish, one with `--field-spec`, and a
+    repo-name collision aborting cleanly with no side effects.
 
 ## Iteration 1 Goals (2026-09-29) — completed 2026-09-29
 Get a genuinely production-quality reference microservice working end-to-end before building
@@ -130,18 +138,25 @@ limited to the fixed item/quantity/status example fields.
    template. Verified against a real generated service: 52/52 tests pass after applying a
    4-field spec covering every supported type.
 
+## Iteration 4 Goals (2026-09-29) — completed 2026-09-29
+Automate the last manual step: turning a generated service into a real, pushed, CI-verified
+repo — this project's answer to `service-generator`'s Jenkins pipeline.
+
+1. **A single-command generate → publish → CI pipeline.** ✅ Answered —
+   `scripts/generate-and-publish-service.sh`. Verified live against real GitHub repos (created,
+   pushed, CI green, then deleted) — including a bug live-testing surfaced and fixed: the
+   script wasn't running the documented `sbt scalafmt` reformat pass before committing, which
+   made the very first CI run fail its own scalafmtCheck.
+
 ## Non-Goals (for now)
 - Per-field create/update/response visibility (the fixed item/quantity/status fields have
   asymmetric visibility the field-codegen tool doesn't support — see its README section).
 - Optional/nullable fields in the field-spec (v1 requires all fields).
-- Automated generation → repo-creation → push → CI pipeline (this project's eventual answer to
-  `service-generator`'s Jenkins pipeline).
+- Private-repo support for the publish pipeline (public only for now).
 - Kubernetes manifests.
 - Correct pluralization for irregular English domain names in generated REST paths — the
   template does naive `+s` only; documented as a known limitation in the README.
 
 ## Future Direction (under consideration)
-A generation-time pipeline that creates a new repo, pushes the generated service, and runs its
-tests — informed by `service-generator`'s existing Jenkins-based version of the same idea,
-reimplemented without Java/Spring/Jenkins/Groovy. Also under consideration: making the base
-entity fields themselves field-spec-driven (see the backlog item in `conductor/tracks.md`).
+Making the base entity fields themselves field-spec-driven (see the backlog item in
+`conductor/tracks.md`), and a `--private` flag for the publish pipeline.

@@ -67,10 +67,29 @@
   comma, trailing comma, Skunk's `*:` combinator) are auto-detected from the surrounding text, so
   no per-tag layout configuration is needed. See README's "Adding domain fields with the
   field-codegen tool".
+- **generate-and-publish-service.sh** (`scripts/`) — chains giter8 generation, optional
+  field-codegen, an `sbt scalafmt` reformat pass, `gh repo create --public`, a
+  `gh secret set GH_PACKAGES_TOKEN` (reusing the caller's own `gh auth token`, set *before* the
+  push that triggers the first CI run), and `gh run watch --exit-status` to confirm that run
+  passes. See README's "Automated generate → publish → CI pipeline".
+
+## CI (generated services)
+- **GitHub Actions** (`.github/workflows/ci.yml`, templated into `src/main/g8/`) —
+  `actions/checkout` + `actions/setup-java` (temurin 21, matching the packaging base image) +
+  `sbt/setup-sbt`, then `sbt scalafmtCheck Test/scalafmtCheck test` on push/PR to `main`.
+  `GITHUB_TOKEN` comes from a `GH_PACKAGES_TOKEN` repository secret rather than the automatic,
+  same-repo-scoped built-in `GITHUB_TOKEN`, since the generated build needs to resolve
+  `purerestlib`'s GitHub Packages from a *different* repo (`beckfordp/purerest`).
 
 ## Known Constraints
-- **Generation-time CI/CD wiring not built yet.** A generate → repo-create → push → CI pipeline
-  remains future work. See `product.md`'s Non-Goals/Future Direction.
+- **The publish pipeline creates public repos only (2026-09-29).** No `--private` flag yet —
+  see `product.md`'s Non-Goals/Future Direction.
+- **Generated services need an `sbt scalafmt` pass before their first commit (confirmed via
+  live testing, 2026-09-29).** Long identifier names (from a long `domain_name`) shift
+  line-wrapping vs. this repo's own scalafmt baseline (same root cause as the g8-template
+  track's "one reformat pass is expected" note) — skipping it makes the generated CI's own
+  `scalafmtCheck` fail on the very first push. `generate-and-publish-service.sh` runs this pass
+  automatically; anyone generating and committing by hand should too (see README).
 - **field-codegen is additive-only and not idempotent (2026-09-29).** It consumes each file's
   anchor comments as it rewrites them, so running it twice against the same generated project
   fails on the second run. It also can't touch the fixed `item`/`quantity`/`status` fields (their
