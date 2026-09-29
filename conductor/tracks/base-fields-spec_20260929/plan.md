@@ -60,12 +60,20 @@ The core of this track — two related changes to `AnchorTransformer`/`FieldRend
       (backward compatibility) still pass unchanged.
 
 ## Phase 4: Regression-check the simple (no-visibility) case
-- [ ] Task: Re-run `tools/codegen`'s existing test suite and `scripts/verify-codegen-tool.sh`
+- [x] Task: Re-run `tools/codegen`'s existing test suite and `scripts/verify-codegen-tool.sh`
       unchanged (a field-spec with no `visibility` key at all) against the now-field-less
       template; fix anything the zero-base-fields change broke; confirm green — proves no
-      regression for the common case.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Regression-check the simple case'
-      (Protocol in workflow.md)
+      regression for the common case. `7450788`
+
+      Surfaced a real bug: `SQL_SELECT_CODEC`'s Skunk-combinator join was inferred from its
+      prefix ending in `*:`, which no longer holds with zero base fields
+      (`.query(/* MARKER */timestamptz ...)` has nothing preceding it) — silently fell back to
+      comma-joining, producing a type error (`Decoder` required, `Codec` tuple found). Fixed by
+      marking the tag as always-combinator rather than inferring it.
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Regression-check the simple case'
+      (Protocol in workflow.md) - verified directly (prompting off): 60/60 tool tests green,
+      then `scripts/verify-codegen-tool.sh` run live end-to-end (9 files rewritten, no
+      unresolved anchors, scalafmtCheck + 52/52 tests pass).
 
 ## Phase 5: Dogfood verification
 - [ ] Task: Write a field-spec expressing `item` (`create-only`), `quantity`
