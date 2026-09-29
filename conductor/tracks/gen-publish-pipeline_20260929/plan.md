@@ -17,23 +17,28 @@ Infrastructure, not Red/Green — a static template file, verified by generation
       confirms valid YAML, `sbt scalafmtCheck test` 52/52 passed locally.
 
 ## Phase 2: Build the orchestration script (local steps only, no GitHub calls yet)
-- [ ] Task: `scripts/generate-and-publish-service.sh` — argument parsing (`--domain-name`
+- [x] Task: `scripts/generate-and-publish-service.sh` — argument parsing (`--domain-name`
       required, `--package`/`--field-spec`/`--repo-name` optional, defaulting `--repo-name` to
       `<domain_name>-service`), `--help` text, and a clear error on a missing required arg.
-      Verify by invoking with `--help` and with no args.
-- [ ] Task: Implement the **generate** step (reusing the `giter8.LauncherMain` pattern from
+      Verify by invoking with `--help` and with no args. `27bf4a6`
+- [x] Task: Implement the **generate** step (reusing the `giter8.LauncherMain` pattern from
       `scripts/verify-g8-template.sh`) and the optional **field-codegen** step (reusing the
       pattern from `scripts/verify-codegen-tool.sh`) into a local working directory. Verify
       locally: run with and without `--field-spec`, confirm the generated directory is correct
-      in both cases — no GitHub calls in this task.
-- [ ] Task: Implement **repo creation** (`gh repo create <owner>/<repo-name> --public`, aborting
+      in both cases — no GitHub calls in this task. `ff4a857`
+- [x] Task: Implement **repo creation** (`gh repo create <owner>/<repo-name> --public`, aborting
       cleanly if the name already exists), **push** (git init/commit/push), and **CI secret**
       (`gh secret set GH_PACKAGES_TOKEN`, reusing the caller's own `gh auth token`, set *before*
-      the push so the first CI run can resolve packages).
-- [ ] Task: Implement **wait-for-CI** (poll `gh run watch` or equivalent) and clear pass/fail
-      reporting.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Build the orchestration script'
-      (Protocol in workflow.md)
+      the push so the first CI run can resolve packages). `42ad7ae`
+- [x] Task: Implement **wait-for-CI** (poll `gh run watch` or equivalent) and clear pass/fail
+      reporting. `c405983`
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Build the orchestration script'
+      (Protocol in workflow.md) - verified directly (prompting off): `bash -n` syntax check
+      passes; `--help`/missing-arg/invalid-field-spec-path all behave correctly; generate (with
+      and without `--field-spec`) succeeds locally; the collision-abort path was proven for real
+      against this repo's own already-existing name (`--repo-name pure-service-generator`), with
+      no side effects. Repo-creation/push/CI-wait are inherently unprovable without a real
+      GitHub Actions run — proven live in Phase 3.
 
 ## Phase 3: Live end-to-end verification
 This phase has real, external side effects (creates public GitHub repos, uses your `gh`
