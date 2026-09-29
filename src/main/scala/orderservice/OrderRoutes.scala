@@ -90,6 +90,18 @@ object OrderRoutes {
       .out(jsonBody[OrderResponse])
       .errorOut(notFoundOutput)
 
+  private val replaceOrderEndpoint: PublicEndpoint[
+    (String, UpdateOrderRequest),
+    OrderError,
+    OrderResponse,
+    Any
+  ] =
+    endpoint.put
+      .in("orders" / path[String]("id"))
+      .in(jsonBody[UpdateOrderRequest])
+      .out(jsonBody[OrderResponse])
+      .errorOut(notFoundOutput)
+
   private val deleteOrderEndpoint
       : PublicEndpoint[String, OrderError, Unit, Any] =
     endpoint.delete
@@ -151,32 +163,51 @@ object OrderRoutes {
       } yield result
     }
 
+  /** Shared handler for `PATCH` (partial update) and `PUT` (full replace) —
+    * both call `OrderStore.update` with the same required quantity/status body;
+    * only the logged HTTP method differs.
+    */
+  private def updateLogic[F[_]: Async](
+      store: OrderStore[F],
+      logger: StructuredLogger[F],
+      httpMethod: String
+  )(id: String, req: UpdateOrderRequest): F[Either[OrderError, OrderResponse]] =
+    for {
+      _ <- logger.info(
+        Map(
+          "method" -> httpMethod,
+          "path" -> s"/orders/$id",
+          "order_id" -> id,
+          "quantity" -> req.quantity.toString,
+          "status" -> req.status
+        )
+      )("Received request")
+      result <- store.update(id, req.quantity, req.status).flatMap {
+        case Some(order) =>
+          logger
+            .info(Map("order_id" -> id))("Request completed")
+            .as(Right(OrderResponse(order)))
+        case None =>
+          logger
+            .warn(Map("order_id" -> id))("Order not found")
+            .as(Left(OrderNotFound))
+      }
+    } yield result
+
   def updateOrderServerEndpoint[F[_]: Async](
       store: OrderStore[F],
       logger: StructuredLogger[F]
   ): ServerEndpoint[Any, F] =
     updateOrderEndpoint.serverLogic[F] { case (id, req) =>
-      for {
-        _ <- logger.info(
-          Map(
-            "method" -> "PATCH",
-            "path" -> s"/orders/$id",
-            "order_id" -> id,
-            "quantity" -> req.quantity.toString,
-            "status" -> req.status
-          )
-        )("Received request")
-        result <- store.update(id, req.quantity, req.status).flatMap {
-          case Some(order) =>
-            logger
-              .info(Map("order_id" -> id))("Request completed")
-              .as(Right(OrderResponse(order)))
-          case None =>
-            logger
-              .warn(Map("order_id" -> id))("Order not found")
-              .as(Left(OrderNotFound))
-        }
-      } yield result
+      updateLogic(store, logger, "PATCH")(id, req)
+    }
+
+  def replaceOrderServerEndpoint[F[_]: Async](
+      store: OrderStore[F],
+      logger: StructuredLogger[F]
+  ): ServerEndpoint[Any, F] =
+    replaceOrderEndpoint.serverLogic[F] { case (id, req) =>
+      updateLogic(store, logger, "PUT")(id, req)
     }
 
   def deleteOrderServerEndpoint[F[_]: Async](
@@ -210,6 +241,7 @@ object OrderRoutes {
         serverEndpoint(store, logger),
         getOrderServerEndpoint(store, logger),
         updateOrderServerEndpoint(store, logger),
+        replaceOrderServerEndpoint(store, logger),
         deleteOrderServerEndpoint(store, logger)
       )
     )
