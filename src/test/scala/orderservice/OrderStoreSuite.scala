@@ -39,4 +39,28 @@ class OrderStoreSuite extends CatsEffectSuite {
       second <- store.create("widget", 1)
     } yield assertNotEquals(first.id, second.id)
   }
+
+  test("update changes quantity and status and returns the updated order") {
+    for {
+      store <- OrderStore.inMemory[IO]
+      created <- store.create("widget", 2)
+      updated <- store.update(created.id, 5, "shipped")
+    } yield {
+      assertEquals(updated.map(_.id), Some(created.id))
+      assertEquals(updated.map(_.item), Some("widget"))
+      assertEquals(updated.map(_.quantity), Some(5))
+      assertEquals(updated.map(_.status), Some("shipped"))
+      assert(
+        updated.exists(!_.updatedAt.isBefore(created.updatedAt)),
+        s"expected updatedAt not to move backwards, got: $updated"
+      )
+    }
+  }
+
+  test("update returns None for an unknown id") {
+    for {
+      store <- OrderStore.inMemory[IO]
+      result <- store.update("unknown-id", 5, "shipped")
+    } yield assertEquals(result, None)
+  }
 }
