@@ -1,0 +1,36 @@
+Phase 2 Completion: Template the Scala source
+
+Automated tests: N/A directly for this phase's own commits (no test suite
+lives in the template files themselves, since they contain placeholder tokens
+that aren't valid Scala until generated). The real verification is generating
+output and running its test suite - see below.
+
+Manual verification: prompting is off for this project (.claude/prompt-off),
+so this phase's manual verification was done directly rather than via an
+interactive walkthrough.
+
+Commands:
+  sbt runMain giter8.LauncherMain file:///Users/p.beckford.ext/dev/personal/pure-service-generator/src/main/g8 --domain_name=widget -o <tmp>/widget-service
+  cd <tmp>/widget-service && sbt scalafmt Test/scalafmt scalafmtCheck Test/scalafmtCheck test
+  (repeated with --package=com.example.widgetservice, then sbt compile)
+
+Result: all checks passed.
+1. Generation produced all 21 expected files, correctly named (WidgetError.scala,
+   WidgetStore.scala, etc. - confirming the "cap" format fix) - OK
+2. sbt scalafmt (one reformat pass expected - see below) then scalafmtCheck - OK
+3. sbt test: 52/52 pass, identical count/behavior to the source repo's own suite - OK
+4. --package=com.example.widgetservice: nested com/example/widgetservice directories
+   created correctly, package declaration correct, compiles cleanly - OK
+5. Source repo's own `sbt test` still passes (52/52), unaffected by src/main/g8/ - OK
+
+Note: a freshly generated project needs one `sbt scalafmt` pass before
+scalafmtCheck passes cleanly - identifier-length differences (e.g. "Widget" vs
+"Order") shift line-wrapping versus the source repo's own formatting. This is
+expected/cosmetic, not a template defect - documented in Phase 3's README task.
+
+Scope: all changes since the Phase 1 checkpoint (f0bb1ba).
+Changed files: conductor/tracks/g8-template_20260929/plan.md,
+src/main/g8/src/main/resources/application.conf,
+src/main/g8/src/main/scala/$package$/*.scala (7 files),
+src/main/g8/src/test/scala/$package$/*.scala (7 files) and examples/*.scala,
+src/main/g8/src/test/resources/docker-java.properties.
