@@ -1,0 +1,26 @@
+Phase 3 Completion: Add PATCH /orders/{id}
+
+Automated tests: sbt -batch scalafmtCheck Test/scalafmtCheck test - 35/35 passed,
+0 failures.
+
+Manual verification: prompting is off for this project (.claude/prompt-off), so
+this phase's manual verification ran via a committed script instead of an
+interactive walkthrough.
+
+Command: ./scripts/verify-patch-endpoint.sh
+
+Result: all checks passed.
+1. docker compose up -d (fresh Postgres volume) - healthy - OK
+2. order-service boots via plain foreground `sbt run` backgrounded at the shell
+   level (not `sbt bgRun`, which hangs when scripted - see tech-stack.md) - OK
+3. POST /orders creates an order - OK
+4. PATCH /orders/{id} {quantity:9,status:"shipped"} returns 200 with the updated
+   fields - OK
+5. GET /orders/{id} reflects the persisted update - OK
+6. PATCH /orders/{unknown-id} returns 404 - OK
+
+Scope: all changes since the Phase 2 checkpoint (b4f3ad6).
+Changed files: conductor/tech-stack.md, conductor/tracks/pure-service-generator_20260929/plan.md,
+src/main/scala/orderservice/{Main,OrderRoutes,OrderStore}.scala,
+src/test/scala/orderservice/{OrderStoreSuite,OrderRoutesSuite,OrderStorePostgresSuite}.scala,
+scripts/verify-patch-endpoint.sh (new).
