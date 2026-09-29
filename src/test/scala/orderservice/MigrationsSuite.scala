@@ -15,7 +15,7 @@ class MigrationsSuite extends CatsEffectSuite with TestContainerForAll {
       DockerImageName.parse("postgres:16-alpine")
     )
 
-  test("running migrations creates the orders table") {
+  test("running migrations creates the order table") {
     withContainers { postgres =>
       val config = PostgresConfig(
         host = postgres.host,
@@ -35,7 +35,7 @@ class MigrationsSuite extends CatsEffectSuite with TestContainerForAll {
           val rs = conn
             .createStatement()
             .executeQuery(
-              "select column_name, data_type from information_schema.columns where table_name = 'orders' order by ordinal_position"
+              "select column_name, data_type from information_schema.columns where table_name = 'order' order by ordinal_position"
             )
           val columns = Iterator
             .unfold(())(_ =>
@@ -44,7 +44,14 @@ class MigrationsSuite extends CatsEffectSuite with TestContainerForAll {
             .toList
           assertEquals(
             columns,
-            List("id", "item", "quantity", "status", "created_at")
+            List(
+              "id",
+              "item",
+              "quantity",
+              "status",
+              "created_at",
+              "updated_at"
+            )
           )
         } finally conn.close()
       }

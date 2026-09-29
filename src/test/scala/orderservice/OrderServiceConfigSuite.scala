@@ -14,9 +14,9 @@ class OrderServiceConfigSuite extends CatsEffectSuite {
       |postgres {
       |  host = "localhost"
       |  port = 5432
-      |  database = "orders"
-      |  user = "orders"
-      |  password = "orders"
+      |  database = "order"
+      |  user = "order"
+      |  password = "order"
       |}
       |""".stripMargin
 
@@ -32,9 +32,9 @@ class OrderServiceConfigSuite extends CatsEffectSuite {
           postgres = PostgresConfig(
             host = "localhost",
             port = 5432,
-            database = "orders",
-            user = "orders",
-            password = "orders"
+            database = "order",
+            user = "order",
+            password = "order"
           )
         )
       )
@@ -49,8 +49,8 @@ class OrderServiceConfigSuite extends CatsEffectSuite {
         |postgres {
         |  host = "localhost"
         |  port = 5432
-        |  database = "orders"
-        |  user = "orders"
+        |  database = "order"
+        |  user = "order"
         |}
         |""".stripMargin
 
@@ -64,7 +64,7 @@ class OrderServiceConfigSuite extends CatsEffectSuite {
       assertEquals(config.serviceName, "order-service")
       assertEquals(
         config.postgres,
-        PostgresConfig("localhost", 5432, "orders", "orders", "orders")
+        PostgresConfig("localhost", 5432, "order", "order", "order")
       )
     }
   }

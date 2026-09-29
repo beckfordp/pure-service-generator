@@ -48,7 +48,7 @@ object OrderStore {
 
   private val insertOrder: skunk.Query[(UUID, String, Int), OffsetDateTime] =
     sql"""
-      INSERT INTO orders (id, item, quantity)
+      INSERT INTO "order" (id, item, quantity)
       VALUES ($uuid, $text, $int4)
       RETURNING created_at
     """.query(timestamptz)
@@ -57,7 +57,7 @@ object OrderStore {
       : skunk.Query[UUID, (String, Int, String, OffsetDateTime)] =
     sql"""
       SELECT item, quantity, status, created_at
-      FROM orders
+      FROM "order"
       WHERE id = $uuid
     """.query(text *: int4 *: text *: timestamptz)
 
