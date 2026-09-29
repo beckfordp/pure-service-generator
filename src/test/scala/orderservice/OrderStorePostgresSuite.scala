@@ -284,4 +284,33 @@ class OrderStorePostgresSuite extends CatsEffectSuite with TestContainerForAll {
       }
     }
   }
+
+  test(
+    "full CRUD lifecycle: create -> read -> patch -> delete -> read-404, plus a readiness check"
+  ) {
+    withContainers { postgres =>
+      val config = configFor(postgres)
+      Migrations.run[IO](config) *> OrderStore
+        .postgres[IO](config, Meter.noop[IO])
+        .use { store =>
+          for {
+            ready <- store.ping
+            created <- store.create("widget", 2)
+            read1 <- store.get(created.id)
+            updated <- store.update(created.id, 9, "shipped")
+            read2 <- store.get(created.id)
+            deleted <- store.delete(created.id)
+            read3 <- store.get(created.id)
+          } yield {
+            assert(ready, "expected the database to be ready")
+            assertEquals(read1, Some(created))
+            assertEquals(updated.map(_.quantity), Some(9))
+            assertEquals(updated.map(_.status), Some("shipped"))
+            assertEquals(read2, updated)
+            assert(deleted, "expected delete to report the order existed")
+            assertEquals(read3, None)
+          }
+        }
+    }
+  }
 }
