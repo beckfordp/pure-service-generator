@@ -1,0 +1,27 @@
+Phase 7 Completion: Add PUT /orders/{id}
+
+Automated tests: sbt -batch scalafmtCheck Test/scalafmtCheck test - 52/52 passed,
+0 failures.
+
+Manual verification: prompting is off for this project (.claude/prompt-off), so
+this phase's manual verification ran via a committed script instead of an
+interactive walkthrough.
+
+Command: ./scripts/verify-put-endpoint.sh
+
+Result: all checks passed.
+1. docker compose up -d (fresh Postgres volume) - healthy - OK
+2. order-service boots via plain foreground `sbt run` - OK
+3. POST /orders creates an order - OK
+4. PUT /orders/{id} {quantity:9,status:"shipped"} returns 200 with the
+   replaced fields - OK
+5. GET /orders/{id} reflects the persisted replacement - OK
+6. PUT /orders/{unknown-id} returns 404 - OK
+
+Scope: all changes since the Phase 6 checkpoint (f818aa2).
+Changed files: conductor/tracks/pure-service-generator_20260929/{plan,spec}.md,
+README.md, src/main/resources/application.conf,
+src/main/scala/orderservice/{Main,OrderRoutes}.scala,
+src/test/scala/orderservice/OrderRoutesSuite.scala,
+src/test/scala/orderservice/examples/ClientResilienceExampleSuite.scala,
+scripts/verify-put-endpoint.sh (new).
