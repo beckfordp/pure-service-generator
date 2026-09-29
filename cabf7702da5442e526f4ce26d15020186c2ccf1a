@@ -1,0 +1,26 @@
+Task: Build the Docker image and run the full stack via docker compose up
+
+Summary:
+Built order-service:latest via sbt Docker/publishLocal (sbt-native-packager,
+JavaAppPackaging + DockerPlugin), then ran it as a real container on the
+docker-compose network (POSTGRES_HOST=postgres, port 8080 mapped) alongside a
+freshly-started, real Postgres - not sbt run this time, the actual packaged
+artifact. Exercised the full CRUD + health surface against the container:
+POST/GET/PATCH/DELETE /orders, GET-after-DELETE (404), /health, /health/ready,
+and Swagger UI at /docs - all passed.
+
+docker-compose.yml itself stays Postgres-only per this track's Phase 1
+decision; "the full stack" here means docker compose (Postgres) + the built
+image run alongside it on the same Docker network, not adding order-service
+as a compose service (which was never required by spec.md's FRs - only a
+Docker image via sbt-native-packager was).
+
+Files changed:
+- scripts/verify-docker-image.sh (new)
+
+Why: Closes this track's acceptance criteria - proves the Docker image (not
+just the sbt-run dev path) is a real, deployable artifact.
+
+Verification: the script itself is the verification - all 8 checks passed
+(image built, Postgres healthy, container ready, POST/GET/PATCH/DELETE/health/
+ready/docs all correct) against a real container instance.
