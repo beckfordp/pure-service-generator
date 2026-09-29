@@ -1,0 +1,25 @@
+Phase 5 Completion: Add GET /health and GET /health/ready
+
+Automated tests: sbt -batch scalafmtCheck Test/scalafmtCheck test - 49/49 passed,
+0 failures.
+
+Manual verification: prompting is off for this project (.claude/prompt-off), so
+this phase's manual verification ran via a committed script instead of an
+interactive walkthrough.
+
+Command: ./scripts/verify-health-endpoints.sh
+
+Result: all checks passed.
+1. docker compose up -d (fresh Postgres volume) - healthy - OK
+2. order-service boots via plain foreground `sbt run` - OK
+3. GET /health returns 200 - OK
+4. GET /health/ready returns 200 while Postgres is up - OK
+5. docker compose stop postgres, then GET /health/ready returns 503 - OK
+6. GET /health still returns 200 with Postgres down (liveness != readiness) - OK
+
+Scope: all changes since the Phase 4 checkpoint (3c0e2e2).
+Changed files: conductor/tracks/pure-service-generator_20260929/plan.md,
+src/main/scala/orderservice/HealthRoutes.scala (new),
+src/main/scala/orderservice/{Main,OrderStore}.scala,
+src/test/scala/orderservice/{OrderRoutesSuite,OrderStorePostgresSuite,HealthRoutesSuite}.scala,
+scripts/verify-health-endpoints.sh (new).
