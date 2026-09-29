@@ -36,7 +36,7 @@ Phase 1.
 
 ## Phase 3: Rework the transformation engine for per-field visibility
 The core of this track — two related changes to `AnchorTransformer`/`FieldRenderers`.
-- [ ] Task: Write failing tests (Red) — (a) a "bare list start" fixture (an inline marker with
+- [x] Task: Write failing tests (Red) — (a) a "bare list start" fixture (an inline marker with
       *no* preceding items, e.g. `create(/* MARKER */)`, and an own-line marker whose preceding
       line ends in an opening bracket) asserting the first rendered field gets no leading comma
       and no corrupted preceding-line comma-fixup; (b) per-tag visibility filtering (e.g.
@@ -44,11 +44,20 @@ The core of this track — two related changes to `AnchorTransformer`/`FieldRend
       only `create-and-update`/`server-defaulted`, in field-spec declaration order); (c)
       `server-defaulted` fields render a `default<Field>` constant reference in
       `CONSTRUCT_ARGS`/`SQL_INSERT_TUPLE_ARGS` instead of a create-param reference. Confirm all
-      fail.
-- [ ] Task: Implement (Green) — the bare-list-start join style, the per-tag visibility filter
+      fail. `9e0c01c`
+- [x] Task: Implement (Green) — the bare-list-start join style, the per-tag visibility filter
       table, and `default<Field>` constant generation/declaration. Run the suite, confirm green.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Rework the transformation engine for
-      per-field visibility' (Protocol in workflow.md)
+      `9e0c01c`
+
+      Generalized further than originally scoped: rather than a special-cased "bare list start"
+      style, the join style (leading/trailing/bare/SQL-keyword-preceded/fixed-non-empty-suffix)
+      is auto-detected from the literal text on both sides of every marker, covering the
+      zero-rendered-fields case (e.g. every field is `create-only`, so `UPDATE_PARAMS` has
+      nothing to add) uniformly rather than as a separate mechanism.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Rework the transformation engine for
+      per-field visibility' (Protocol in workflow.md) - verified directly (prompting off):
+      59/59 tests green (26 new) on the first real run, scalafmt clean; all pre-existing tests
+      (backward compatibility) still pass unchanged.
 
 ## Phase 4: Regression-check the simple (no-visibility) case
 - [ ] Task: Re-run `tools/codegen`'s existing test suite and `scripts/verify-codegen-tool.sh`
