@@ -94,4 +94,123 @@ class FieldSpecParserSuite extends FunSuite {
     )
     assert(result.isRight, s"expected a Right, got: $result")
   }
+
+  test(
+    "defaults visibility to CreateAndUpdate and default to None when omitted"
+  ) {
+    val result = FieldSpecParser.parse(
+      """fields:
+        |  - name: color
+        |    type: String
+        |    example: "red"
+        |""".stripMargin
+    )
+    assertEquals(
+      result,
+      Right(FieldSpec(List(Field("color", FieldType.StringType, "red"))))
+    )
+    assertEquals(
+      result.toOption.get.fields.head.visibility,
+      Visibility.CreateAndUpdate
+    )
+    assertEquals(result.toOption.get.fields.head.default, None)
+  }
+
+  test("parses an explicit create-only visibility") {
+    val result = FieldSpecParser.parse(
+      """fields:
+        |  - name: item
+        |    type: String
+        |    example: "widget"
+        |    visibility: create-only
+        |""".stripMargin
+    )
+    assertEquals(
+      result,
+      Right(
+        FieldSpec(
+          List(
+            Field("item", FieldType.StringType, "widget", Visibility.CreateOnly)
+          )
+        )
+      )
+    )
+  }
+
+  test("parses a server-defaulted visibility with its required default") {
+    val result = FieldSpecParser.parse(
+      """fields:
+        |  - name: status
+        |    type: String
+        |    example: "shipped"
+        |    visibility: server-defaulted
+        |    default: "created"
+        |""".stripMargin
+    )
+    assertEquals(
+      result,
+      Right(
+        FieldSpec(
+          List(
+            Field(
+              "status",
+              FieldType.StringType,
+              "shipped",
+              Visibility.ServerDefaulted,
+              Some("created")
+            )
+          )
+        )
+      )
+    )
+  }
+
+  test("rejects a server-defaulted field missing its default") {
+    val result = FieldSpecParser.parse(
+      """fields:
+        |  - name: status
+        |    type: String
+        |    example: "shipped"
+        |    visibility: server-defaulted
+        |""".stripMargin
+    )
+    assert(result.isLeft, s"expected a Left, got: $result")
+  }
+
+  test("rejects a default key on a non-server-defaulted field") {
+    val result = FieldSpecParser.parse(
+      """fields:
+        |  - name: quantity
+        |    type: Int
+        |    example: "5"
+        |    default: "1"
+        |""".stripMargin
+    )
+    assert(result.isLeft, s"expected a Left, got: $result")
+  }
+
+  test("rejects an unknown visibility value") {
+    val result = FieldSpecParser.parse(
+      """fields:
+        |  - name: color
+        |    type: String
+        |    example: "red"
+        |    visibility: read-only
+        |""".stripMargin
+    )
+    assert(result.isLeft, s"expected a Left, got: $result")
+  }
+
+  test("rejects a default that doesn't parse as its declared type's literal") {
+    val result = FieldSpecParser.parse(
+      """fields:
+        |  - name: weight
+        |    type: Int
+        |    example: "5"
+        |    visibility: server-defaulted
+        |    default: "not-a-number"
+        |""".stripMargin
+    )
+    assert(result.isLeft, s"expected a Left, got: $result")
+  }
 }
