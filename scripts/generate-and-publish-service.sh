@@ -188,7 +188,7 @@ STEP=$((STEP + 1))
 echo
 echo "$STEP. Setting GH_PACKAGES_TOKEN CI secret (before the first push, so CI can resolve"
 echo "   GitHub Packages)..."
-gh secret set GH_PACKAGES_TOKEN --repo "$OWNER/$REPO_NAME" --body "$(gh auth token)" \
+gh auth token | gh secret set GH_PACKAGES_TOKEN --repo "$OWNER/$REPO_NAME" \
   >"$WORK_DIR/secret-set.log" 2>&1 || {
   echo "   FAIL: gh secret set failed" >&2
   cat "$WORK_DIR/secret-set.log" >&2
@@ -214,7 +214,7 @@ PUSHED_SHA="$(cd "$GEN_DIR" && git rev-parse HEAD)"
 RUN_ID=""
 for _ in $(seq 1 30); do
   RUN_ID="$(gh run list --repo "$OWNER/$REPO_NAME" --json databaseId,headSha \
-    --jq ".[] | select(.headSha == \"$PUSHED_SHA\") | .databaseId" 2>/dev/null | head -1)"
+    --jq ".[] | select(.headSha == \"$PUSHED_SHA\") | .databaseId" 2>/dev/null | head -1 || true)"
   if [ -n "$RUN_ID" ]; then
     break
   fi
