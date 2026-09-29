@@ -19,15 +19,18 @@ infrastructure, not new runtime behavior - verified by "still compiles/passes", 
       catalog sweep.
 
 ## Phase 2: Scaffold the codegen tool and field-spec parsing
-- [ ] Task: Write failing tests (Red) - `tools/codegen/` munit tests for parsing a YAML
+- [x] Task: Write failing tests (Red) - `tools/codegen/` munit tests for parsing a YAML
       field-spec (name/type/example list) into a typed `Field` model; confirm they fail to
-      compile (no parser yet).
-- [ ] Task: Implement (Green) - scaffold `tools/codegen/` as its own sbt project (sibling to,
+      compile (no parser yet). `c2977da`
+- [x] Task: Implement (Green) - scaffold `tools/codegen/` as its own sbt project (sibling to,
       not aggregated into, the reference service's build), using `circe-yaml` (consistent with
       this project's existing circe usage) to parse into `Field(name, type, example)`. Run the
-      suite, confirm green.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Scaffold the codegen tool and
-      field-spec parsing' (Protocol in workflow.md)
+      suite, confirm green. `c2977da`
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Scaffold the codegen tool and
+      field-spec parsing' (Protocol in workflow.md) - verified directly (prompting off):
+      `sbt scalafmtCheck Test/scalafmtCheck test` in `tools/codegen/` green, 4/4 tests pass
+      (well-formed spec, empty fields rejected, unknown type rejected, malformed YAML
+      rejected).
 
 ## Phase 3: Field-insertion transformation logic
 - [ ] Task: Write failing tests (Red) - unit tests (small in-memory string fixtures, not real

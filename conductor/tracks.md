@@ -14,5 +14,10 @@ folder), so `/conductor:implement` cannot pick these up by accident. Reorder fre
 priorities change. When ready to work on one, run `/conductor:newTrack <title>` to go
 through the spec/plan questions and promote it into a real track below.
 - Automated generation → repo-creation → push → CI pipeline
+- Make the base entity fields (currently fixed `item`/`quantity`/`status` on top of
+  `id`/`createdAt`/`updatedAt`) themselves field-spec-driven, so a generated service isn't
+  stuck with order-specific fields for non-order domains. Needs per-field create/update
+  visibility in the field model (deferred out of field-codegen_20260929 v1, which assumes
+  every field appears in create/update/response uniformly) — see that track's spec.md.
 
 ---
