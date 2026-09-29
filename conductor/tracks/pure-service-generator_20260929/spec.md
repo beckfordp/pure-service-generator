@@ -22,9 +22,13 @@ CI/CD generation are explicitly deferred to follow-on backlog tracks.
    - `GET /orders/{id}` — read (existing)
    - `PATCH /orders/{id}` — partial update (new — quantity/status; adds an `updated_at` column,
      set on every update)
+   - `PUT /orders/{id}` — full replace (new, user-requested 2026-09-29 — idempotent, same
+     required `quantity`/`status` body as `PATCH` since this resource has no other
+     client-writable fields; 404 for an unknown id, no `PUT`-to-create since ids are
+     server-assigned)
    - `DELETE /orders/{id}` — delete (new — 204, subsequent GET 404s)
    `OrderStore[F]` gains `update`/`delete` methods, implemented for both the in-memory
-   (unit-test) and Postgres (integration) backends.
+   (unit-test) and Postgres (integration) backends. `PUT` and `PATCH` both call `update`.
 5. Carry over order-service's tracing, structured logging, metrics, tapir routes/OpenAPI/Swagger
    docs, PureConfig-driven `application.conf`, Flyway migrations, Docker image via
    sbt-native-packager. (Resilience — retry + circuit breaker — is **not** carried over; see
@@ -43,8 +47,8 @@ CI/CD generation are explicitly deferred to follow-on backlog tracks.
 - Repo builds/tests standalone (`sbt test`), zero dependency on purerest's source tree.
 - Postgres database/table named `order` (singular); documented as the one-db-per-service
   convention in this repo's README.
-- All four CRUD endpoints implemented, tapir/Docs.routes-wired (visible in Swagger),
-  unit-tested.
+- All five CRUD endpoints (create, read, partial update, full replace, delete) implemented,
+  tapir/Docs.routes-wired (visible in Swagger), unit-tested.
 - `GET /health` / `GET /health/ready` implemented and unit-tested.
 - A Testcontainers integration test proves the full CRUD lifecycle end-to-end against real
   Postgres.

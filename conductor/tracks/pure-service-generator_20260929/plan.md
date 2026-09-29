@@ -74,7 +74,25 @@
       confirm green. [9965e5a] Nothing to fix; Phases 3-5 already implemented update/delete/ping.
 - [x] Task: Write this repo's `README.md` (prerequisites, quickstart, one-db-per-service note,
       Swagger UI link) mirroring order-service's own docs. [2a03b1b]
-- [ ] Task: Build the Docker image and run the full stack once via `docker compose up`,
+- [~] Task: Build the Docker image and run the full stack once via `docker compose up`,
       confirming all endpoints respond correctly end-to-end.
 - [ ] Task: Conductor - User Manual Verification 'Phase 6: Full CRUD lifecycle integration test,
       README, and final polish' (Protocol in workflow.md)
+
+## Phase 7: Add `PUT /orders/{id}` (full replace)
+Scope addition, user-requested 2026-09-29 (after the CRUD/health phases above were already
+complete) — see spec.md's Functional Requirements for the updated endpoint list. `PUT` is
+idempotent full-record replacement (both `quantity`/`status` required, same as `PATCH`'s body —
+this resource has no other client-writable fields), distinct from `PATCH`'s partial-update
+semantics; both return 404 for an unknown id (this repo doesn't support client-chosen ids, so
+`PUT`-to-create isn't offered).
+- [ ] Task: Write failing tests (Red) — extend `OrderRoutesSuite` with `PUT /orders/{id}` tests
+      (200 + replaced order, 404 for unknown id); confirm it fails to compile (no `PUT` endpoint
+      yet).
+- [ ] Task: Implement (Green) — add a tapir `PUT /orders/{id}` endpoint + `OrderRoutes`/`Main`
+      wiring, reusing `OrderStore.update` (same semantics as `PATCH`). Run the suite, confirm
+      green.
+- [ ] Task: Update README's quickstart curl walkthrough and spec.md's endpoint list to include
+      `PUT`.
+- [ ] Task: Conductor - User Manual Verification 'Phase 7: Add PUT /orders/{id}' (Protocol in
+      workflow.md)
