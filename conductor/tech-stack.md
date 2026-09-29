@@ -59,12 +59,23 @@
   property literally named `package` supports reverse-domain nesting). Generated via
   `giter8-launcher` (see "giter8 gotchas" below), not sbt's built-in `new` command. See README's
   "Generating a new service from this template".
+- **field-codegen** (`tools/codegen/`) — a standalone sbt project (own build, not aggregated into
+  the root build) that extends a generated service with extra domain fields from a YAML
+  field-spec (`circe-yaml` for parsing). Rewrites every insertion point via `codegen:fields:<TAG>`
+  anchor comments embedded in the g8 template — chosen over pattern-matching Scala/SQL shape
+  since this repo controls both ends. Own-line vs. inline placement and the join style (leading
+  comma, trailing comma, Skunk's `*:` combinator) are auto-detected from the surrounding text, so
+  no per-tag layout configuration is needed. See README's "Adding domain fields with the
+  field-codegen tool".
 
 ## Known Constraints
-- **Parametrized field codegen and generation-time CI/CD wiring not built yet.** The giter8
-  template (see "Code Generation" above) covers naming/package renaming only — an entity-field
-  list expanding into a case class/migration/codec, and a generate → repo-create → push → CI
-  pipeline, remain future work. See `product.md`'s Non-Goals/Future Direction.
+- **Generation-time CI/CD wiring not built yet.** A generate → repo-create → push → CI pipeline
+  remains future work. See `product.md`'s Non-Goals/Future Direction.
+- **field-codegen is additive-only and not idempotent (2026-09-29).** It consumes each file's
+  anchor comments as it rewrites them, so running it twice against the same generated project
+  fails on the second run. It also can't touch the fixed `item`/`quantity`/`status` fields (their
+  create/update visibility is asymmetric; the tool's field model is uniform) — see the backlog
+  item in `conductor/tracks.md` for generalizing this.
 - **giter8 gotchas (discovered 2026-09-29, building the template).** (1) giter8's
   capitalize-first-letter format name is lowercase `cap`, not `Cap` — an unrecognized format name
   is silently ignored (falls back to the raw value) rather than erroring, so this only surfaces by
