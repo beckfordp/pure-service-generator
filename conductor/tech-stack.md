@@ -15,7 +15,9 @@
 - **Cats Effect 3** — tagless-final, typeclass-based APIs throughout (`F[_]: Async`, etc.).
 
 ## HTTP
-- **http4s** — server, via purerest's resilient client conventions where applicable.
+- **http4s** — server only. No outbound HTTP client in the live service (see "No
+  inventory-service coupling" below); `ClientResilienceExampleSuite` demonstrates purerest's
+  resilient-client pattern for whoever adapts this template to add one.
 
 ## API Documentation
 - **tapir** — endpoints described once as tapir values; purerest's `purerest.docs.Docs`
