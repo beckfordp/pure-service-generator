@@ -1,0 +1,8 @@
+{
+  "track_id": "g8-template_20260929",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-09-29T15:35:00Z",
+  "updated_at": "2026-09-29T15:35:00Z",
+  "description": "Build a giter8 (g8) template for service/domain/package renaming"
+}
