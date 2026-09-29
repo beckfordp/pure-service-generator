@@ -41,6 +41,11 @@ curl http://localhost:8080/orders/<id>
 curl -X PATCH http://localhost:8080/orders/<id> \
   -H "Content-Type: application/json" -d '{"quantity":5,"status":"shipped"}'
 
+# Or fully replace it (same required fields as PATCH — this resource has no
+# other client-writable ones — but PUT is idempotent full-replace semantics)
+curl -X PUT http://localhost:8080/orders/<id> \
+  -H "Content-Type: application/json" -d '{"quantity":5,"status":"shipped"}'
+
 # Delete it
 curl -X DELETE http://localhost:8080/orders/<id>
 
