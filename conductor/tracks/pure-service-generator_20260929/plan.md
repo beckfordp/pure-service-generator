@@ -16,12 +16,12 @@
       instead of an interactive walkthrough. [1ab7933]
 
 ## Phase 2: Adopt one-database-per-service naming
-- [ ] Task: Flatten the ported V1/V2 migrations into one initial migration creating a singular
+- [x] Task: Flatten the ported V1/V2 migrations into one initial migration creating a singular
       `order` table (domain name, not `orders`); rename the Postgres database to `order` in
       `docker-compose.yml`/`application.conf` defaults; add an `updated_at TIMESTAMPTZ` column
-      for the update endpoint in Phase 3.
-- [ ] Task: Verify the ported `OrderStorePostgresSuite` passes against the renamed
-      database/table.
+      for the update endpoint in Phase 3. [06463a5]
+- [x] Task: Verify the ported `OrderStorePostgresSuite` passes against the renamed
+      database/table. [06463a5]
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Adopt one-database-per-service
       naming' (Protocol in workflow.md)
 
