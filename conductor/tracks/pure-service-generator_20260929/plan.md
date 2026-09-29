@@ -26,15 +26,16 @@
       naming' (Protocol in workflow.md). Prompting off: verified via
       `scripts/verify-order-database-naming.sh` instead of an interactive walkthrough. [b4f3ad6]
 
-## Phase 3: Add `PATCH /orders/{id}` (update)
+## Phase 3: Add `PATCH /orders/{id}` (update) [checkpoint: 04b5b11]
 - [x] Task: Write failing tests (Red) — extend `OrderStoreSuite` with an `update` test
       (in-memory store); confirm it fails to compile (no `update` method yet). [ae00e61]
 - [x] Task: Implement (Green) — add `update(id, quantity, status): F[Option[Order]]` to
       `OrderStore[F]`, both in-memory and Postgres backends (sets `updated_at`); add a tapir
       `PATCH /orders/{id}` endpoint + `OrderRoutes` wiring; extend `OrderRoutesSuite` for the
       new endpoint. Run the suite, confirm green. [354559e]
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Add PATCH /orders/{id}' (Protocol in
-      workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Add PATCH /orders/{id}' (Protocol in
+      workflow.md). Prompting off: verified via `scripts/verify-patch-endpoint.sh` instead of an
+      interactive walkthrough. [04b5b11]
 
 ## Phase 4: Add `DELETE /orders/{id}`
 - [ ] Task: Write failing tests (Red) — extend `OrderStoreSuite` with a `delete` test; confirm
