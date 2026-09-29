@@ -83,7 +83,9 @@ infrastructure, not new runtime behavior - verified by "still compiles/passes", 
       six checks passed.
 
 ## Phase 6: Documentation
-- [ ] Task: Document the codegen tool in this repo's own README (field-spec YAML format, how to
-      run it, the required-fields-only/no-idempotency limitations).
-- [ ] Task: Conductor - User Manual Verification 'Phase 6: Documentation' (Protocol in
-      workflow.md)
+- [x] Task: Document the codegen tool in this repo's own README (field-spec YAML format, how to
+      run it, the required-fields-only/no-idempotency limitations). `0052d23`
+- [x] Task: Conductor - User Manual Verification 'Phase 6: Documentation' (Protocol in
+      workflow.md) - verified directly (prompting off): new README section covers the field-spec
+      format, how to run the tool, and its three limitations (additive-only/non-idempotent,
+      uniform field visibility, required-only).
