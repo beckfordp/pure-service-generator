@@ -2,9 +2,6 @@
 
 This file tracks all major tracks for the project.
 
-- [x] **Track: Create pure-service-generator project from order-service reference implementation**
-  *Link: [./tracks/pure-service-generator_20260929/](./tracks/pure-service-generator_20260929/)*
-
 ---
 
 ## Backlog
