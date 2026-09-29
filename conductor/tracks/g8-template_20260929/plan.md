@@ -47,7 +47,7 @@
       the template in this repo's own README' (Protocol in workflow.md). Prompting off: verified
       directly instead of an interactive walkthrough. [5dca445]
 
-## Phase 4: End-to-end generation verification
+## Phase 4: End-to-end generation verification [checkpoint: f662fab]
 **Note (discovered during Phase 2):** `sbt new file://<path>` does not work in this environment —
 sbt's built-in `new` command only resolves a small hardcoded list of GitHub template shortcuts
 (`scala/scala3.g8`, etc.), not arbitrary `file://` URIs, in this sbt version. Verification (and
@@ -67,5 +67,6 @@ still try plain `sbt new file://<path>` first.
       acceptance-criteria proof. Also spot-check overriding `package` independently (e.g.
       `--package=com.example.widgetservice`) generates and compiles correctly. [fa16f64] All 5
       checks passed on first run.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: End-to-end generation verification'
-      (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: End-to-end generation verification'
+      (Protocol in workflow.md). Prompting off: verified via
+      `scripts/verify-g8-template.sh` instead of an interactive walkthrough. [f662fab]
