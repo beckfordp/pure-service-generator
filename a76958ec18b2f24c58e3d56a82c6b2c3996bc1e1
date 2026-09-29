@@ -1,0 +1,26 @@
+Task: Implement (Green) - DELETE /orders/{id} endpoint
+
+Summary:
+Added OrderStore[F].delete(id): F[Boolean] to both backends. In-memory:
+Ref.modify, removing the key if present and returning whether it existed.
+Postgres: DELETE ... RETURNING id via .option, so deleted = result.isDefined -
+mirrors the RETURNING + .option pattern already used for get/update, avoiding
+a separate Command/Completion API.
+
+Added a tapir DELETE /orders/{id} endpoint - 204 No Content on success, the
+existing notFoundOutput (404) if the id doesn't exist. Wired into
+OrderRoutes.routes and Main's Docs.routes list.
+
+Extended OrderRoutesSuite (204 + subsequent GET 404, 404-for-unknown-id, and
+logging tests for DELETE; failingStore now implements delete) and
+OrderStorePostgresSuite (delete success/unknown-id/malformed-id tests against
+real Postgres).
+
+Files changed:
+- src/main/scala/orderservice/{Main,OrderRoutes,OrderStore}.scala
+- src/test/scala/orderservice/{OrderStoreSuite,OrderRoutesSuite,OrderStorePostgresSuite}.scala
+
+Why: Implements this track's FR4 delete requirement (spec.md) - completes the
+CRUD surface (create/read/update remain from Phases 1-3).
+
+Verification: sbt scalafmtCheck Test/scalafmtCheck test - 44/44 pass.
