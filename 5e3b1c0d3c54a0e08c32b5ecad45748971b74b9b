@@ -1,0 +1,32 @@
+Task: Port order-service's source tree from purerest into this repo as a standalone sbt project
+
+Summary:
+Scaffolded a single-module sbt project (root, name "order-service") that resolves
+purerestlib 0.1.0 from GitHub Packages via a normal libraryDependency (no .dependsOn
+back to purerest's source tree) and added a Postgres-only docker-compose.yml. Ported
+order-service's source from purerest/modules/order-service, adapting it per this
+track's recorded deviation (spec.md "Deviations from order-service", 2026-09-29):
+dropped InventoryClient/ReservationView and the reservation_id/reserved_quantity
+schema/fields, since POST /orders' live HTTP call to inventory-service conflicted with
+this repo's Postgres-only, standalone footprint; also dropped the resilience
+(retry + circuit breaker) wiring, since it existed solely to wrap that one call.
+POST /orders now persists directly against Postgres.
+
+Also needed a dependencyOverrides fix (otel4s-core/-core-common/-core-metrics pinned
+to 1.1.0) for the same Skunk-vs-otel4s version conflict purerest's own build.sbt
+already documents and works around.
+
+Files created:
+- .scalafmt.conf, build.sbt, docker-compose.yml
+- project/build.properties, project/plugins.sbt
+- src/main/resources/application.conf
+- src/main/resources/db/migration/V1__create_orders_table.sql
+- src/main/scala/orderservice/{Main,Migrations,OrderError,OrderRoutes,OrderServiceConfig,OrderStore}.scala
+- src/test/resources/docker-java.properties
+- src/test/scala/orderservice/{MigrationsSuite,OrderDocsSuite,OrderRoutesSuite,OrderServiceConfigSuite,OrderStorePostgresSuite,OrderStoreSuite}.scala
+
+Why: This is Phase 1's foundation task - establishes the repo as a real, standalone
+consumer of purerest (proving the GitHub Packages publish/consume path works) before
+later phases add PATCH/DELETE/health endpoints and the one-database-per-service rename.
+
+Verification: sbt scalafmtCheck Test/scalafmtCheck test - all 24 tests pass, 0 failures.
