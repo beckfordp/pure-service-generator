@@ -74,8 +74,8 @@
       confirm green. [9965e5a] Nothing to fix; Phases 3-5 already implemented update/delete/ping.
 - [x] Task: Write this repo's `README.md` (prerequisites, quickstart, one-db-per-service note,
       Swagger UI link) mirroring order-service's own docs. [2a03b1b]
-- [~] Task: Build the Docker image and run the full stack once via `docker compose up`,
-      confirming all endpoints respond correctly end-to-end.
+- [x] Task: Build the Docker image and run the full stack once via `docker compose up`,
+      confirming all endpoints respond correctly end-to-end. [cabf770]
 - [ ] Task: Conductor - User Manual Verification 'Phase 6: Full CRUD lifecycle integration test,
       README, and final polish' (Protocol in workflow.md)
 
