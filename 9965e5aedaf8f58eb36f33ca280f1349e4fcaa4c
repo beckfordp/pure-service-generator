@@ -1,0 +1,24 @@
+Tasks: Full CRUD lifecycle integration test (Red + Green combined)
+
+Summary:
+Added one integration test to OrderStorePostgresSuite exercising the entire
+domain lifecycle against a real Testcontainers Postgres: ping (readiness) ->
+create -> get (read) -> update (patch) -> get (confirms persisted) -> delete
+-> get (confirms 404-equivalent None). Because Phases 3, 4, and 5 already
+implemented update/delete/ping in earlier tasks this session, the test passed
+immediately on first run - there was no actual Red phase possible at this
+point in the execution order (the plan's "confirm it fails for the right
+reason if run against a pre-Phase-3/4 checkout" framing describes what would
+happen at an earlier point in history, not this session's state). Combined
+the plan's separate Red/Green tasks into one commit since there was nothing
+to fix.
+
+Files changed:
+- src/test/scala/orderservice/OrderStorePostgresSuite.scala
+
+Why: Closes the gap between per-endpoint tests (each phase tested its own
+method in isolation) and a true end-to-end proof that the full resource
+lifecycle works together against a real database, per this track's
+acceptance criteria (spec.md).
+
+Verification: sbt scalafmtCheck Test/scalafmtCheck test - 50/50 pass.
