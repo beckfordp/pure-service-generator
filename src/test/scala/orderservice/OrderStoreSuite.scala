@@ -63,4 +63,23 @@ class OrderStoreSuite extends CatsEffectSuite {
       result <- store.update("unknown-id", 5, "shipped")
     } yield assertEquals(result, None)
   }
+
+  test("delete removes the order and returns true, and get then returns None") {
+    for {
+      store <- OrderStore.inMemory[IO]
+      created <- store.create("widget", 2)
+      deleted <- store.delete(created.id)
+      found <- store.get(created.id)
+    } yield {
+      assert(deleted)
+      assertEquals(found, None)
+    }
+  }
+
+  test("delete returns false for an unknown id") {
+    for {
+      store <- OrderStore.inMemory[IO]
+      deleted <- store.delete("unknown-id")
+    } yield assert(!deleted)
+  }
 }
