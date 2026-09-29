@@ -121,6 +121,165 @@ class AnchorTransformerSuite extends FunSuite {
     )
   }
 
+  private val createOnlyItem =
+    Field("item", FieldType.StringType, "widget", Visibility.CreateOnly)
+  private val createAndUpdateQty =
+    Field("quantity", FieldType.IntType, "5", Visibility.CreateAndUpdate)
+  private val serverDefaultedStatus = Field(
+    "status",
+    FieldType.StringType,
+    "shipped",
+    Visibility.ServerDefaulted,
+    Some("created")
+  )
+
+  test(
+    "bare inline marker (nothing precedes, closing paren follows): visibility-filtered fields join with no leading comma"
+  ) {
+    val input = "  def create(/* codegen:fields:CREATE_PARAMS */): F[Widget]"
+    // CREATE_PARAMS excludes server-defaulted fields.
+    val expected = "  def create(item: String): F[Widget]"
+    assertEquals(
+      AnchorTransformer.transform(
+        input,
+        List(createOnlyItem, serverDefaultedStatus)
+      ),
+      Right(expected)
+    )
+  }
+
+  test(
+    "bare inline marker with a fixed non-empty suffix (SQL_UPDATE_TUPLE_TYPE-style): zero filtered fields leaves the suffix untouched"
+  ) {
+    val input = "    (/* codegen:fields:SQL_UPDATE_TUPLE_TYPE */UUID)"
+    // SQL_UPDATE_TUPLE_TYPE excludes create-only fields; item is the only field, so zero render.
+    assertEquals(
+      AnchorTransformer.transform(input, List(createOnlyItem)),
+      Right("    (UUID)")
+    )
+  }
+
+  test(
+    "bare inline marker with a fixed non-empty suffix: non-zero filtered fields get a trailing separator before the suffix"
+  ) {
+    val input = "    (/* codegen:fields:SQL_UPDATE_TUPLE_TYPE */UUID)"
+    assertEquals(
+      AnchorTransformer.transform(
+        input,
+        List(createOnlyItem, createAndUpdateQty)
+      ),
+      Right("    (Int, UUID)")
+    )
+  }
+
+  test(
+    "SQL keyword-preceded bare marker (SET): zero filtered fields leaves the fixed remainder untouched"
+  ) {
+    val input =
+      "      SET /* codegen:fields:SQL_UPDATE_SET */updated_at = now()"
+    assertEquals(
+      AnchorTransformer.transform(input, List(createOnlyItem)),
+      Right("      SET updated_at = now()")
+    )
+  }
+
+  test(
+    "SQL keyword-preceded bare marker (SET): non-zero filtered fields render before the fixed remainder"
+  ) {
+    val input =
+      "      SET /* codegen:fields:SQL_UPDATE_SET */updated_at = now()"
+    assertEquals(
+      AnchorTransformer.transform(input, List(createAndUpdateQty)),
+      Right("      SET quantity = $int4, updated_at = now()")
+    )
+  }
+
+  test(
+    "own-line bare list start (preceding line ends in an opening bracket): zero filtered fields leaves the preceding line untouched"
+  ) {
+    val input =
+      """|existing.copy(
+         |  /* codegen:fields:COPY_ARGS */
+         |  updatedAt = now
+         |)""".stripMargin
+    // COPY_ARGS excludes create-only fields; item is the only field, so zero render.
+    val expected =
+      """|existing.copy(
+         |  updatedAt = now
+         |)""".stripMargin
+    assertEquals(
+      AnchorTransformer.transform(input, List(createOnlyItem)),
+      Right(expected)
+    )
+  }
+
+  test(
+    "own-line bare list start: non-zero filtered fields render without corrupting the untouched preceding line"
+  ) {
+    val input =
+      """|existing.copy(
+         |  /* codegen:fields:COPY_ARGS */
+         |  updatedAt = now
+         |)""".stripMargin
+    val expected =
+      """|existing.copy(
+         |  quantity = quantity,
+         |  updatedAt = now
+         |)""".stripMargin
+    assertEquals(
+      AnchorTransformer.transform(input, List(createAndUpdateQty)),
+      Right(expected)
+    )
+  }
+
+  test(
+    "CONSTRUCT_ARGS references a default constant for server-defaulted fields within a real transform"
+  ) {
+    val input =
+      "entity = Widget(id, /* codegen:fields:CONSTRUCT_ARGS */now, now)"
+    val expected =
+      "entity = Widget(id, quantity, defaultStatus, now, now)"
+    assertEquals(
+      AnchorTransformer.transform(
+        input,
+        List(createAndUpdateQty, serverDefaultedStatus)
+      ),
+      Right(expected)
+    )
+  }
+
+  test(
+    "DEFAULT_VALUE_DECLS renders one private val per server-defaulted field, and nothing when there are none"
+  ) {
+    val input =
+      """|object WidgetStore {
+         |  // codegen:fields:DEFAULT_VALUE_DECLS
+         |  def inMemory = ???
+         |}""".stripMargin
+
+    val withDefault =
+      """|object WidgetStore {
+         |  private val defaultStatus = "created"
+         |  def inMemory = ???
+         |}""".stripMargin
+    assertEquals(
+      AnchorTransformer.transform(
+        input,
+        List(createAndUpdateQty, serverDefaultedStatus)
+      ),
+      Right(withDefault)
+    )
+
+    val withoutAny =
+      """|object WidgetStore {
+         |  def inMemory = ???
+         |}""".stripMargin
+    assertEquals(
+      AnchorTransformer.transform(input, List(createAndUpdateQty)),
+      Right(withoutAny)
+    )
+  }
+
   test("a full multi-anchor file is transformed consistently end to end") {
     val input =
       """|final case class Widget(

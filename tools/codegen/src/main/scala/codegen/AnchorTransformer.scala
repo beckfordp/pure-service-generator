@@ -5,22 +5,32 @@ import scala.util.matching.Regex
 
 /** Rewrites a single generated source/SQL/test file by expanding every
   * `codegen:fields:<TAG>` anchor left in it (see the g8 template's anchor
-  * comments) into one rendered fragment per field in the spec.
+  * comments) into one rendered fragment per field in the spec that tag's
+  * [[FieldRenderers.visibilityFilters]] selects.
   *
-  * Two anchor forms are recognized, distinguished purely by what remains on the
-  * line once the marker text itself is removed - not by which comment syntax it
-  * uses:
-  *   - own-line: the marker is the only non-whitespace content on its line (`//
-  *     codegen:fields:TAG`, `-- codegen:fields:TAG`, or an isolated
+  * Two anchor forms are recognized, distinguished purely by what remains on
+  * the line once the marker text itself is removed - not by which comment
+  * syntax it uses:
+  *   - own-line: the marker is the only non-whitespace content on its line
+  *     (`// codegen:fields:TAG`, `-- codegen:fields:TAG`, or an isolated
   *     `/* codegen:fields:TAG */`) - replaced by one full line per field.
-  *   - inline: the marker sits alongside other code on the line (`/*
-  *     codegen:fields:TAG */`) - replaced in place by fragments joined to match
-  *     whatever precedes it (a bare item, a trailing ", ", or a Skunk `*: `
-  *     combinator chain).
+  *   - inline: the marker sits alongside other code on the line
+  *     (`/* codegen:fields:TAG */`) - replaced in place by fragments joined
+  *     to match whatever precedes/follows it.
   *
-  * An unrecognized tag (a version mismatch between this tool and the template's
-  * anchor catalog) is a nameable, expected failure - reported as `Left`, never
-  * thrown.
+  * The join style is auto-detected from the immediate neighbors on both
+  * sides, not hardcoded per tag - since the base entity's fixed fields were
+  * removed (this project's `base-fields-spec` track), a tag's anchor may sit
+  * with nothing at all preceding it (`create(/* MARKER */)`), between a
+  * SQL keyword and a fixed non-empty remainder (`SET /* MARKER */updated_at
+  * = now()`), or render zero fields entirely when every field in the spec is
+  * filtered out for that tag (e.g. every field is `create-only`, so
+  * `UPDATE_PARAMS` has nothing to add) - in which case the marker vanishes
+  * and whatever surrounds it is left exactly as it was.
+  *
+  * An unrecognized tag (a version mismatch between this tool and the
+  * template's anchor catalog) is a nameable, expected failure - reported as
+  * `Left`, never thrown.
   */
 object AnchorTransformer:
 
@@ -56,7 +66,7 @@ object AnchorTransformer:
                 else
                   val prefix = line.substring(0, m.start)
                   val suffix = line.substring(m.end)
-                  inlineFragments(tag, fields, prefix).map(frag =>
+                  inlineFragment(tag, fields, prefix, suffix).map(frag =>
                     output += prefix + frag + suffix
                   )
               case None =>
@@ -68,28 +78,82 @@ object AnchorTransformer:
 
     error.toLeft(output.mkString("\n"))
 
-  private def renderer(tag: String): Either[String, Field => String] =
-    FieldRenderers.cellRenderers
-      .get(tag)
-      .toRight(s"Unknown codegen:fields anchor tag '$tag'")
+  private def lookup(
+      tag: String
+  ): Either[String, (Field => String, Field => Boolean)] =
+    (
+      FieldRenderers.cellRenderers.get(tag),
+      FieldRenderers.visibilityFilters.get(tag)
+    ) match
+      case (Some(cell), Some(filter)) => Right((cell, filter))
+      case _ => Left(s"Unknown codegen:fields anchor tag '$tag'")
 
-  private def inlineFragments(
+  // --- boundary classification -------------------------------------------
+  //
+  // Whether a leading/trailing separator is needed around the inserted
+  // fields is decided purely from the literal text immediately before and
+  // after the marker - not from the tag - so it works whether the marker
+  // has real content before it (`Int/* MARKER */`), sits right after an
+  // opening bracket or SQL keyword with nothing before it at all
+  // (`create(/* MARKER */)`, `SET /* MARKER */...`), or has a fixed,
+  // non-empty remainder immediately after it with no separator of its own
+  // (`(/* MARKER */UUID)`).
+
+  private def isOpenBracket(t: String): Boolean =
+    t.endsWith("(") || t.endsWith("[") || t.endsWith("{")
+
+  private def isCloseBracket(t: String): Boolean =
+    t.startsWith(")") || t.startsWith("]") || t.startsWith("}")
+
+  /** SQL keywords that introduce a list the same way an opening bracket does -
+    * nothing needs to precede the first inserted field.
+    */
+  private val listOpeningKeywords = List("SELECT", "SET", "RETURNING", "VALUES")
+
+  private def endsWithListKeyword(t: String): Boolean =
+    listOpeningKeywords.exists(kw => t.matches(s".*\\b$kw"))
+
+  private def leadingSeparatorNeeded(prefix: String): Boolean =
+    val t = prefix.replaceAll("\\s+$", "")
+    t.nonEmpty && !isOpenBracket(t) && !endsWithListKeyword(t) && !t.endsWith(
+      ","
+    ) && !t
+      .endsWith("*:")
+
+  private def isCombinatorContext(prefix: String): Boolean =
+    prefix.replaceAll("\\s+$", "").endsWith("*:")
+
+  private def trailingSeparatorNeeded(suffix: String): Boolean =
+    val t = suffix.replaceAll("^\\s+", "")
+    t.nonEmpty && !isCloseBracket(t)
+
+  private def inlineFragment(
       tag: String,
       fields: List[Field],
-      prefix: String
+      prefix: String,
+      suffix: String
   ): Either[String, String] =
-    renderer(tag).map { cell =>
-      val trimmedPrefix = prefix.replaceAll("\\s+$", "")
-      if trimmedPrefix.endsWith("*:") then
-        fields.map(f => cell(f) + " *: ").mkString("")
-      else if trimmedPrefix.endsWith(",") then
-        fields.map(f => cell(f) + ", ").mkString("")
-      else fields.map(f => ", " + cell(f)).mkString("")
+    lookup(tag).map { case (cell, filter) =>
+      val filtered = fields.filter(filter)
+      if filtered.isEmpty then ""
+      else
+        val combinator = isCombinatorContext(prefix)
+        val sep = if combinator then " *: " else ", "
+        val lead = if leadingSeparatorNeeded(prefix) then sep else ""
+        val body =
+          if trailingSeparatorNeeded(suffix) then
+            filtered.map(f => cell(f) + sep).mkString("")
+          else filtered.map(cell).mkString(sep)
+        lead + body
     }
 
   private def isClosingDelimiter(line: String): Boolean =
     val t = line.trim
     t.startsWith(")") || t.startsWith("}") || t.startsWith("]")
+
+  private def precedingLineEndsOpen(output: ArrayBuffer[String]): Boolean =
+    val idx = output.lastIndexWhere(_.trim.nonEmpty)
+    idx >= 0 && isOpenBracket(output(idx).replaceAll("\\s+$", ""))
 
   private def appendOwnLine(
       output: ArrayBuffer[String],
@@ -98,17 +162,20 @@ object AnchorTransformer:
       fields: List[Field],
       nextLine: Option[String]
   ): Either[String, Unit] =
-    renderer(tag).map { cell =>
+    lookup(tag).map { case (cell, filter) =>
+      val filtered = fields.filter(filter)
       if FieldRenderers.statementModeTags.contains(tag) then
-        fields.foreach(f => output += indent + cell(f))
-      else
-        ensureTrailingComma(output)
+        filtered.foreach(f => output += indent + cell(f))
+      else if filtered.nonEmpty then
+        if !precedingLineEndsOpen(output) then ensureTrailingComma(output)
         val isLastItemInList = nextLine.exists(isClosingDelimiter)
-        fields.zipWithIndex.foreach { case (f, idx) =>
-          val isLastField = idx == fields.length - 1
+        filtered.zipWithIndex.foreach { case (f, idx) =>
+          val isLastField = idx == filtered.length - 1
           val comma = if isLastItemInList && isLastField then "" else ","
           output += indent + cell(f) + comma
         }
+    // else: filtered.isEmpty && not statement mode -> nothing to render;
+    // the marker line vanishes and the preceding line is left untouched.
     }
 
   private def ensureTrailingComma(output: ArrayBuffer[String]): Unit =

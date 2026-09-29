@@ -115,18 +115,181 @@ class FieldRenderersSuite extends FunSuite {
     "TEST_CREATE_REQUEST_ARGS",
     "TEST_UPDATE_REQUEST_ARGS",
     "TEST_MIGRATION_COLUMN",
-    "TEST_LIFECYCLE_ASSERT"
+    "TEST_LIFECYCLE_ASSERT",
+    "DEFAULT_VALUE_DECLS"
   )
 
   test(
-    "cellRenderers covers exactly the 27 anchor tags placed in the g8 template"
+    "cellRenderers covers exactly the 28 anchor tags placed in the g8 template, and visibilityFilters covers the same set"
   ) {
     assertEquals(FieldRenderers.cellRenderers.keySet, expectedTags.toSet)
-    assertEquals(FieldRenderers.cellRenderers.size, 27)
+    assertEquals(FieldRenderers.cellRenderers.size, 28)
+    assertEquals(FieldRenderers.visibilityFilters.keySet, expectedTags.toSet)
   }
 
-  test("statementModeTags contains only TEST_LIFECYCLE_ASSERT") {
-    assertEquals(FieldRenderers.statementModeTags, Set("TEST_LIFECYCLE_ASSERT"))
+  test(
+    "statementModeTags contains TEST_LIFECYCLE_ASSERT and DEFAULT_VALUE_DECLS"
+  ) {
+    assertEquals(
+      FieldRenderers.statementModeTags,
+      Set("TEST_LIFECYCLE_ASSERT", "DEFAULT_VALUE_DECLS")
+    )
+  }
+
+  test("capitalize upper-cases just the first letter") {
+    assertEquals(FieldRenderers.capitalize("status"), "Status")
+    assertEquals(FieldRenderers.capitalize("expiresAt"), "ExpiresAt")
+  }
+
+  private val createOnlyItem =
+    Field("item", FieldType.StringType, "widget", Visibility.CreateOnly)
+  private val createAndUpdateQty =
+    Field("quantity", FieldType.IntType, "5", Visibility.CreateAndUpdate)
+  private val serverDefaultedStatus = Field(
+    "status",
+    FieldType.StringType,
+    "shipped",
+    Visibility.ServerDefaulted,
+    Some("created")
+  )
+
+  test("visibilityFilters: create-side tags exclude server-defaulted fields") {
+    List(
+      "CREATE_PARAMS",
+      "CREATE_CALL_ARGS",
+      "TEST_CREATE_ARGS",
+      "TEST_CREATE_REQUEST_ARGS"
+    )
+      .foreach { tag =>
+        val filtered =
+          List(createOnlyItem, createAndUpdateQty, serverDefaultedStatus)
+            .filter(FieldRenderers.visibilityFilters(tag))
+        assertEquals(
+          filtered,
+          List(createOnlyItem, createAndUpdateQty),
+          s"tag: $tag"
+        )
+      }
+  }
+
+  test("visibilityFilters: update-side tags exclude create-only fields") {
+    List(
+      "UPDATE_PARAMS",
+      "UPDATE_CALL_ARGS",
+      "COPY_ARGS",
+      "SQL_UPDATE_TUPLE_TYPE",
+      "SQL_UPDATE_SET",
+      "SQL_UPDATE_TUPLE_ARGS",
+      "TEST_UPDATE_ARGS",
+      "TEST_UPDATE_REQUEST_ARGS"
+    ).foreach { tag =>
+      val filtered =
+        List(createOnlyItem, createAndUpdateQty, serverDefaultedStatus)
+          .filter(FieldRenderers.visibilityFilters(tag))
+      assertEquals(
+        filtered,
+        List(createAndUpdateQty, serverDefaultedStatus),
+        s"tag: $tag"
+      )
+    }
+  }
+
+  test(
+    "visibilityFilters: most tags render every field regardless of visibility"
+  ) {
+    List(
+      "CASE_CLASS_FIELD",
+      "CONSTRUCT_ARGS",
+      "RESPONSE_APPLY_ARGS",
+      "SQL_CREATE_COLUMN",
+      "SQL_INSERT_COLUMNS",
+      "SQL_INSERT_PARAMS",
+      "SQL_INSERT_TUPLE_TYPE",
+      "SQL_INSERT_TUPLE_ARGS",
+      "SQL_SELECT_TUPLE_TYPE",
+      "SQL_SELECT_COLUMNS",
+      "SQL_SELECT_CODEC",
+      "SQL_SELECT_CONSTRUCT_ARGS",
+      "SQL_SELECT_PATTERN_VARS",
+      "TEST_MIGRATION_COLUMN",
+      "TEST_LIFECYCLE_ASSERT"
+    ).foreach { tag =>
+      val filtered =
+        List(createOnlyItem, createAndUpdateQty, serverDefaultedStatus)
+          .filter(FieldRenderers.visibilityFilters(tag))
+      assertEquals(
+        filtered,
+        List(createOnlyItem, createAndUpdateQty, serverDefaultedStatus),
+        s"tag: $tag"
+      )
+    }
+  }
+
+  test(
+    "visibilityFilters: DEFAULT_VALUE_DECLS renders only server-defaulted fields"
+  ) {
+    val filtered =
+      List(createOnlyItem, createAndUpdateQty, serverDefaultedStatus)
+        .filter(FieldRenderers.visibilityFilters("DEFAULT_VALUE_DECLS"))
+    assertEquals(filtered, List(serverDefaultedStatus))
+  }
+
+  test(
+    "CONSTRUCT_ARGS and SQL_INSERT_TUPLE_ARGS reference a default constant for server-defaulted fields, the param name otherwise"
+  ) {
+    assertEquals(
+      FieldRenderers.cellRenderers("CONSTRUCT_ARGS")(createAndUpdateQty),
+      "quantity"
+    )
+    assertEquals(
+      FieldRenderers.cellRenderers("CONSTRUCT_ARGS")(serverDefaultedStatus),
+      "defaultStatus"
+    )
+    assertEquals(
+      FieldRenderers.cellRenderers("SQL_INSERT_TUPLE_ARGS")(createAndUpdateQty),
+      "quantity"
+    )
+    assertEquals(
+      FieldRenderers.cellRenderers("SQL_INSERT_TUPLE_ARGS")(
+        serverDefaultedStatus
+      ),
+      "defaultStatus"
+    )
+    val serverDefaultedInstant = Field(
+      "expiresAt",
+      FieldType.InstantType,
+      "2026-01-01T00:00:00Z",
+      Visibility.ServerDefaulted,
+      Some("2030-01-01T00:00:00Z")
+    )
+    assertEquals(
+      FieldRenderers.cellRenderers("SQL_INSERT_TUPLE_ARGS")(
+        serverDefaultedInstant
+      ),
+      "defaultExpiresAt.atOffset(java.time.ZoneOffset.UTC)"
+    )
+  }
+
+  test(
+    "DEFAULT_VALUE_DECLS renders a private val declaration using the field's default literal"
+  ) {
+    assertEquals(
+      FieldRenderers.cellRenderers("DEFAULT_VALUE_DECLS")(
+        serverDefaultedStatus
+      ),
+      "private val defaultStatus = \"created\""
+    )
+    val serverDefaultedInt = Field(
+      "retries",
+      FieldType.IntType,
+      "3",
+      Visibility.ServerDefaulted,
+      Some("0")
+    )
+    assertEquals(
+      FieldRenderers.cellRenderers("DEFAULT_VALUE_DECLS")(serverDefaultedInt),
+      "private val defaultRetries = 0"
+    )
   }
 
   test("representative cell renderers produce the expected fragments") {
