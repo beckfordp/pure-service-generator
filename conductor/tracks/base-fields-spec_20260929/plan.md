@@ -76,16 +76,27 @@ The core of this track — two related changes to `AnchorTransformer`/`FieldRend
       unresolved anchors, scalafmtCheck + 52/52 tests pass).
 
 ## Phase 5: Dogfood verification
-- [ ] Task: Write a field-spec expressing `item` (`create-only`), `quantity`
+- [x] Task: Write a field-spec expressing `item` (`create-only`), `quantity`
       (`create-and-update`), and `status` (`server-defaulted`, default `"created"`); run it
       through the real pipeline (giter8 generate → field-codegen → `sbt scalafmt` →
       `scalafmtCheck test`) and confirm full CRUD parity with today's archived reference service
       (52/52 tests, same endpoint behavior).
-- [ ] Task: Re-run `scripts/verify-g8-template.sh` and `scripts/generate-and-publish-service.sh`
+
+      Generated `WidgetStore.scala`/`WidgetRoutes.scala` are structurally identical to the
+      pre-generalization hardcoded template (same `defaultStatus` val, same create/update
+      signatures, same SQL) - 52/52 tests pass, scalafmt clean, no fixes needed.
+- [x] Task: Re-run `scripts/verify-g8-template.sh` and `scripts/generate-and-publish-service.sh`
       (live, per this project's established pattern) against the changed template; fix anything
       that breaks.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Dogfood verification' (Protocol in
-      workflow.md)
+
+      Both green on the first run, no fixes needed: `verify-g8-template.sh`'s 5 checks all
+      passed (including this repo's own reference-service suite); `generate-and-publish-service.sh`
+      created a real public repo (`basefieldscheck1790719381-service`), pushed, and its GitHub
+      Actions CI passed in 1m33s - confirmed via `gh run list` and then deleted.
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Dogfood verification' (Protocol in
+      workflow.md) - verified directly (prompting off) via the three real runs above; full CRUD
+      parity achieved, no regressions in the local template, real GitHub, or publish-pipeline
+      paths.
 
 ## Phase 6: Documentation
 - [ ] Task: Update the README's "Adding domain fields" section (the new `visibility`/`default`
