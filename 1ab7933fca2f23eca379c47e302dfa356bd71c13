@@ -1,0 +1,22 @@
+Phase 1 Completion: Scaffold the standalone repository
+
+Automated tests: sbt -batch scalafmtCheck test - 24/24 passed, 0 failures.
+
+Manual verification: prompting is off for this project (.claude/prompt-off), so
+this phase's manual verification ran via a committed script instead of an
+interactive walkthrough.
+
+Command: ./scripts/verify-standalone-scaffold.sh
+
+Result: all checks passed.
+1. build.sbt has no .dependsOn back to purerest's source tree - OK
+2. build.sbt resolves purerestlib from GitHub Packages (maven.pkg.github.com/beckfordp/purerest) - OK
+3. docker-compose.yml defines only the 'postgres' service (no inventory-service) - OK
+4. docker compose up -d - Postgres reports healthy - OK
+5. sbt scalafmtCheck test - all 24 tests pass against the published purerestlib 0.1.0 jar - OK
+
+Scope: all changes since the track's first commit (no prior phase checkpoint exists).
+Changed files: conductor/tracks.md, conductor/tech-stack.md,
+conductor/tracks/pure-service-generator_20260929/{spec.md,plan.md}, .scalafmt.conf,
+build.sbt, docker-compose.yml, project/{build.properties,plugins.sbt},
+src/main/**, src/test/**, scripts/verify-standalone-scaffold.sh.
