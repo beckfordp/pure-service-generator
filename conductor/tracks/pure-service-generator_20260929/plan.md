@@ -1,7 +1,7 @@
 # Plan: Create pure-service-generator project from order-service reference implementation
 
 ## Phase 1: Scaffold the standalone repository
-- [~] Task: Port order-service's source tree from purerest into this repo as a standalone sbt
+- [x] Task: Port order-service's source tree from purerest into this repo as a standalone sbt
       project: own `build.sbt` resolving `purerestlib` 0.1.0 from GitHub Packages (not
       `.dependsOn`), own `docker-compose.yml` (Postgres only). Per this track's "Deviations from
       order-service" (spec.md, 2026-09-29): strip `InventoryClient`/`ReservationView` and the
@@ -10,7 +10,7 @@
       inventory-service is incompatible with this repo's Postgres-only footprint). Port and adapt
       `OrderRoutesSuite`, `OrderStoreSuite`, `OrderStorePostgresSuite`, `OrderServiceConfigSuite`,
       `OrderDocsSuite`, `MigrationsSuite` (dropping inventory/reservation assertions to match);
-      confirm they pass against the published jar — this phase's "green" proof.
+      confirm they pass against the published jar — this phase's "green" proof. [5e3b1c0]
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Scaffold the standalone repository'
       (Protocol in workflow.md)
 
