@@ -47,15 +47,16 @@
       workflow.md). Prompting off: verified via `scripts/verify-delete-endpoint.sh` instead of
       an interactive walkthrough. [3c0e2e2]
 
-## Phase 5: Add `GET /health` and `GET /health/ready`
+## Phase 5: Add `GET /health` and `GET /health/ready` [checkpoint: 8a5861e]
 - [x] Task: Write failing tests (Red) — new `HealthRoutesSuite`; confirm it fails to compile (no
       `HealthRoutes` yet). [2b6469f]
 - [x] Task: Implement (Green) — `HealthRoutes` with a liveness endpoint (always 200) and a
       readiness endpoint backed by a new `OrderStore.ping: F[Boolean]` (a trivial `SELECT 1`
       against Postgres, always `true` for the in-memory backend), wired into `Docs.routes`
       alongside the order endpoints. Run the suite, confirm green. [4bc21fd]
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Add GET /health and GET /health/ready'
-      (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Add GET /health and GET /health/ready'
+      (Protocol in workflow.md). Prompting off: verified via
+      `scripts/verify-health-endpoints.sh` instead of an interactive walkthrough. [8a5861e]
 
 ## Phase 6: Full CRUD lifecycle integration test, README, and final polish
 - [x] Task: Add `ClientResilienceExampleSuite` (`src/test/scala/orderservice/examples/`) —
