@@ -5,14 +5,18 @@ Key design decision: since this repo controls both ends (the template's generate
 codegen tool), embedding stable `// codegen:fields`-style anchor comments at each insertion point
 is far more robust than pattern-matching against Scala/SQL code shape. This phase is
 infrastructure, not new runtime behavior - verified by "still compiles/passes", not Red/Green.
-- [ ] Task: Add anchor comments to `src/main/g8/` template files at every insertion point (domain
+- [x] Task: Add anchor comments to `src/main/g8/` template files at every insertion point (domain
       case class, `*Store` trait + in-memory/Postgres bodies, SQL query strings, migration
       `CREATE TABLE`, `Create*Request`/`Update*Request`/`*Response` DTOs, route handler
-      pass-throughs) and to the test files whose call sites the tool will rewrite.
-- [ ] Task: Regenerate a `widget` service and confirm `sbt scalafmtCheck test` still passes with
+      pass-throughs) and to the test files whose call sites the tool will rewrite. `e51840e`
+- [x] Task: Regenerate a `widget` service and confirm `sbt scalafmtCheck test` still passes with
       the (inert) anchor comments present - proves this phase didn't regress the template.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Add stable anchor comments to the g8
-      template' (Protocol in workflow.md)
+      `e51840e`
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Add stable anchor comments to the g8
+      template' (Protocol in workflow.md) - verified directly (prompting off): fresh
+      `giter8.LauncherMain` regeneration of `widget-service`, `scalafmtCheck` clean after
+      `sbt scalafmt`, `sbt test` 52/52 passed. 26/26 designed anchor tags confirmed present via
+      catalog sweep.
 
 ## Phase 2: Scaffold the codegen tool and field-spec parsing
 - [ ] Task: Write failing tests (Red) - `tools/codegen/` munit tests for parsing a YAML
