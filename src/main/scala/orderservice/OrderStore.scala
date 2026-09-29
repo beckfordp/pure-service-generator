@@ -27,6 +27,7 @@ trait OrderStore[F[_]] {
   def create(item: String, quantity: Int): F[Order]
   def get(id: String): F[Option[Order]]
   def update(id: String, quantity: Int, status: String): F[Option[Order]]
+  def delete(id: String): F[Boolean]
 }
 
 object OrderStore {
@@ -67,6 +68,11 @@ object OrderStore {
               }
             }
           } yield updated
+
+        def delete(id: String): F[Boolean] =
+          ref.modify { orders =>
+            if (orders.contains(id)) (orders - id, true) else (orders, false)
+          }
       }
     }
 
@@ -98,6 +104,13 @@ object OrderStore {
       WHERE id = $uuid
       RETURNING item, quantity, status, created_at, updated_at
     """.query(text *: int4 *: text *: timestamptz *: timestamptz)
+
+  private val deleteOrder: skunk.Query[UUID, UUID] =
+    sql"""
+      DELETE FROM "order"
+      WHERE id = $uuid
+      RETURNING id
+    """.query(uuid)
 
   def postgres[F[_]: Async: Console: Network](
       config: PostgresConfig,
@@ -216,6 +229,20 @@ object OrderStore {
                           createdAt.toInstant,
                           updatedAt.toInstant
                         )
+                    }
+                }
+
+              def delete(id: String): F[Boolean] =
+                scala.util.Try(UUID.fromString(id)).toOption match {
+                  case None       => Sync[F].pure(false)
+                  case Some(uuid) =>
+                    timed("delete") {
+                      pool.use { session =>
+                        session
+                          .prepare(deleteOrder)
+                          .flatMap(_.option(uuid))
+                          .map(_.isDefined)
+                      }
                     }
                 }
             }

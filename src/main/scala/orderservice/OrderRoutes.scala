@@ -90,6 +90,13 @@ object OrderRoutes {
       .out(jsonBody[OrderResponse])
       .errorOut(notFoundOutput)
 
+  private val deleteOrderEndpoint
+      : PublicEndpoint[String, OrderError, Unit, Any] =
+    endpoint.delete
+      .in("orders" / path[String]("id"))
+      .out(statusCode(StatusCode.NoContent))
+      .errorOut(notFoundOutput)
+
   def serverEndpoint[F[_]: Async](
       store: OrderStore[F],
       logger: StructuredLogger[F]
@@ -172,6 +179,28 @@ object OrderRoutes {
       } yield result
     }
 
+  def deleteOrderServerEndpoint[F[_]: Async](
+      store: OrderStore[F],
+      logger: StructuredLogger[F]
+  ): ServerEndpoint[Any, F] =
+    deleteOrderEndpoint.serverLogic[F] { id =>
+      for {
+        _ <- logger.info(
+          Map("method" -> "DELETE", "path" -> s"/orders/$id", "order_id" -> id)
+        )("Received request")
+        result <- store.delete(id).flatMap {
+          case true =>
+            logger
+              .info(Map("order_id" -> id))("Request completed")
+              .as(Right(()))
+          case false =>
+            logger
+              .warn(Map("order_id" -> id))("Order not found")
+              .as(Left(OrderNotFound))
+        }
+      } yield result
+    }
+
   def routes[F[_]: Async](
       store: OrderStore[F],
       logger: StructuredLogger[F]
@@ -180,7 +209,8 @@ object OrderRoutes {
       List(
         serverEndpoint(store, logger),
         getOrderServerEndpoint(store, logger),
-        updateOrderServerEndpoint(store, logger)
+        updateOrderServerEndpoint(store, logger),
+        deleteOrderServerEndpoint(store, logger)
       )
     )
 }

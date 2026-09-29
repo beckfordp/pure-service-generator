@@ -22,6 +22,7 @@ class OrderRoutesSuite extends CatsEffectSuite {
       def get(id: String): IO[Option[Order]] = IO.pure(None)
       def update(id: String, quantity: Int, status: String): IO[Option[Order]] =
         IO.raiseError(error)
+      def delete(id: String): IO[Boolean] = IO.raiseError(error)
     }
 
   test("POST /orders returns 201 with the created order") {
@@ -288,6 +289,110 @@ class OrderRoutesSuite extends CatsEffectSuite {
       response <- routes.orNotFound.run(
         Request[IO](Method.PATCH, uri"/orders" / "unknown-id")
           .withEntity(UpdateOrderRequest(9, "shipped"))
+      )
+      logged <- testLogger.logged
+    } yield {
+      assertEquals(response.status, Status.NotFound)
+      val warns = logged.collect { case m: WARN => m }
+      assert(
+        warns.exists(m =>
+          m.message.toLowerCase.contains("not found") &&
+            m.ctx.get("order_id").contains("unknown-id")
+        ),
+        s"expected a 'not found' WARN line with order_id context, got: $warns"
+      )
+    }
+  }
+
+  test(
+    "DELETE /orders/{id} returns 204, and a subsequent GET returns 404"
+  ) {
+    for {
+      store <- OrderStore.inMemory[IO]
+      routes = OrderRoutes.routes[IO](store, NoOpLogger[IO])
+      postResponse <- routes.orNotFound.run(
+        Request[IO](Method.POST, uri"/orders").withEntity(
+          CreateOrderRequest("widget", 4)
+        )
+      )
+      created <- postResponse.as[OrderResponse]
+      deleteResponse <- routes.orNotFound.run(
+        Request[IO](Method.DELETE, uri"/orders" / created.id)
+      )
+      getResponse <- routes.orNotFound.run(
+        Request[IO](Method.GET, uri"/orders" / created.id)
+      )
+    } yield {
+      assertEquals(deleteResponse.status, Status.NoContent)
+      assertEquals(getResponse.status, Status.NotFound)
+    }
+  }
+
+  test(
+    "DELETE /orders/{id} returns 404 with a JSON error body for an unknown id"
+  ) {
+    for {
+      store <- OrderStore.inMemory[IO]
+      routes = OrderRoutes.routes[IO](store, NoOpLogger[IO])
+      response <- routes.orNotFound.run(
+        Request[IO](Method.DELETE, uri"/orders" / "unknown-id")
+      )
+      body <- response.as[io.circe.Json]
+    } yield {
+      assertEquals(response.status, Status.NotFound)
+      assert(
+        body.asObject.exists(_.contains("error")),
+        s"expected a JSON error body, got: $body"
+      )
+    }
+  }
+
+  test(
+    "DELETE /orders/{id} logs a received-request line and a completed line for a found order"
+  ) {
+    for {
+      store <- OrderStore.inMemory[IO]
+      testLogger = StructuredTestingLogger.impl[IO]()
+      routes = OrderRoutes.routes[IO](store, testLogger)
+      postResponse <- routes.orNotFound.run(
+        Request[IO](Method.POST, uri"/orders").withEntity(
+          CreateOrderRequest("widget", 4)
+        )
+      )
+      created <- postResponse.as[OrderResponse]
+      _ <- testLogger.logged // drain POST's own log lines before the DELETE
+      deleteResponse <- routes.orNotFound.run(
+        Request[IO](Method.DELETE, uri"/orders" / created.id)
+      )
+      logged <- testLogger.logged
+    } yield {
+      assertEquals(deleteResponse.status, Status.NoContent)
+      val infos = logged.collect { case m: INFO => m }
+      assert(
+        infos.exists(m =>
+          m.message.toLowerCase.contains("received") &&
+            m.ctx.get("method").contains("DELETE") &&
+            m.ctx.get("order_id").contains(created.id)
+        ),
+        s"expected a received-request INFO line with method/order_id context, got: $infos"
+      )
+      assert(
+        infos.exists(m =>
+          m.message.toLowerCase.contains("completed") &&
+            m.ctx.get("order_id").contains(created.id)
+        ),
+        s"expected a completed INFO line with order_id context, got: $infos"
+      )
+    }
+  }
+
+  test("DELETE /orders/{id} logs a WARN for an unknown id") {
+    for {
+      store <- OrderStore.inMemory[IO]
+      testLogger = StructuredTestingLogger.impl[IO]()
+      routes = OrderRoutes.routes[IO](store, testLogger)
+      response <- routes.orNotFound.run(
+        Request[IO](Method.DELETE, uri"/orders" / "unknown-id")
       )
       logged <- testLogger.logged
     } yield {

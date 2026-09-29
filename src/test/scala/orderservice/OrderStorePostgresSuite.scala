@@ -143,6 +143,48 @@ class OrderStorePostgresSuite extends CatsEffectSuite with TestContainerForAll {
     }
   }
 
+  test("delete removes the order and returns true, and get then returns None") {
+    withContainers { postgres =>
+      val config = configFor(postgres)
+      Migrations.run[IO](config) *> OrderStore
+        .postgres[IO](config, Meter.noop[IO])
+        .use { store =>
+          for {
+            created <- store.create("widget", 2)
+            deleted <- store.delete(created.id)
+            found <- store.get(created.id)
+          } yield {
+            assert(deleted)
+            assertEquals(found, None)
+          }
+        }
+    }
+  }
+
+  test("delete returns false for an unknown id") {
+    withContainers { postgres =>
+      val config = configFor(postgres)
+      Migrations.run[IO](config) *> OrderStore
+        .postgres[IO](config, Meter.noop[IO])
+        .use { store =>
+          store
+            .delete(java.util.UUID.randomUUID().toString)
+            .map(deleted => assert(!deleted))
+        }
+    }
+  }
+
+  test("delete returns false for a malformed (non-UUID) id") {
+    withContainers { postgres =>
+      val config = configFor(postgres)
+      Migrations.run[IO](config) *> OrderStore
+        .postgres[IO](config, Meter.noop[IO])
+        .use { store =>
+          store.delete("not-a-uuid").map(deleted => assert(!deleted))
+        }
+    }
+  }
+
   test(
     "create and get each record a db.client.operation.duration measurement, tagged by operation"
   ) {
