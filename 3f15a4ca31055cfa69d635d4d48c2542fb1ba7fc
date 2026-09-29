@@ -1,0 +1,27 @@
+Task: Write src/main/g8/README.md (templated, for the generated service)
+
+Summary:
+Wrote README.md at the template root (src/main/g8/README.md), so every
+generated service ships its own documentation. Mirrors this repo's own
+README structure (prerequisites, quickstart with a full curl walkthrough,
+testing, one-database-per-service, calling other services with resilience),
+adapted: title and intro describe the generated service itself (not this
+meta-template repo, so dropped the Conductor/product.md references and the
+"eventually a generator" framing), REST paths and database name templated via
+$domain_name$, the ClientResilienceExampleSuite link points at the generated
+package path.
+
+No $ escaping needed - plain Markdown/curl commands, no Scala/HOCON/SQL
+interpolation syntax present.
+
+Files changed:
+- src/main/g8/README.md (new)
+
+Why: Implements this track's spec.md requirement that the template ship
+documentation for whoever it generates a service for.
+
+Verification: generated a real widget-service, confirmed the README rendered
+correctly ($domain_name$ substituted throughout), then actually ran every
+documented curl command against a live instance (docker compose up + sbt
+run): POST/GET/PATCH/PUT/DELETE /widgets, health, ready, Swagger UI - all
+returned the documented results.
