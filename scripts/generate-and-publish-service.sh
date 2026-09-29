@@ -72,9 +72,13 @@ if [ -z "$DOMAIN_NAME" ]; then
   exit 1
 fi
 
-if [ -n "$FIELD_SPEC" ] && [ ! -f "$FIELD_SPEC" ]; then
-  echo "Error: --field-spec file not found: $FIELD_SPEC" >&2
-  exit 1
+if [ -n "$FIELD_SPEC" ]; then
+  if [ ! -f "$FIELD_SPEC" ]; then
+    echo "Error: --field-spec file not found: $FIELD_SPEC" >&2
+    exit 1
+  fi
+  # Resolve to an absolute path before any `cd` below.
+  FIELD_SPEC="$(cd "$(dirname "$FIELD_SPEC")" && pwd)/$(basename "$FIELD_SPEC")"
 fi
 
 if [ -z "$REPO_NAME" ]; then
@@ -82,11 +86,55 @@ if [ -z "$REPO_NAME" ]; then
 fi
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CODEGEN_DIR="$ROOT_DIR/tools/codegen"
 
 echo "Domain name: $DOMAIN_NAME"
 echo "Package:     ${PACKAGE:-<default>}"
 echo "Field spec:  ${FIELD_SPEC:-<none>}"
 echo "Repo name:   $REPO_NAME"
 
+WORK_DIR="$(mktemp -d -t generate-and-publish-service)"
+cleanup() {
+  rm -rf "$WORK_DIR"
+}
+trap cleanup EXIT
+
+# A throwaway sbt project used only to run giter8's launcher library -
+# project-local, not a global plugin, so nothing about the caller's sbt
+# environment changes. Same pattern as scripts/verify-g8-template.sh.
+LAUNCHER_DIR="$WORK_DIR/g8-launcher"
+mkdir -p "$LAUNCHER_DIR/project"
+echo "sbt.version=1.13.0" >"$LAUNCHER_DIR/project/build.properties"
+echo 'libraryDependencies += "org.foundweekends.giter8" %% "giter8-launcher" % "0.18.0"' \
+  >"$LAUNCHER_DIR/build.sbt"
+
+GEN_DIR="$WORK_DIR/$REPO_NAME"
+
 echo
-echo "(generate/publish steps not yet implemented)"
+echo "1. Generating '$DOMAIN_NAME' service from this repo's template..."
+GEN_ARGS=(--domain_name="$DOMAIN_NAME")
+if [ -n "$PACKAGE" ]; then
+  GEN_ARGS+=(--package="$PACKAGE")
+fi
+(cd "$LAUNCHER_DIR" && sbt -batch "runMain giter8.LauncherMain file://${ROOT_DIR} ${GEN_ARGS[*]} -o ${GEN_DIR}") \
+  >"$WORK_DIR/generate.log" 2>&1 || {
+  echo "   FAIL: generation failed" >&2
+  tail -60 "$WORK_DIR/generate.log" >&2
+  exit 1
+}
+echo "   OK: generated at $GEN_DIR"
+
+if [ -n "$FIELD_SPEC" ]; then
+  echo
+  echo "2. Applying field-spec via the field-codegen tool..."
+  (cd "$CODEGEN_DIR" && sbt -batch "runMain codegen.Main ${GEN_DIR} ${FIELD_SPEC}") \
+    >"$WORK_DIR/codegen.log" 2>&1 || {
+    echo "   FAIL: field-codegen tool failed" >&2
+    tail -80 "$WORK_DIR/codegen.log" >&2
+    exit 1
+  }
+  echo "   OK: field spec applied"
+fi
+
+echo
+echo "(repo-creation/push/CI steps not yet implemented)"
