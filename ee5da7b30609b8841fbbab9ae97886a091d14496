@@ -1,0 +1,46 @@
+Tasks: Template the Scala source (both Phase 2 tasks - main and test)
+
+Summary:
+Ported all 7 main source files and all 10 test files (including the
+examples/ package) from src/{main,test}/scala/orderservice into
+src/main/g8/src/{main,test}/scala/$package$/, with identifiers renamed via
+$domain_name;format="cap"$ (Order -> Widget, OrderStore -> WidgetStore, etc.)
+and repackaged via the independently-settable $package$ property.
+
+Two environment/tooling discoveries along the way, both now documented in the
+commit message and (for the escaping one) worth remembering for any future
+giter8 work:
+1. giter8's capitalize-first-letter format name is lowercase "cap", not "Cap"
+   as I'd assumed - an unrecognized format name is silently ignored (falls
+   back to the raw, unformatted value) rather than erroring, so this needed a
+   real generation to catch, not just template inspection.
+2. giter8 requires every literal $ in template file content to be escaped as
+   \$ - including Scala string interpolation ($id, ${expr}) and Skunk's own
+   $-based SQL parameter interpolation ($uuid, $text, $int4). An unescaped $
+   that isn't part of a recognized $propname$ reference throws
+   "An unexpected error occurred while processing the template. Check that
+   all literal '$' are properly escaped with '\$'" and aborts generation
+   entirely - caught this via a real generation attempt, not by reasoning
+   about giter8's grammar.
+
+Also discovered sbt's own built-in `new` command only resolves a small
+hardcoded list of GitHub template shortcuts (scala/scala3.g8 etc.), not
+arbitrary file:// URIs, in this sbt version - verification instead uses
+giter8's own giter8-launcher library directly (`sbt runMain
+giter8.LauncherMain file://<path> --domain_name=... -o <output>`), added as a
+project-local (not global) plugin dependency in a throwaway /tmp project, so
+nothing about the user's global sbt environment changed.
+
+Files changed:
+- src/main/g8/src/main/scala/$package$/*.scala (7 files)
+- src/main/g8/src/test/scala/$package$/*.scala (7 files) and examples/*.scala
+- src/main/g8/src/test/resources/docker-java.properties
+
+Why: Completes the template's core Scala-source parameterization per this
+track's spec.
+
+Verification: Generated a real "widget" service via giter8.LauncherMain,
+ran sbt scalafmt scalafmtCheck test against it - 52/52 pass, matching the
+source repo's own suite exactly. Also verified --package=com.example.widgetservice
+generates correctly-nested directories and compiles. Source repo's own
+sbt test still passes (52/52), unaffected by the new template tree.
