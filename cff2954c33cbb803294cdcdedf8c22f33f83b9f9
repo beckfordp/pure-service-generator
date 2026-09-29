@@ -1,0 +1,32 @@
+Task: Load ClientResilienceExampleSuite's config via PureConfig (follow-up)
+
+Summary:
+User asked for the resilience example to be extended: add a named "dummy
+client" config block to application.conf containing retry + circuit-breaker
+settings (clearly commented as example-only, not read by the live service),
+and have the test load it via PureConfig rather than hardcoding
+ResilienceConfig literals.
+
+Added example-client { retry {...} circuit-breaker {...} } to
+application.conf, matching the exact values the first test previously
+hardcoded (max-retries=5, base-delay=1ms, failure-threshold=10,
+reset-timeout=1h). ClientResilienceExampleSuite now derives ConfigReader
+instances for purerest's RetryConfig/CircuitBreakerConfig/ResilienceConfig
+(purerest has no PureConfig dependency itself, so this is done locally - the
+same pattern the original order-service's OrderServiceConfig.scala used
+before the Phase 1 deviation removed it) and loads
+ConfigSource.default.at("example-client").loadOrThrow[ResilienceConfig] once
+as a val, used directly in the first test (retry-succeeds) and as a base,
+.copy()'d for the fields that need isolating, in the second (circuit-breaker
+trips) - since that test's precise assertions (attempts==2) depend on
+maxRetries=0, which the shared retry-demo config can't also satisfy.
+
+Files changed:
+- src/main/resources/application.conf
+- src/test/scala/orderservice/examples/ClientResilienceExampleSuite.scala
+
+Why: Makes the example demonstrate the full realistic pattern a generated
+service's Main.scala would follow (load config, then wire the client) rather
+than just the middleware call with inline literals.
+
+Verification: sbt scalafmtCheck Test/scalafmtCheck test - 52/52 pass.
