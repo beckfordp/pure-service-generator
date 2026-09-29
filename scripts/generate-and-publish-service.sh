@@ -136,10 +136,20 @@ if [ -n "$FIELD_SPEC" ]; then
   echo "   OK: field spec applied"
 fi
 
-STEP=2
+STEP=3
 if [ -n "$FIELD_SPEC" ]; then
-  STEP=3
+  STEP=4
 fi
+
+echo
+echo "$((STEP - 1)). Reformatting the generated service (identifier-length differences shift"
+echo "   line-wrapping vs. this repo's own scalafmt baseline - see README's 'After generating')..."
+(cd "$GEN_DIR" && sbt -batch scalafmt Test/scalafmt) >"$WORK_DIR/scalafmt.log" 2>&1 || {
+  echo "   FAIL: sbt scalafmt failed" >&2
+  tail -60 "$WORK_DIR/scalafmt.log" >&2
+  exit 1
+}
+echo "   OK: reformatted"
 
 echo
 echo "$STEP. Checking whether $REPO_NAME already exists on GitHub..."
