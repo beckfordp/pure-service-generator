@@ -120,8 +120,16 @@ object AnchorTransformer:
     ) && !t
       .endsWith("*:")
 
-  private def isCombinatorContext(prefix: String): Boolean =
-    prefix.replaceAll("\\s+$", "").endsWith("*:")
+  /** SQL_SELECT_CODEC is inherently a Skunk codec-combinator (`*:`) join,
+    * regardless of what precedes the marker - with zero base fields, nothing
+    * may precede it at all (`.query(/* MARKER */timestamptz ...)`), so
+    * combinator-mode can't always be inferred purely from the prefix text.
+    */
+  private val alwaysCombinatorTags: Set[String] = Set("SQL_SELECT_CODEC")
+
+  private def isCombinatorContext(tag: String, prefix: String): Boolean =
+    alwaysCombinatorTags
+      .contains(tag) || prefix.replaceAll("\\s+$", "").endsWith("*:")
 
   private def trailingSeparatorNeeded(suffix: String): Boolean =
     val t = suffix.replaceAll("^\\s+", "")
@@ -137,7 +145,7 @@ object AnchorTransformer:
       val filtered = fields.filter(filter)
       if filtered.isEmpty then ""
       else
-        val combinator = isCombinatorContext(prefix)
+        val combinator = isCombinatorContext(tag, prefix)
         val sep = if combinator then " *: " else ", "
         val lead = if leadingSeparatorNeeded(prefix) then sep else ""
         val body =

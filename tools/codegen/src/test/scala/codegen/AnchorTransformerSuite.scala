@@ -280,6 +280,19 @@ class AnchorTransformerSuite extends FunSuite {
     )
   }
 
+  test(
+    "SQL_SELECT_CODEC always joins with Skunk's '*:' combinator, even with nothing preceding the marker"
+  ) {
+    // Regression: with zero base fields, .query(/* MARKER */timestamptz *: timestamptz)
+    // has nothing before the marker to infer combinator-mode from - this tag is
+    // inherently a Skunk codec-combinator context regardless of what precedes it.
+    val input =
+      "    .query(/* codegen:fields:SQL_SELECT_CODEC */timestamptz *: timestamptz)"
+    val expected =
+      "    .query(text *: int4 *: timestamptz *: timestamptz)"
+    assertEquals(AnchorTransformer.transform(input, fields), Right(expected))
+  }
+
   test("a full multi-anchor file is transformed consistently end to end") {
     val input =
       """|final case class Widget(
