@@ -1,0 +1,27 @@
+Task: Implement (Green) - GET /health and GET /health/ready endpoints
+
+Summary:
+Added OrderStore[F].ping: F[Boolean] to both backends - in-memory always true;
+Postgres runs a trivial `SELECT 1` (via a Void-parameter skunk.Query, no
+.prepare needed), timed like the other operations, with an outer .attempt so
+an unreachable database yields false instead of propagating an error.
+
+New HealthRoutes module: GET /health always returns 200 (serverLogicSuccess,
+no real check); GET /health/ready returns 200 if store.ping is true, 503
+(no body) otherwise. Wired into Main's Docs.routes list alongside the order
+endpoints, so both are visible in Swagger too.
+
+New HealthRoutesSuite (written in the prior Red task) covers all three cases
+against stub OrderStore instances. Also added Postgres-level ping tests
+(reachable -> true, unreachable via a bad port -> false) to
+OrderStorePostgresSuite for parity with the other OrderStore methods.
+
+Files changed:
+- src/main/scala/orderservice/HealthRoutes.scala (new)
+- src/main/scala/orderservice/{Main,OrderStore}.scala
+- src/test/scala/orderservice/{OrderRoutesSuite,OrderStorePostgresSuite}.scala
+
+Why: Implements this track's FR6 standard production-quality health endpoints
+requirement (spec.md).
+
+Verification: sbt scalafmtCheck Test/scalafmtCheck test - 49/49 pass.
