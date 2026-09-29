@@ -2,6 +2,9 @@
 
 This file tracks all major tracks for the project.
 
+- [ ] **Track: Automated generation → repo-creation → push → CI pipeline**
+  *Link: [./tracks/gen-publish-pipeline_20260929/](./tracks/gen-publish-pipeline_20260929/)*
+
 ---
 
 ## Backlog
@@ -10,7 +13,6 @@ Title-only placeholders for future tracks — not yet detailed (no spec/plan, no
 folder), so `/conductor:implement` cannot pick these up by accident. Reorder freely as
 priorities change. When ready to work on one, run `/conductor:newTrack <title>` to go
 through the spec/plan questions and promote it into a real track below.
-- Automated generation → repo-creation → push → CI pipeline
 - Make the base entity fields (currently fixed `item`/`quantity`/`status` on top of
   `id`/`createdAt`/`updatedAt`) themselves field-spec-driven, so a generated service isn't
   stuck with order-specific fields for non-order domains. Needs per-field create/update
