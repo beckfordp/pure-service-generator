@@ -52,9 +52,29 @@
 - Docker image via **sbt-native-packager** (`JavaAppPackaging`, `DockerPlugin`), matching
   purerest's own reference services' packaging.
 
+## Code Generation
+- **giter8** (`src/main/g8/`) templates the entire reference service, parameterized by
+  `domain_name` (lowercase, singular — drives naming/DB/REST paths) and an independently-settable
+  `package` (defaults to `$domain_name$service`; giter8's built-in dot-to-slash conversion for a
+  property literally named `package` supports reverse-domain nesting). Generated via
+  `giter8-launcher` (see "giter8 gotchas" below), not sbt's built-in `new` command. See README's
+  "Generating a new service from this template".
+
 ## Known Constraints
-- **No generator machinery yet.** This repo currently holds one hand-adapted reference service,
-  not a parameterized template — see `product.md`'s Non-Goals/Future Direction.
+- **Parametrized field codegen and generation-time CI/CD wiring not built yet.** The giter8
+  template (see "Code Generation" above) covers naming/package renaming only — an entity-field
+  list expanding into a case class/migration/codec, and a generate → repo-create → push → CI
+  pipeline, remain future work. See `product.md`'s Non-Goals/Future Direction.
+- **giter8 gotchas (discovered 2026-09-29, building the template).** (1) giter8's
+  capitalize-first-letter format name is lowercase `cap`, not `Cap` — an unrecognized format name
+  is silently ignored (falls back to the raw value) rather than erroring, so this only surfaces by
+  actually generating output and inspecting it. (2) Every literal `$` in template file content —
+  including Scala string interpolation (`${expr}`, `$id`) and Skunk's own `$`-based SQL parameter
+  interpolation (`$uuid`, `$text`) — must be escaped as `\$`, or generation aborts with "An
+  unexpected error occurred while processing the template." (3) This sbt version's built-in `new`
+  command only resolves a small hardcoded list of GitHub template shortcuts, not arbitrary
+  `file://` URIs — use giter8's own `giter8-launcher` library directly instead (a project-local,
+  not global, dependency — see README for the exact command).
 - **No inventory-service coupling (2026-09-29 deviation).** order-service's `POST /orders` calls
   a live inventory-service over HTTP at runtime to reserve stock (`InventoryClient`), which
   conflicts with this repo's standalone, Postgres-only footprint. Dropped in the port:
