@@ -6,6 +6,7 @@ import org.http4s.client.Client
 import org.http4s.{Request, Response, Status}
 import org.typelevel.log4cats.noop.NoOpLogger
 import org.typelevel.otel4s.metrics.Meter
+import pureconfig.{ConfigReader, ConfigSource}
 import purerest.resilience.{
   CircuitBreakerConfig,
   CircuitBreakerOpen,
@@ -13,8 +14,6 @@ import purerest.resilience.{
   ResilienceConfig,
   RetryConfig
 }
-
-import scala.concurrent.duration._
 
 /** This template's reference service doesn't call any other service, so
   * purerest's retry + circuit-breaker middleware isn't wired into `Main`. When
@@ -25,6 +24,18 @@ import scala.concurrent.duration._
   * other services with resilience".
   */
 class ClientResilienceExampleSuite extends CatsEffectSuite {
+
+  // purerest's resilience case classes don't derive ConfigReader themselves
+  // (the library has no PureConfig dependency) - instances are derived here
+  // instead, the same way a real service's config module would.
+  private given ConfigReader[RetryConfig] = ConfigReader.derived
+  private given ConfigReader[CircuitBreakerConfig] = ConfigReader.derived
+  private given ConfigReader[ResilienceConfig] = ConfigReader.derived
+
+  // Loaded from application.conf's "example-client" block - not read by the
+  // live service, only by this example.
+  private val exampleClientConfig: ResilienceConfig =
+    ConfigSource.default.at("example-client").loadOrThrow[ResilienceConfig]
 
   private def dummyDownstreamClient(
       counter: Ref[IO, Int]
@@ -41,14 +52,9 @@ class ClientResilienceExampleSuite extends CatsEffectSuite {
       client = dummyDownstreamClient(counter)(n =>
         if (n < 3) Status.InternalServerError else Status.Ok
       )
-      config = ResilienceConfig(
-        retry = RetryConfig(maxRetries = 5, baseDelay = 1.millisecond),
-        circuitBreaker =
-          CircuitBreakerConfig(failureThreshold = 10, resetTimeout = 1.hour)
-      )
-      resilientClient = Resilience.middleware[IO](config)(NoOpLogger[IO])(
-        Meter.noop[IO]
-      )(client)
+      resilientClient = Resilience.middleware[IO](exampleClientConfig)(
+        NoOpLogger[IO]
+      )(Meter.noop[IO])(client)
       response <- resilientClient.run(Request[IO]()).use(IO.pure)
       attempts <- counter.get
     } yield {
@@ -61,10 +67,13 @@ class ClientResilienceExampleSuite extends CatsEffectSuite {
     for {
       counter <- Ref.of[IO, Int](0)
       client = dummyDownstreamClient(counter)(_ => Status.InternalServerError)
-      config = ResilienceConfig(
-        retry = RetryConfig(maxRetries = 0, baseDelay = 1.millisecond),
+      // Same PureConfig-loaded config, adjusted to isolate the circuit
+      // breaker in this test: no retries, and a lower failure threshold so it
+      // trips after just two calls instead of exampleClientConfig's 10.
+      config = exampleClientConfig.copy(
+        retry = exampleClientConfig.retry.copy(maxRetries = 0),
         circuitBreaker =
-          CircuitBreakerConfig(failureThreshold = 2, resetTimeout = 1.hour)
+          exampleClientConfig.circuitBreaker.copy(failureThreshold = 2)
       )
       resilientClient = Resilience.middleware[IO](config)(NoOpLogger[IO])(
         Meter.noop[IO]
