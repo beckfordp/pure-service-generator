@@ -58,7 +58,7 @@
       (Protocol in workflow.md). Prompting off: verified via
       `scripts/verify-health-endpoints.sh` instead of an interactive walkthrough. [8a5861e]
 
-## Phase 6: Full CRUD lifecycle integration test, README, and final polish
+## Phase 6: Full CRUD lifecycle integration test, README, and final polish [checkpoint: f818aa2]
 - [x] Task: Add `ClientResilienceExampleSuite` (`src/test/scala/orderservice/examples/`) —
       wraps a dummy `Client[F]` with purerest's `Resilience.middleware`, demonstrating the
       retry + circuit-breaker pattern for whoever adapts this template to call a real downstream
@@ -76,8 +76,10 @@
       Swagger UI link) mirroring order-service's own docs. [2a03b1b]
 - [x] Task: Build the Docker image and run the full stack once via `docker compose up`,
       confirming all endpoints respond correctly end-to-end. [cabf770]
-- [ ] Task: Conductor - User Manual Verification 'Phase 6: Full CRUD lifecycle integration test,
-      README, and final polish' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 6: Full CRUD lifecycle integration test,
+      README, and final polish' (Protocol in workflow.md). Prompting off: verified via
+      `scripts/verify-docker-image.sh` plus the README's own verified quickstart, instead of an
+      interactive walkthrough. [f818aa2]
 
 ## Phase 7: Add `PUT /orders/{id}` (full replace)
 Scope addition, user-requested 2026-09-29 (after the CRUD/health phases above were already
