@@ -89,3 +89,6 @@ infrastructure, not new runtime behavior - verified by "still compiles/passes", 
       workflow.md) - verified directly (prompting off): new README section covers the field-spec
       format, how to run the tool, and its three limitations (additive-only/non-idempotent,
       uniform field visibility, required-only).
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions `5e9160c`
