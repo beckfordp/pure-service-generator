@@ -35,7 +35,7 @@ class $domain_name;format="cap"$StorePostgresSuite
       Migrations.run[IO](config) *> $domain_name;format="cap"$Store
         .postgres[IO](config, Meter.noop[IO])
         .use { store =>
-          store.create("widget", 2).map { entity =>
+          store.create("widget", 2/* codegen:fields:TEST_CREATE_ARGS */).map { entity =>
             assertEquals(entity.item, "widget")
             assertEquals(entity.quantity, 2)
             assertEquals(entity.status, "created")
@@ -53,8 +53,8 @@ class $domain_name;format="cap"$StorePostgresSuite
         .postgres[IO](config, Meter.noop[IO])
         .use { store =>
           for {
-            first <- store.create("widget", 1)
-            second <- store.create("widget", 1)
+            first <- store.create("widget", 1/* codegen:fields:TEST_CREATE_ARGS */)
+            second <- store.create("widget", 1/* codegen:fields:TEST_CREATE_ARGS */)
           } yield assertNotEquals(first.id, second.id)
         }
     }
@@ -67,7 +67,7 @@ class $domain_name;format="cap"$StorePostgresSuite
         .postgres[IO](config, Meter.noop[IO])
         .use { store =>
           for {
-            created <- store.create("widget", 3)
+            created <- store.create("widget", 3/* codegen:fields:TEST_CREATE_ARGS */)
             found <- store.get(created.id)
           } yield assertEquals(found, Some(created))
         }
@@ -105,8 +105,8 @@ class $domain_name;format="cap"$StorePostgresSuite
         .postgres[IO](config, Meter.noop[IO])
         .use { store =>
           for {
-            created <- store.create("widget", 2)
-            updated <- store.update(created.id, 9, "shipped")
+            created <- store.create("widget", 2/* codegen:fields:TEST_CREATE_ARGS */)
+            updated <- store.update(created.id, 9, "shipped"/* codegen:fields:TEST_UPDATE_ARGS */)
           } yield {
             assertEquals(updated.map(_.id), Some(created.id))
             assertEquals(updated.map(_.item), Some("widget"))
@@ -128,7 +128,7 @@ class $domain_name;format="cap"$StorePostgresSuite
         .postgres[IO](config, Meter.noop[IO])
         .use { store =>
           store
-            .update(java.util.UUID.randomUUID().toString, 9, "shipped")
+            .update(java.util.UUID.randomUUID().toString, 9, "shipped"/* codegen:fields:TEST_UPDATE_ARGS */)
             .map(assertEquals(_, None))
         }
     }
@@ -140,7 +140,7 @@ class $domain_name;format="cap"$StorePostgresSuite
       Migrations.run[IO](config) *> $domain_name;format="cap"$Store
         .postgres[IO](config, Meter.noop[IO])
         .use { store =>
-          store.update("not-a-uuid", 9, "shipped").map(assertEquals(_, None))
+          store.update("not-a-uuid", 9, "shipped"/* codegen:fields:TEST_UPDATE_ARGS */).map(assertEquals(_, None))
         }
     }
   }
@@ -152,7 +152,7 @@ class $domain_name;format="cap"$StorePostgresSuite
         .postgres[IO](config, Meter.noop[IO])
         .use { store =>
           for {
-            created <- store.create("widget", 2)
+            created <- store.create("widget", 2/* codegen:fields:TEST_CREATE_ARGS */)
             deleted <- store.delete(created.id)
             found <- store.get(created.id)
           } yield {
@@ -220,7 +220,7 @@ class $domain_name;format="cap"$StorePostgresSuite
             .postgres[IO](config, testMeter.meter)
             .use { store =>
               for {
-                created <- store.create("widget", 1)
+                created <- store.create("widget", 1/* codegen:fields:TEST_CREATE_ARGS */)
                 _ <- store.get(created.id)
                 metrics <- testMeter.collectMetrics
               } yield {
@@ -263,7 +263,7 @@ class $domain_name;format="cap"$StorePostgresSuite
             .postgres[IO](unreachableConfig, testMeter.meter)
             .use { store =>
               for {
-                result <- store.create("widget", 1).attempt
+                result <- store.create("widget", 1/* codegen:fields:TEST_CREATE_ARGS */).attempt
                 metrics <- testMeter.collectMetrics
               } yield {
                 assert(
@@ -305,15 +305,16 @@ class $domain_name;format="cap"$StorePostgresSuite
         .use { store =>
           for {
             ready <- store.ping
-            created <- store.create("widget", 2)
+            created <- store.create("widget", 2/* codegen:fields:TEST_CREATE_ARGS */)
             read1 <- store.get(created.id)
-            updated <- store.update(created.id, 9, "shipped")
+            updated <- store.update(created.id, 9, "shipped"/* codegen:fields:TEST_UPDATE_ARGS */)
             read2 <- store.get(created.id)
             deleted <- store.delete(created.id)
             read3 <- store.get(created.id)
           } yield {
             assert(ready, "expected the database to be ready")
             assertEquals(read1, Some(created))
+            // codegen:fields:TEST_LIFECYCLE_ASSERT
             assertEquals(updated.map(_.quantity), Some(9))
             assertEquals(updated.map(_.status), Some("shipped"))
             assertEquals(read2, updated)

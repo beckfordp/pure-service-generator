@@ -18,13 +18,14 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
 
   private def failingStore(error: Throwable): $domain_name;format="cap"$Store[IO] =
     new $domain_name;format="cap"$Store[IO] {
-      def create(item: String, quantity: Int): IO[$domain_name;format="cap"$] =
+      def create(item: String, quantity: Int/* codegen:fields:CREATE_PARAMS */): IO[$domain_name;format="cap"$] =
         IO.raiseError(error)
       def get(id: String): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
       def update(
           id: String,
           quantity: Int,
           status: String
+          /* codegen:fields:UPDATE_PARAMS */
       ): IO[Option[$domain_name;format="cap"$]] =
         IO.raiseError(error)
       def delete(id: String): IO[Boolean] = IO.raiseError(error)
@@ -36,7 +37,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       store <- $domain_name;format="cap"$Store.inMemory[IO]
       routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
       request = Request[IO](Method.POST, uri"/$domain_name$s")
-        .withEntity(Create$domain_name;format="cap"$Request("widget", 4))
+        .withEntity(Create$domain_name;format="cap"$Request("widget", 4/* codegen:fields:TEST_CREATE_REQUEST_ARGS */))
       response <- routes.orNotFound.run(request)
       entity <- response.as[$domain_name;format="cap"$Response]
     } yield {
@@ -53,7 +54,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
       postResponse <- routes.orNotFound.run(
         Request[IO](Method.POST, uri"/$domain_name$s").withEntity(
-          Create$domain_name;format="cap"$Request("widget", 4)
+          Create$domain_name;format="cap"$Request("widget", 4/* codegen:fields:TEST_CREATE_REQUEST_ARGS */)
         )
       )
       created <- postResponse.as[$domain_name;format="cap"$Response]
@@ -94,7 +95,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       testLogger = StructuredTestingLogger.impl[IO]()
       routes = $domain_name;format="cap"$Routes.routes[IO](store, testLogger)
       request = Request[IO](Method.POST, uri"/$domain_name$s")
-        .withEntity(Create$domain_name;format="cap"$Request("widget", 4))
+        .withEntity(Create$domain_name;format="cap"$Request("widget", 4/* codegen:fields:TEST_CREATE_REQUEST_ARGS */))
       response <- routes.orNotFound.run(request)
       entity <- response.as[$domain_name;format="cap"$Response]
       logged <- testLogger.logged
@@ -126,7 +127,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       testLogger <- IO.pure(StructuredTestingLogger.impl[IO]())
       routes = $domain_name;format="cap"$Routes.routes[IO](failingStore(boom), testLogger)
       request = Request[IO](Method.POST, uri"/$domain_name$s")
-        .withEntity(Create$domain_name;format="cap"$Request("widget", 4))
+        .withEntity(Create$domain_name;format="cap"$Request("widget", 4/* codegen:fields:TEST_CREATE_REQUEST_ARGS */))
       response <- routes.orNotFound.run(request)
       logged <- testLogger.logged
     } yield {
@@ -150,7 +151,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       routes = $domain_name;format="cap"$Routes.routes[IO](store, testLogger)
       postResponse <- routes.orNotFound.run(
         Request[IO](Method.POST, uri"/$domain_name$s").withEntity(
-          Create$domain_name;format="cap"$Request("widget", 4)
+          Create$domain_name;format="cap"$Request("widget", 4/* codegen:fields:TEST_CREATE_REQUEST_ARGS */)
         )
       )
       created <- postResponse.as[$domain_name;format="cap"$Response]
@@ -210,13 +211,13 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
       postResponse <- routes.orNotFound.run(
         Request[IO](Method.POST, uri"/$domain_name$s").withEntity(
-          Create$domain_name;format="cap"$Request("widget", 4)
+          Create$domain_name;format="cap"$Request("widget", 4/* codegen:fields:TEST_CREATE_REQUEST_ARGS */)
         )
       )
       created <- postResponse.as[$domain_name;format="cap"$Response]
       patchResponse <- routes.orNotFound.run(
         Request[IO](Method.PATCH, uri"/$domain_name$s" / created.id)
-          .withEntity(Update$domain_name;format="cap"$Request(9, "shipped"))
+          .withEntity(Update$domain_name;format="cap"$Request(9, "shipped"/* codegen:fields:TEST_UPDATE_REQUEST_ARGS */))
       )
       updated <- patchResponse.as[$domain_name;format="cap"$Response]
     } yield {
@@ -235,7 +236,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
       response <- routes.orNotFound.run(
         Request[IO](Method.PATCH, uri"/$domain_name$s" / "unknown-id")
-          .withEntity(Update$domain_name;format="cap"$Request(9, "shipped"))
+          .withEntity(Update$domain_name;format="cap"$Request(9, "shipped"/* codegen:fields:TEST_UPDATE_REQUEST_ARGS */))
       )
       body <- response.as[io.circe.Json]
     } yield {
@@ -256,14 +257,14 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       routes = $domain_name;format="cap"$Routes.routes[IO](store, testLogger)
       postResponse <- routes.orNotFound.run(
         Request[IO](Method.POST, uri"/$domain_name$s").withEntity(
-          Create$domain_name;format="cap"$Request("widget", 4)
+          Create$domain_name;format="cap"$Request("widget", 4/* codegen:fields:TEST_CREATE_REQUEST_ARGS */)
         )
       )
       created <- postResponse.as[$domain_name;format="cap"$Response]
       _ <- testLogger.logged // drain POST's own log lines before the PATCH
       patchResponse <- routes.orNotFound.run(
         Request[IO](Method.PATCH, uri"/$domain_name$s" / created.id)
-          .withEntity(Update$domain_name;format="cap"$Request(9, "shipped"))
+          .withEntity(Update$domain_name;format="cap"$Request(9, "shipped"/* codegen:fields:TEST_UPDATE_REQUEST_ARGS */))
       )
       logged <- testLogger.logged
     } yield {
@@ -294,7 +295,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       routes = $domain_name;format="cap"$Routes.routes[IO](store, testLogger)
       response <- routes.orNotFound.run(
         Request[IO](Method.PATCH, uri"/$domain_name$s" / "unknown-id")
-          .withEntity(Update$domain_name;format="cap"$Request(9, "shipped"))
+          .withEntity(Update$domain_name;format="cap"$Request(9, "shipped"/* codegen:fields:TEST_UPDATE_REQUEST_ARGS */))
       )
       logged <- testLogger.logged
     } yield {
@@ -318,7 +319,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
       postResponse <- routes.orNotFound.run(
         Request[IO](Method.POST, uri"/$domain_name$s").withEntity(
-          Create$domain_name;format="cap"$Request("widget", 4)
+          Create$domain_name;format="cap"$Request("widget", 4/* codegen:fields:TEST_CREATE_REQUEST_ARGS */)
         )
       )
       created <- postResponse.as[$domain_name;format="cap"$Response]
@@ -362,7 +363,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       routes = $domain_name;format="cap"$Routes.routes[IO](store, testLogger)
       postResponse <- routes.orNotFound.run(
         Request[IO](Method.POST, uri"/$domain_name$s").withEntity(
-          Create$domain_name;format="cap"$Request("widget", 4)
+          Create$domain_name;format="cap"$Request("widget", 4/* codegen:fields:TEST_CREATE_REQUEST_ARGS */)
         )
       )
       created <- postResponse.as[$domain_name;format="cap"$Response]
@@ -420,13 +421,13 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
       postResponse <- routes.orNotFound.run(
         Request[IO](Method.POST, uri"/$domain_name$s").withEntity(
-          Create$domain_name;format="cap"$Request("widget", 4)
+          Create$domain_name;format="cap"$Request("widget", 4/* codegen:fields:TEST_CREATE_REQUEST_ARGS */)
         )
       )
       created <- postResponse.as[$domain_name;format="cap"$Response]
       putResponse <- routes.orNotFound.run(
         Request[IO](Method.PUT, uri"/$domain_name$s" / created.id)
-          .withEntity(Update$domain_name;format="cap"$Request(9, "shipped"))
+          .withEntity(Update$domain_name;format="cap"$Request(9, "shipped"/* codegen:fields:TEST_UPDATE_REQUEST_ARGS */))
       )
       replaced <- putResponse.as[$domain_name;format="cap"$Response]
     } yield {
@@ -445,7 +446,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
       response <- routes.orNotFound.run(
         Request[IO](Method.PUT, uri"/$domain_name$s" / "unknown-id")
-          .withEntity(Update$domain_name;format="cap"$Request(9, "shipped"))
+          .withEntity(Update$domain_name;format="cap"$Request(9, "shipped"/* codegen:fields:TEST_UPDATE_REQUEST_ARGS */))
       )
       body <- response.as[io.circe.Json]
     } yield {
@@ -467,7 +468,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
           $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
         )
         request = Request[IO](Method.POST, uri"/$domain_name$s")
-          .withEntity(Create$domain_name;format="cap"$Request("widget", 4))
+          .withEntity(Create$domain_name;format="cap"$Request("widget", 4/* codegen:fields:TEST_CREATE_REQUEST_ARGS */))
         response <- routes.orNotFound.run(request)
         spans <- testTracer.finishedSpans
       } yield {

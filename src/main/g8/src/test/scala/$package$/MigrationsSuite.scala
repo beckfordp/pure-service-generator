@@ -49,6 +49,7 @@ class MigrationsSuite extends CatsEffectSuite with TestContainerForAll {
               "item",
               "quantity",
               "status",
+              // codegen:fields:TEST_MIGRATION_COLUMN
               "created_at",
               "updated_at"
             )

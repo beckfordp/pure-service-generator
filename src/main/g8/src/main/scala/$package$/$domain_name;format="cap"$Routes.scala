@@ -13,13 +13,13 @@ import sttp.tapir.json.circe._
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 
-final case class Create$domain_name;format="cap"$Request(item: String, quantity: Int)
+final case class Create$domain_name;format="cap"$Request(item: String, quantity: Int/* codegen:fields:CREATE_PARAMS */)
 
 object Create$domain_name;format="cap"$Request {
   implicit val codec: Codec[Create$domain_name;format="cap"$Request] = deriveCodec
 }
 
-final case class Update$domain_name;format="cap"$Request(quantity: Int, status: String)
+final case class Update$domain_name;format="cap"$Request(quantity: Int, status: String/* codegen:fields:UPDATE_PARAMS */)
 
 object Update$domain_name;format="cap"$Request {
   implicit val codec: Codec[Update$domain_name;format="cap"$Request] = deriveCodec
@@ -30,6 +30,7 @@ final case class $domain_name;format="cap"$Response(
     item: String,
     quantity: Int,
     status: String,
+    // codegen:fields:CASE_CLASS_FIELD
     createdAt: java.time.Instant,
     updatedAt: java.time.Instant
 )
@@ -43,6 +44,7 @@ object $domain_name;format="cap"$Response {
       entity.item,
       entity.quantity,
       entity.status,
+      /* codegen:fields:RESPONSE_APPLY_ARGS */
       entity.createdAt,
       entity.updatedAt
     )
@@ -131,7 +133,7 @@ object $domain_name;format="cap"$Routes {
             "quantity" -> req.quantity.toString
           )
         )("Received request")
-        entity <- store.create(req.item, req.quantity).onError { case error =>
+        entity <- store.create(req.item, req.quantity/* codegen:fields:CREATE_CALL_ARGS */).onError { case error =>
           logger.error(
             Map("item" -> req.item, "quantity" -> req.quantity.toString),
             error
@@ -193,7 +195,7 @@ object $domain_name;format="cap"$Routes {
           "status" -> req.status
         )
       )("Received request")
-      result <- store.update(id, req.quantity, req.status).flatMap {
+      result <- store.update(id, req.quantity, req.status/* codegen:fields:UPDATE_CALL_ARGS */).flatMap {
         case Some(entity) =>
           logger
             .info(Map("$domain_name$_id" -> id))("Request completed")

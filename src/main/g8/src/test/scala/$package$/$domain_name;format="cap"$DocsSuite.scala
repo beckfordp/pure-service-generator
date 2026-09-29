@@ -18,7 +18,7 @@ class $domain_name;format="cap"$DocsSuite extends CatsEffectSuite {
       endpoint = $domain_name;format="cap"$Routes.serverEndpoint[IO](store, NoOpLogger[IO])
       routes = Docs.routes[IO]("$domain_name;format="cap"$ Service", "1.0", List(endpoint))
       request = Request[IO](Method.POST, uri"/$domain_name$s")
-        .withEntity(Create$domain_name;format="cap"$Request("widget", 4))
+        .withEntity(Create$domain_name;format="cap"$Request("widget", 4/* codegen:fields:TEST_CREATE_REQUEST_ARGS */))
       response <- routes.orNotFound.run(request)
       entity <- response.as[$domain_name;format="cap"$Response]
       docsResponse <- routes.orNotFound.run(

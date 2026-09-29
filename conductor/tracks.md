@@ -2,7 +2,7 @@
 
 This file tracks all major tracks for the project.
 
-- [ ] **Track: Parametrized field-codegen (entity-field list → case class + migration + codec)**
+- [~] **Track: Parametrized field-codegen (entity-field list → case class + migration + codec)**
   *Link: [./tracks/field-codegen_20260929/](./tracks/field-codegen_20260929/)*
 
 ---

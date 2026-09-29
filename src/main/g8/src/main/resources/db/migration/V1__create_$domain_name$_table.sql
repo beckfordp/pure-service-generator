@@ -5,6 +5,7 @@ CREATE TABLE "$domain_name$" (
     item TEXT NOT NULL,
     quantity INT NOT NULL,
     status TEXT NOT NULL DEFAULT 'created',
+    -- codegen:fields:SQL_CREATE_COLUMN
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
