@@ -1,0 +1,29 @@
+Phase 4 Completion: End-to-end generation verification
+
+Automated tests: scripts/verify-g8-template.sh's own checks ARE this phase's
+automated tests - see below.
+
+Manual verification: prompting is off for this project (.claude/prompt-off), so
+this phase's manual verification ran via the committed script instead of an
+interactive walkthrough.
+
+Command: ./scripts/verify-g8-template.sh
+
+Result: all checks passed.
+1. Generated a real "widget" service from this repo's template via giter8's
+   launcher library - OK
+2. No leftover order/Order/orderservice references in the generated output - OK
+3. sbt scalafmt + scalafmtCheck + test: 52/52 pass - OK
+4. --package=com.example.widgetservice override generates nested
+   com/example/widgetservice/ directories and compiles - OK
+5. This repo's own reference service still builds/tests standalone (52/52),
+   unaffected by the template tree - OK
+
+This completes the track's acceptance criteria (spec.md): a compilable,
+fully-renamed standalone service generates from this template, its test suite
+passes, no leftover order-domain references remain, the package override
+works independently, and the source repo itself is untouched.
+
+Scope: all changes since the Phase 3 checkpoint (5dca445).
+Changed files: conductor/tracks/g8-template_20260929/plan.md,
+scripts/verify-g8-template.sh (new).
