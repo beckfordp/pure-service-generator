@@ -1,0 +1,27 @@
+Task: Write this repo's README.md
+
+Summary:
+Replaced the placeholder README with real documentation: prerequisites (sbt/JDK,
+Docker, a GITHUB_TOKEN with read:packages), a quickstart (docker compose up +
+sbt run + a full curl walkthrough of all five endpoints: POST/GET/PATCH/DELETE
+/orders and /health, /health/ready), a Swagger UI link, testing instructions,
+and a "One database per service" section explaining the order (singular)
+naming and pointing at tech-stack.md for the full deviation record. Kept the
+existing "Calling other services with resilience" section pointing at
+ClientResilienceExampleSuite.
+
+Every quickstart command was actually run against a real docker-compose
+Postgres + sbt run instance before writing it down - not just described from
+memory. Confirmed: POST/GET/PATCH/DELETE all work as documented, health
+returns 200, ready returns 200 while Postgres is up, and /docs (redirects to
+/docs/index.html, 200) and /docs/docs.yaml (200) serve the Swagger UI.
+
+Files changed:
+- README.md
+
+Why: Implements this track's Phase 6 documentation requirement - a reader
+should be able to clone this repo and run the full CRUD lifecycle without
+reading source code first.
+
+Verification: sbt scalafmtCheck Test/scalafmtCheck test - 50/50 pass. Every
+README command manually exercised against a live instance (see summary above).
