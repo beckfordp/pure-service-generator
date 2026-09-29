@@ -60,6 +60,11 @@
   HTTP client in `Main`/the live service. See
   `conductor/tracks/pure-service-generator_20260929/spec.md`'s "Deviations from order-service"
   for the full reasoning.
+- **`sbt bgRun` hangs when scripted (discovered 2026-09-29).** `sbt --no-server bgRun "shell"`
+  backgrounded from a verify script (the pattern purerest's own scripts use) hung indefinitely
+  here with no log output — plain foreground `sbt run`, backgrounded at the shell level
+  (`sbt run > log 2>&1 & PID=$!`), boots cleanly instead (migrations run, server binds to 8080)
+  and can be `kill`ed normally. Verify scripts in this repo use the latter.
 - **Resilience (retry + circuit breaker) kept only as a tested example, not live wiring
   (amended 2026-09-29).** With `InventoryClient` gone there's no outbound call in the live
   service to wrap purerest's `Resilience.middleware` around — but since this repo exists to be
