@@ -37,14 +37,15 @@
       workflow.md). Prompting off: verified via `scripts/verify-patch-endpoint.sh` instead of an
       interactive walkthrough. [04b5b11]
 
-## Phase 4: Add `DELETE /orders/{id}`
+## Phase 4: Add `DELETE /orders/{id}` [checkpoint: 3c0e2e2]
 - [x] Task: Write failing tests (Red) — extend `OrderStoreSuite` with a `delete` test; confirm
       it fails to compile. [17b99a4]
 - [x] Task: Implement (Green) — add `delete(id): F[Boolean]` to `OrderStore[F]`, both backends;
       add a tapir `DELETE /orders/{id}` endpoint (204, subsequent `GET` 404s) + routing; extend
       `OrderRoutesSuite`. Run the suite, confirm green. [a76958e]
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Add DELETE /orders/{id}' (Protocol in
-      workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Add DELETE /orders/{id}' (Protocol in
+      workflow.md). Prompting off: verified via `scripts/verify-delete-endpoint.sh` instead of
+      an interactive walkthrough. [3c0e2e2]
 
 ## Phase 5: Add `GET /health` and `GET /health/ready`
 - [ ] Task: Write failing tests (Red) — new `HealthRoutesSuite`; confirm it fails to compile (no
