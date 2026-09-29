@@ -1,0 +1,32 @@
+Task: Implement (Green) - PATCH /orders/{id} update endpoint
+
+Summary:
+Added OrderStore[F].update(id, quantity, status): F[Option[Order]] to both
+backends. In-memory: Ref.modify, replacing the stored order if present (None
+otherwise). Postgres: a single UPDATE ... RETURNING item, quantity, status,
+created_at, updated_at query (sets updated_at = now()), using .option so a
+missing/malformed id cleanly yields None without a separate SELECT round trip.
+Order and OrderResponse both gain an updatedAt field (create sets it equal to
+createdAt; update bumps it).
+
+Added a tapir PATCH /orders/{id} endpoint (UpdateOrderRequest body: quantity,
+status - both required, matching the plan's literal OrderStore.update
+signature rather than a field-by-field partial patch) - 200 with the updated
+order, or the existing notFoundOutput (404) if the id doesn't exist. Wired into
+OrderRoutes.routes and Main's Docs.routes list.
+
+Extended OrderRoutesSuite (success, 404, and logging tests for PATCH, plus
+failingStore now implements update) and OrderStorePostgresSuite (update
+success/unknown-id/malformed-id tests against real Postgres).
+
+Files changed:
+- src/main/scala/orderservice/{Main,OrderRoutes,OrderStore}.scala
+- src/test/scala/orderservice/{OrderRoutesSuite,OrderStorePostgresSuite}.scala
+
+Why: Implements this track's FR4 partial-update requirement (spec.md) -
+quantity/status changes, with updated_at set on every update.
+
+Verification: sbt scalafmtCheck Test/scalafmtCheck test - 35/35 pass (24 from
+Phase 1/2 + 2 ClientResilienceExampleSuite + 9 new: 4 OrderStoreSuite/
+OrderRoutesSuite-adjacent PATCH tests already counted above + 3
+OrderStorePostgresSuite update tests + adjustments).
