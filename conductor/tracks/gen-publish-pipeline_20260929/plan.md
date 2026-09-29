@@ -2,17 +2,19 @@
 
 ## Phase 1: CI workflow template
 Infrastructure, not Red/Green — a static template file, verified by generation + local checks.
-- [ ] Task: Add `.github/workflows/ci.yml` to `src/main/g8/` — `actions/checkout`, `actions/setup-java`
+- [x] Task: Add `.github/workflows/ci.yml` to `src/main/g8/` — `actions/checkout`, `actions/setup-java`
       (temurin 21, matching the packaging base image), `sbt/setup-sbt`, then
       `sbt scalafmtCheck Test/scalafmtCheck test` on push to the default branch.
       `GITHUB_ACTOR: ${{ github.actor }}`, `GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}` (a
       custom repo secret, since the automatic same-repo-scoped `GITHUB_TOKEN` can't resolve
-      another repo's GitHub Packages).
-- [ ] Task: Regenerate a `widget` service via giter8, confirm the workflow file is present and
+      another repo's GitHub Packages). `624dae6`
+- [x] Task: Regenerate a `widget` service via giter8, confirm the workflow file is present and
       valid YAML, and `sbt scalafmtCheck test` still passes locally (proves the new file doesn't
-      interfere with the build).
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: CI workflow template' (Protocol in
-      workflow.md)
+      interfere with the build). `624dae6`
+- [x] Task: Conductor - User Manual Verification 'Phase 1: CI workflow template' (Protocol in
+      workflow.md) - verified directly (prompting off): regenerated widget-service, `ci.yml`
+      present with correctly unescaped `${{ ... }}` expressions, `python3 -c "yaml.safe_load"`
+      confirms valid YAML, `sbt scalafmtCheck test` 52/52 passed locally.
 
 ## Phase 2: Build the orchestration script (local steps only, no GitHub calls yet)
 - [ ] Task: `scripts/generate-and-publish-service.sh` — argument parsing (`--domain-name`
