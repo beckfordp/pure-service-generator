@@ -79,3 +79,6 @@ names, cleaned up afterward.
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Documentation' (Protocol in
       workflow.md) - verified directly (prompting off): new README section covers usage,
       prerequisites/scopes, the `GH_PACKAGES_TOKEN` rationale, and visibility default.
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions `1afb527`
