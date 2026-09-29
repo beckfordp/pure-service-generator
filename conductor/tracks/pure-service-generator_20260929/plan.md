@@ -88,12 +88,14 @@ idempotent full-record replacement (both `quantity`/`status` required, same as `
 this resource has no other client-writable fields), distinct from `PATCH`'s partial-update
 semantics; both return 404 for an unknown id (this repo doesn't support client-chosen ids, so
 `PUT`-to-create isn't offered).
-- [ ] Task: Write failing tests (Red) — extend `OrderRoutesSuite` with `PUT /orders/{id}` tests
+- [x] Task: Write failing tests (Red) — extend `OrderRoutesSuite` with `PUT /orders/{id}` tests
       (200 + replaced order, 404 for unknown id); confirm it fails to compile (no `PUT` endpoint
-      yet).
-- [ ] Task: Implement (Green) — add a tapir `PUT /orders/{id}` endpoint + `OrderRoutes`/`Main`
+      yet). [43776b5] (failed at runtime, not compile — a PUT request simply doesn't match any
+      routed endpoint, so http4s falls through to its default 404 — still "fails for the right
+      reason.")
+- [x] Task: Implement (Green) — add a tapir `PUT /orders/{id}` endpoint + `OrderRoutes`/`Main`
       wiring, reusing `OrderStore.update` (same semantics as `PATCH`). Run the suite, confirm
-      green.
+      green. [c0399cb]
 - [ ] Task: Update README's quickstart curl walkthrough and spec.md's endpoint list to include
       `PUT`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 7: Add PUT /orders/{id}' (Protocol in
