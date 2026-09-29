@@ -409,6 +409,49 @@ class OrderRoutesSuite extends CatsEffectSuite {
     }
   }
 
+  test("PUT /orders/{id} returns 200 with the replaced order") {
+    for {
+      store <- OrderStore.inMemory[IO]
+      routes = OrderRoutes.routes[IO](store, NoOpLogger[IO])
+      postResponse <- routes.orNotFound.run(
+        Request[IO](Method.POST, uri"/orders").withEntity(
+          CreateOrderRequest("widget", 4)
+        )
+      )
+      created <- postResponse.as[OrderResponse]
+      putResponse <- routes.orNotFound.run(
+        Request[IO](Method.PUT, uri"/orders" / created.id)
+          .withEntity(UpdateOrderRequest(9, "shipped"))
+      )
+      replaced <- putResponse.as[OrderResponse]
+    } yield {
+      assertEquals(putResponse.status, Status.Ok)
+      assertEquals(replaced.id, created.id)
+      assertEquals(replaced.quantity, 9)
+      assertEquals(replaced.status, "shipped")
+    }
+  }
+
+  test(
+    "PUT /orders/{id} returns 404 with a JSON error body for an unknown id"
+  ) {
+    for {
+      store <- OrderStore.inMemory[IO]
+      routes = OrderRoutes.routes[IO](store, NoOpLogger[IO])
+      response <- routes.orNotFound.run(
+        Request[IO](Method.PUT, uri"/orders" / "unknown-id")
+          .withEntity(UpdateOrderRequest(9, "shipped"))
+      )
+      body <- response.as[io.circe.Json]
+    } yield {
+      assertEquals(response.status, Status.NotFound)
+      assert(
+        body.asObject.exists(_.contains("error")),
+        s"expected a JSON error body, got: $body"
+      )
+    }
+  }
+
   test(
     "wrapped routes (with tracing middleware) record a span for a handled request"
   ) {
