@@ -56,15 +56,16 @@ directly: `sbt runMain giter8.LauncherMain file://<path> --domain_name=... -o <o
 a project-local (not global) `libraryDependencies` addition in the consuming project — nothing
 about the user's global sbt environment changes. A real end user without this constraint could
 still try plain `sbt new file://<path>` first.
-- [~] Task: Write `scripts/verify-g8-template.sh` — runs the generation command above with
+- [x] Task: Write `scripts/verify-g8-template.sh` — runs the generation command above with
       `--domain_name=widget` (default `package`) into a temp directory, runs
       `sbt scalafmtCheck test` inside the generated project, greps the generated output for
       leftover `order`/`Order`/`orderservice` references (expect none), confirms this repo's own
       reference service still builds/tests standalone, then deletes the generated temp directory.
       The underlying checks were already run manually during Phase 2 (to debug the template);
-      this task formalizes them into a committed, re-runnable script.
-- [ ] Task: Run the script; fix anything it surfaces; confirm green — this is the track's
+      this task formalizes them into a committed, re-runnable script. [fa16f64]
+- [x] Task: Run the script; fix anything it surfaces; confirm green — this is the track's
       acceptance-criteria proof. Also spot-check overriding `package` independently (e.g.
-      `--package=com.example.widgetservice`) generates and compiles correctly.
+      `--package=com.example.widgetservice`) generates and compiles correctly. [fa16f64] All 5
+      checks passed on first run.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: End-to-end generation verification'
       (Protocol in workflow.md)
