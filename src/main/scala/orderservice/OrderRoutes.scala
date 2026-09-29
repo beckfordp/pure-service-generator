@@ -19,12 +19,19 @@ object CreateOrderRequest {
   implicit val codec: Codec[CreateOrderRequest] = deriveCodec
 }
 
+final case class UpdateOrderRequest(quantity: Int, status: String)
+
+object UpdateOrderRequest {
+  implicit val codec: Codec[UpdateOrderRequest] = deriveCodec
+}
+
 final case class OrderResponse(
     id: String,
     item: String,
     quantity: Int,
     status: String,
-    createdAt: java.time.Instant
+    createdAt: java.time.Instant,
+    updatedAt: java.time.Instant
 )
 
 object OrderResponse {
@@ -36,7 +43,8 @@ object OrderResponse {
       order.item,
       order.quantity,
       order.status,
-      order.createdAt
+      order.createdAt,
+      order.updatedAt
     )
 }
 
@@ -67,6 +75,18 @@ object OrderRoutes {
       : PublicEndpoint[String, OrderError, OrderResponse, Any] =
     endpoint.get
       .in("orders" / path[String]("id"))
+      .out(jsonBody[OrderResponse])
+      .errorOut(notFoundOutput)
+
+  private val updateOrderEndpoint: PublicEndpoint[
+    (String, UpdateOrderRequest),
+    OrderError,
+    OrderResponse,
+    Any
+  ] =
+    endpoint.patch
+      .in("orders" / path[String]("id"))
+      .in(jsonBody[UpdateOrderRequest])
       .out(jsonBody[OrderResponse])
       .errorOut(notFoundOutput)
 
@@ -124,6 +144,34 @@ object OrderRoutes {
       } yield result
     }
 
+  def updateOrderServerEndpoint[F[_]: Async](
+      store: OrderStore[F],
+      logger: StructuredLogger[F]
+  ): ServerEndpoint[Any, F] =
+    updateOrderEndpoint.serverLogic[F] { case (id, req) =>
+      for {
+        _ <- logger.info(
+          Map(
+            "method" -> "PATCH",
+            "path" -> s"/orders/$id",
+            "order_id" -> id,
+            "quantity" -> req.quantity.toString,
+            "status" -> req.status
+          )
+        )("Received request")
+        result <- store.update(id, req.quantity, req.status).flatMap {
+          case Some(order) =>
+            logger
+              .info(Map("order_id" -> id))("Request completed")
+              .as(Right(OrderResponse(order)))
+          case None =>
+            logger
+              .warn(Map("order_id" -> id))("Order not found")
+              .as(Left(OrderNotFound))
+        }
+      } yield result
+    }
+
   def routes[F[_]: Async](
       store: OrderStore[F],
       logger: StructuredLogger[F]
@@ -131,7 +179,8 @@ object OrderRoutes {
     Http4sServerInterpreter[F]().toRoutes(
       List(
         serverEndpoint(store, logger),
-        getOrderServerEndpoint(store, logger)
+        getOrderServerEndpoint(store, logger),
+        updateOrderServerEndpoint(store, logger)
       )
     )
 }

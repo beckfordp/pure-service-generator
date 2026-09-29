@@ -19,12 +19,14 @@ final case class Order(
     item: String,
     quantity: Int,
     status: String,
-    createdAt: java.time.Instant
+    createdAt: java.time.Instant,
+    updatedAt: java.time.Instant
 )
 
 trait OrderStore[F[_]] {
   def create(item: String, quantity: Int): F[Order]
   def get(id: String): F[Option[Order]]
+  def update(id: String, quantity: Int, status: String): F[Option[Order]]
 }
 
 object OrderStore {
@@ -38,28 +40,64 @@ object OrderStore {
           for {
             id <- Sync[F].delay(java.util.UUID.randomUUID().toString)
             now <- Sync[F].realTimeInstant
-            order = Order(id, item, quantity, defaultStatus, now)
+            order = Order(id, item, quantity, defaultStatus, now, now)
             _ <- ref.update(_ + (id -> order))
           } yield order
 
         def get(id: String): F[Option[Order]] = ref.get.map(_.get(id))
+
+        def update(
+            id: String,
+            quantity: Int,
+            status: String
+        ): F[Option[Order]] =
+          for {
+            now <- Sync[F].realTimeInstant
+            updated <- ref.modify { orders =>
+              orders.get(id) match {
+                case None           => (orders, None)
+                case Some(existing) =>
+                  val next =
+                    existing.copy(
+                      quantity = quantity,
+                      status = status,
+                      updatedAt = now
+                    )
+                  (orders + (id -> next), Some(next))
+              }
+            }
+          } yield updated
       }
     }
 
-  private val insertOrder: skunk.Query[(UUID, String, Int), OffsetDateTime] =
+  private val insertOrder
+      : skunk.Query[(UUID, String, Int), (OffsetDateTime, OffsetDateTime)] =
     sql"""
       INSERT INTO "order" (id, item, quantity)
       VALUES ($uuid, $text, $int4)
-      RETURNING created_at
-    """.query(timestamptz)
+      RETURNING created_at, updated_at
+    """.query(timestamptz *: timestamptz)
 
-  private val selectOrder
-      : skunk.Query[UUID, (String, Int, String, OffsetDateTime)] =
+  private val selectOrder: skunk.Query[
+    UUID,
+    (String, Int, String, OffsetDateTime, OffsetDateTime)
+  ] =
     sql"""
-      SELECT item, quantity, status, created_at
+      SELECT item, quantity, status, created_at, updated_at
       FROM "order"
       WHERE id = $uuid
-    """.query(text *: int4 *: text *: timestamptz)
+    """.query(text *: int4 *: text *: timestamptz *: timestamptz)
+
+  private val updateOrder: skunk.Query[
+    (Int, String, UUID),
+    (String, Int, String, OffsetDateTime, OffsetDateTime)
+  ] =
+    sql"""
+      UPDATE "order"
+      SET quantity = $int4, status = $text, updated_at = now()
+      WHERE id = $uuid
+      RETURNING item, quantity, status, created_at, updated_at
+    """.query(text *: int4 *: text *: timestamptz *: timestamptz)
 
   def postgres[F[_]: Async: Console: Network](
       config: PostgresConfig,
@@ -110,20 +148,24 @@ object OrderStore {
               def create(item: String, quantity: Int): F[Order] =
                 for {
                   id <- Sync[F].delay(UUID.randomUUID())
-                  createdAt <- timed("insert") {
+                  timestamps <- timed("insert") {
                     pool.use { session =>
                       session
                         .prepare(insertOrder)
                         .flatMap(_.unique((id, item, quantity)))
                     }
                   }
-                } yield Order(
-                  id.toString,
-                  item,
-                  quantity,
-                  defaultStatus,
-                  createdAt.toInstant
-                )
+                } yield {
+                  val (createdAt, updatedAt) = timestamps
+                  Order(
+                    id.toString,
+                    item,
+                    quantity,
+                    defaultStatus,
+                    createdAt.toInstant,
+                    updatedAt.toInstant
+                  )
+                }
 
               def get(id: String): F[Option[Order]] =
                 scala.util.Try(UUID.fromString(id)).toOption match {
@@ -136,8 +178,44 @@ object OrderStore {
                         }
                       }
                     } yield row.map {
-                      case (item, quantity, status, createdAt) =>
-                        Order(id, item, quantity, status, createdAt.toInstant)
+                      case (item, quantity, status, createdAt, updatedAt) =>
+                        Order(
+                          id,
+                          item,
+                          quantity,
+                          status,
+                          createdAt.toInstant,
+                          updatedAt.toInstant
+                        )
+                    }
+                }
+
+              def update(
+                  id: String,
+                  quantity: Int,
+                  status: String
+              ): F[Option[Order]] =
+                scala.util.Try(UUID.fromString(id)).toOption match {
+                  case None       => Sync[F].pure(None)
+                  case Some(uuid) =>
+                    for {
+                      row <- timed("update") {
+                        pool.use { session =>
+                          session
+                            .prepare(updateOrder)
+                            .flatMap(_.option((quantity, status, uuid)))
+                        }
+                      }
+                    } yield row.map {
+                      case (item, quantity, status, createdAt, updatedAt) =>
+                        Order(
+                          id,
+                          item,
+                          quantity,
+                          status,
+                          createdAt.toInstant,
+                          updatedAt.toInstant
+                        )
                     }
                 }
             }

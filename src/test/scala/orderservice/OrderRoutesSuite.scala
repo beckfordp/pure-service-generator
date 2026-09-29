@@ -20,6 +20,8 @@ class OrderRoutesSuite extends CatsEffectSuite {
     new OrderStore[IO] {
       def create(item: String, quantity: Int): IO[Order] = IO.raiseError(error)
       def get(id: String): IO[Option[Order]] = IO.pure(None)
+      def update(id: String, quantity: Int, status: String): IO[Option[Order]] =
+        IO.raiseError(error)
     }
 
   test("POST /orders returns 201 with the created order") {
@@ -180,6 +182,112 @@ class OrderRoutesSuite extends CatsEffectSuite {
       routes = OrderRoutes.routes[IO](store, testLogger)
       response <- routes.orNotFound.run(
         Request[IO](Method.GET, uri"/orders" / "unknown-id")
+      )
+      logged <- testLogger.logged
+    } yield {
+      assertEquals(response.status, Status.NotFound)
+      val warns = logged.collect { case m: WARN => m }
+      assert(
+        warns.exists(m =>
+          m.message.toLowerCase.contains("not found") &&
+            m.ctx.get("order_id").contains("unknown-id")
+        ),
+        s"expected a 'not found' WARN line with order_id context, got: $warns"
+      )
+    }
+  }
+
+  test("PATCH /orders/{id} returns 200 with the updated order") {
+    for {
+      store <- OrderStore.inMemory[IO]
+      routes = OrderRoutes.routes[IO](store, NoOpLogger[IO])
+      postResponse <- routes.orNotFound.run(
+        Request[IO](Method.POST, uri"/orders").withEntity(
+          CreateOrderRequest("widget", 4)
+        )
+      )
+      created <- postResponse.as[OrderResponse]
+      patchResponse <- routes.orNotFound.run(
+        Request[IO](Method.PATCH, uri"/orders" / created.id)
+          .withEntity(UpdateOrderRequest(9, "shipped"))
+      )
+      updated <- patchResponse.as[OrderResponse]
+    } yield {
+      assertEquals(patchResponse.status, Status.Ok)
+      assertEquals(updated.id, created.id)
+      assertEquals(updated.quantity, 9)
+      assertEquals(updated.status, "shipped")
+    }
+  }
+
+  test(
+    "PATCH /orders/{id} returns 404 with a JSON error body for an unknown id"
+  ) {
+    for {
+      store <- OrderStore.inMemory[IO]
+      routes = OrderRoutes.routes[IO](store, NoOpLogger[IO])
+      response <- routes.orNotFound.run(
+        Request[IO](Method.PATCH, uri"/orders" / "unknown-id")
+          .withEntity(UpdateOrderRequest(9, "shipped"))
+      )
+      body <- response.as[io.circe.Json]
+    } yield {
+      assertEquals(response.status, Status.NotFound)
+      assert(
+        body.asObject.exists(_.contains("error")),
+        s"expected a JSON error body, got: $body"
+      )
+    }
+  }
+
+  test(
+    "PATCH /orders/{id} logs a received-request line and a completed line for a found order"
+  ) {
+    for {
+      store <- OrderStore.inMemory[IO]
+      testLogger = StructuredTestingLogger.impl[IO]()
+      routes = OrderRoutes.routes[IO](store, testLogger)
+      postResponse <- routes.orNotFound.run(
+        Request[IO](Method.POST, uri"/orders").withEntity(
+          CreateOrderRequest("widget", 4)
+        )
+      )
+      created <- postResponse.as[OrderResponse]
+      _ <- testLogger.logged // drain POST's own log lines before the PATCH
+      patchResponse <- routes.orNotFound.run(
+        Request[IO](Method.PATCH, uri"/orders" / created.id)
+          .withEntity(UpdateOrderRequest(9, "shipped"))
+      )
+      logged <- testLogger.logged
+    } yield {
+      assertEquals(patchResponse.status, Status.Ok)
+      val infos = logged.collect { case m: INFO => m }
+      assert(
+        infos.exists(m =>
+          m.message.toLowerCase.contains("received") &&
+            m.ctx.get("method").contains("PATCH") &&
+            m.ctx.get("order_id").contains(created.id)
+        ),
+        s"expected a received-request INFO line with method/order_id context, got: $infos"
+      )
+      assert(
+        infos.exists(m =>
+          m.message.toLowerCase.contains("completed") &&
+            m.ctx.get("order_id").contains(created.id)
+        ),
+        s"expected a completed INFO line with order_id context, got: $infos"
+      )
+    }
+  }
+
+  test("PATCH /orders/{id} logs a WARN for an unknown id") {
+    for {
+      store <- OrderStore.inMemory[IO]
+      testLogger = StructuredTestingLogger.impl[IO]()
+      routes = OrderRoutes.routes[IO](store, testLogger)
+      response <- routes.orNotFound.run(
+        Request[IO](Method.PATCH, uri"/orders" / "unknown-id")
+          .withEntity(UpdateOrderRequest(9, "shipped"))
       )
       logged <- testLogger.logged
     } yield {

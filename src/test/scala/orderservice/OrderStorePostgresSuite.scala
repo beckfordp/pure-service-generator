@@ -96,6 +96,53 @@ class OrderStorePostgresSuite extends CatsEffectSuite with TestContainerForAll {
     }
   }
 
+  test("update changes quantity and status and returns the updated order") {
+    withContainers { postgres =>
+      val config = configFor(postgres)
+      Migrations.run[IO](config) *> OrderStore
+        .postgres[IO](config, Meter.noop[IO])
+        .use { store =>
+          for {
+            created <- store.create("widget", 2)
+            updated <- store.update(created.id, 9, "shipped")
+          } yield {
+            assertEquals(updated.map(_.id), Some(created.id))
+            assertEquals(updated.map(_.item), Some("widget"))
+            assertEquals(updated.map(_.quantity), Some(9))
+            assertEquals(updated.map(_.status), Some("shipped"))
+            assert(
+              updated.exists(!_.updatedAt.isBefore(created.updatedAt)),
+              s"expected updatedAt not to move backwards, got: $updated"
+            )
+          }
+        }
+    }
+  }
+
+  test("update returns None for an unknown id") {
+    withContainers { postgres =>
+      val config = configFor(postgres)
+      Migrations.run[IO](config) *> OrderStore
+        .postgres[IO](config, Meter.noop[IO])
+        .use { store =>
+          store
+            .update(java.util.UUID.randomUUID().toString, 9, "shipped")
+            .map(assertEquals(_, None))
+        }
+    }
+  }
+
+  test("update returns None for a malformed (non-UUID) id") {
+    withContainers { postgres =>
+      val config = configFor(postgres)
+      Migrations.run[IO](config) *> OrderStore
+        .postgres[IO](config, Meter.noop[IO])
+        .use { store =>
+          store.update("not-a-uuid", 9, "shipped").map(assertEquals(_, None))
+        }
+    }
+  }
+
   test(
     "create and get each record a db.client.operation.duration measurement, tagged by operation"
   ) {
