@@ -1,0 +1,27 @@
+Task: Flatten migrations into a singular order table; rename DB; add updated_at
+
+Summary:
+Renamed the Postgres database and table from "orders" to the domain name "order"
+(singular), per this track's one-database-per-service convention. Since Phase 1
+already ported a single flattened V1 migration (no reservation-related V2 to merge,
+per the recorded deviation), this task just renamed it (V1__create_orders_table.sql
+-> V1__create_order_table.sql) and its CREATE TABLE target, quoting "order"
+throughout (it's a reserved PostgreSQL keyword and can't be used unquoted). Also
+added the updated_at TIMESTAMPTZ column Phase 3's PATCH endpoint will use (DEFAULT
+now(), not yet touched by Scala code - that's Phase 3's job).
+
+Updated docker-compose.yml and application.conf defaults (database/user/password:
+"order"). OrderStore.scala's insert/select SQL now targets "order". REST paths are
+unchanged (/orders) - that's resource-collection convention, unrelated to DB naming.
+
+Files changed:
+- docker-compose.yml, src/main/resources/application.conf
+- src/main/resources/db/migration/V1__create_orders_table.sql -> V1__create_order_table.sql
+- src/main/scala/orderservice/OrderStore.scala
+- src/test/scala/orderservice/{MigrationsSuite,OrderServiceConfigSuite}.scala
+
+Why: Establishes the isolated-per-service persistence boundary this track's spec
+requires, before Phase 3 adds the update endpoint that will touch updated_at.
+
+Verification: sbt scalafmtCheck test - 24/24 pass, including OrderStorePostgresSuite
+and MigrationsSuite against a real Postgres container with the renamed table.
