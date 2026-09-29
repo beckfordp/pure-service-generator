@@ -12,7 +12,7 @@
       non-Scala files' (Protocol in workflow.md). Prompting off: verified via
       `scripts/verify-g8-phase1-scaffold.sh` instead of an interactive walkthrough. [f0bb1ba]
 
-## Phase 2: Template the Scala source
+## Phase 2: Template the Scala source [checkpoint: ecee915]
 - [x] Task: Copy `src/main/scala/orderservice/*.scala` into
       `src/main/g8/src/main/scala/$package$/` (directory driven by `package`, not `domain_name`
       — corrected from `package_name` per Phase 1's naming adjustment), with files renamed and
