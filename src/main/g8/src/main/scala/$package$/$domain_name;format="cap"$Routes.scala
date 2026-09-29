@@ -13,13 +13,13 @@ import sttp.tapir.json.circe._
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 
-final case class Create$domain_name;format="cap"$Request(item: String, quantity: Int/* codegen:fields:CREATE_PARAMS */)
+final case class Create$domain_name;format="cap"$Request(/* codegen:fields:CREATE_PARAMS */)
 
 object Create$domain_name;format="cap"$Request {
   implicit val codec: Codec[Create$domain_name;format="cap"$Request] = deriveCodec
 }
 
-final case class Update$domain_name;format="cap"$Request(quantity: Int, status: String/* codegen:fields:UPDATE_PARAMS */)
+final case class Update$domain_name;format="cap"$Request(/* codegen:fields:UPDATE_PARAMS */)
 
 object Update$domain_name;format="cap"$Request {
   implicit val codec: Codec[Update$domain_name;format="cap"$Request] = deriveCodec
@@ -27,9 +27,6 @@ object Update$domain_name;format="cap"$Request {
 
 final case class $domain_name;format="cap"$Response(
     id: String,
-    item: String,
-    quantity: Int,
-    status: String,
     // codegen:fields:CASE_CLASS_FIELD
     createdAt: java.time.Instant,
     updatedAt: java.time.Instant
@@ -41,9 +38,6 @@ object $domain_name;format="cap"$Response {
   def apply(entity: $domain_name;format="cap"$): $domain_name;format="cap"$Response =
     $domain_name;format="cap"$Response(
       entity.id,
-      entity.item,
-      entity.quantity,
-      entity.status,
       /* codegen:fields:RESPONSE_APPLY_ARGS */
       entity.createdAt,
       entity.updatedAt
@@ -128,23 +122,14 @@ object $domain_name;format="cap"$Routes {
         _ <- logger.info(
           Map(
             "method" -> "POST",
-            "path" -> "/$domain_name$s",
-            "item" -> req.item,
-            "quantity" -> req.quantity.toString
+            "path" -> "/$domain_name$s"
           )
         )("Received request")
-        entity <- store.create(req.item, req.quantity/* codegen:fields:CREATE_CALL_ARGS */).onError { case error =>
-          logger.error(
-            Map("item" -> req.item, "quantity" -> req.quantity.toString),
-            error
-          )("Persisting the $domain_name$ failed")
+        entity <- store.create(/* codegen:fields:CREATE_CALL_ARGS */).onError { case error =>
+          logger.error(Map.empty, error)("Persisting the $domain_name$ failed")
         }
         _ <- logger.info(
-          Map(
-            "$domain_name$_id" -> entity.id,
-            "item" -> entity.item,
-            "quantity" -> entity.quantity.toString
-          )
+          Map("$domain_name$_id" -> entity.id)
         )("Request completed")
       } yield $domain_name;format="cap"$Response(entity)
     }
@@ -175,7 +160,7 @@ object $domain_name;format="cap"$Routes {
 
   /** Shared handler for `PATCH` (partial update) and `PUT` (full replace) —
     * both call `$domain_name;format="cap"$Store.update` with the same required
-    * quantity/status body; only the logged HTTP method differs.
+    * update body; only the logged HTTP method differs.
     */
   private def updateLogic[F[_]: Async](
       store: $domain_name;format="cap"$Store[F],
@@ -190,12 +175,10 @@ object $domain_name;format="cap"$Routes {
         Map(
           "method" -> httpMethod,
           "path" -> s"/$domain_name$s/\$id",
-          "$domain_name$_id" -> id,
-          "quantity" -> req.quantity.toString,
-          "status" -> req.status
+          "$domain_name$_id" -> id
         )
       )("Received request")
-      result <- store.update(id, req.quantity, req.status/* codegen:fields:UPDATE_CALL_ARGS */).flatMap {
+      result <- store.update(id/* codegen:fields:UPDATE_CALL_ARGS */).flatMap {
         case Some(entity) =>
           logger
             .info(Map("$domain_name$_id" -> id))("Request completed")

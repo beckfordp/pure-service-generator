@@ -2,7 +2,7 @@
 
 This file tracks all major tracks for the project.
 
-- [ ] **Track: Make the base entity fields (currently fixed item/quantity/status on top of id/createdAt/updatedAt) themselves field-spec-driven**
+- [~] **Track: Make the base entity fields (currently fixed item/quantity/status on top of id/createdAt/updatedAt) themselves field-spec-driven**
   *Link: [./tracks/base-fields-spec_20260929/](./tracks/base-fields-spec_20260929/)*
 
 ---

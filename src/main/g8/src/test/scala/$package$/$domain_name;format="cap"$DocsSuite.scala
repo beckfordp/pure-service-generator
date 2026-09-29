@@ -18,7 +18,7 @@ class $domain_name;format="cap"$DocsSuite extends CatsEffectSuite {
       endpoint = $domain_name;format="cap"$Routes.serverEndpoint[IO](store, NoOpLogger[IO])
       routes = Docs.routes[IO]("$domain_name;format="cap"$ Service", "1.0", List(endpoint))
       request = Request[IO](Method.POST, uri"/$domain_name$s")
-        .withEntity(Create$domain_name;format="cap"$Request("widget", 4/* codegen:fields:TEST_CREATE_REQUEST_ARGS */))
+        .withEntity(Create$domain_name;format="cap"$Request(/* codegen:fields:TEST_CREATE_REQUEST_ARGS */))
       response <- routes.orNotFound.run(request)
       entity <- response.as[$domain_name;format="cap"$Response]
       docsResponse <- routes.orNotFound.run(
@@ -27,8 +27,7 @@ class $domain_name;format="cap"$DocsSuite extends CatsEffectSuite {
       docsBody <- docsResponse.bodyText.compile.string
     } yield {
       assertEquals(response.status, Status.Created)
-      assertEquals(entity.item, "widget")
-      assertEquals(entity.quantity, 4)
+      assert(entity.id.nonEmpty)
       assertEquals(docsResponse.status, Status.Ok)
       assert(clue(docsBody).contains("/$domain_name$s"))
     }

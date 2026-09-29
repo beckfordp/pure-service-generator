@@ -16,43 +16,38 @@ import scala.concurrent.duration.SECONDS
 
 final case class $domain_name;format="cap"$(
     id: String,
-    item: String,
-    quantity: Int,
-    status: String,
     // codegen:fields:CASE_CLASS_FIELD
     createdAt: java.time.Instant,
     updatedAt: java.time.Instant
 )
 
 trait $domain_name;format="cap"$Store[F[_]] {
-  def create(item: String, quantity: Int/* codegen:fields:CREATE_PARAMS */): F[$domain_name;format="cap"$]
+  def create(/* codegen:fields:CREATE_PARAMS */): F[$domain_name;format="cap"$]
   def get(id: String): F[Option[$domain_name;format="cap"$]]
-  def update(id: String, quantity: Int, status: String/* codegen:fields:UPDATE_PARAMS */): F[Option[$domain_name;format="cap"$]]
+  def update(id: String/* codegen:fields:UPDATE_PARAMS */): F[Option[$domain_name;format="cap"$]]
   def delete(id: String): F[Boolean]
   def ping: F[Boolean]
 }
 
 object $domain_name;format="cap"$Store {
 
-  private val defaultStatus = "created"
+  // codegen:fields:DEFAULT_VALUE_DECLS
 
   def inMemory[F[_]: Sync]: F[$domain_name;format="cap"$Store[F]] =
     Ref.of[F, Map[String, $domain_name;format="cap"$]](Map.empty).map { ref =>
       new $domain_name;format="cap"$Store[F] {
-        def create(item: String, quantity: Int/* codegen:fields:CREATE_PARAMS */): F[$domain_name;format="cap"$] =
+        def create(/* codegen:fields:CREATE_PARAMS */): F[$domain_name;format="cap"$] =
           for {
             id <- Sync[F].delay(java.util.UUID.randomUUID().toString)
             now <- Sync[F].realTimeInstant
-            entity = $domain_name;format="cap"$(id, item, quantity, defaultStatus, /* codegen:fields:CONSTRUCT_ARGS */now, now)
+            entity = $domain_name;format="cap"$(id, /* codegen:fields:CONSTRUCT_ARGS */now, now)
             _ <- ref.update(_ + (id -> entity))
           } yield entity
 
         def get(id: String): F[Option[$domain_name;format="cap"$]] = ref.get.map(_.get(id))
 
         def update(
-            id: String,
-            quantity: Int,
-            status: String
+            id: String
             /* codegen:fields:UPDATE_PARAMS */
         ): F[Option[$domain_name;format="cap"$]] =
           for {
@@ -63,8 +58,6 @@ object $domain_name;format="cap"$Store {
                 case Some(existing) =>
                   val next =
                     existing.copy(
-                      quantity = quantity,
-                      status = status,
                       /* codegen:fields:COPY_ARGS */
                       updatedAt = now
                     )
@@ -83,33 +76,33 @@ object $domain_name;format="cap"$Store {
     }
 
   private val insert$domain_name;format="cap"$
-      : skunk.Query[(UUID, String, Int/* codegen:fields:SQL_INSERT_TUPLE_TYPE */), (OffsetDateTime, OffsetDateTime)] =
+      : skunk.Query[(UUID/* codegen:fields:SQL_INSERT_TUPLE_TYPE */), (OffsetDateTime, OffsetDateTime)] =
     sql"""
-      INSERT INTO "$domain_name$" (id, item, quantity/* codegen:fields:SQL_INSERT_COLUMNS */)
-      VALUES (\$uuid, \$text, \$int4/* codegen:fields:SQL_INSERT_PARAMS */)
+      INSERT INTO "$domain_name$" (id/* codegen:fields:SQL_INSERT_COLUMNS */)
+      VALUES (\$uuid/* codegen:fields:SQL_INSERT_PARAMS */)
       RETURNING created_at, updated_at
     """.query(timestamptz *: timestamptz)
 
   private val select$domain_name;format="cap"$: skunk.Query[
     UUID,
-    (String, Int, String, /* codegen:fields:SQL_SELECT_TUPLE_TYPE */OffsetDateTime, OffsetDateTime)
+    (/* codegen:fields:SQL_SELECT_TUPLE_TYPE */OffsetDateTime, OffsetDateTime)
   ] =
     sql"""
-      SELECT item, quantity, status, /* codegen:fields:SQL_SELECT_COLUMNS */created_at, updated_at
+      SELECT /* codegen:fields:SQL_SELECT_COLUMNS */created_at, updated_at
       FROM "$domain_name$"
       WHERE id = \$uuid
-    """.query(text *: int4 *: text *: /* codegen:fields:SQL_SELECT_CODEC */timestamptz *: timestamptz)
+    """.query(/* codegen:fields:SQL_SELECT_CODEC */timestamptz *: timestamptz)
 
   private val update$domain_name;format="cap"$: skunk.Query[
-    (Int, String/* codegen:fields:SQL_UPDATE_TUPLE_TYPE */, UUID),
-    (String, Int, String, /* codegen:fields:SQL_SELECT_TUPLE_TYPE */OffsetDateTime, OffsetDateTime)
+    (/* codegen:fields:SQL_UPDATE_TUPLE_TYPE */UUID),
+    (/* codegen:fields:SQL_SELECT_TUPLE_TYPE */OffsetDateTime, OffsetDateTime)
   ] =
     sql"""
       UPDATE "$domain_name$"
-      SET quantity = \$int4, status = \$text/* codegen:fields:SQL_UPDATE_SET */, updated_at = now()
+      SET /* codegen:fields:SQL_UPDATE_SET */updated_at = now()
       WHERE id = \$uuid
-      RETURNING item, quantity, status, /* codegen:fields:SQL_SELECT_COLUMNS */created_at, updated_at
-    """.query(text *: int4 *: text *: /* codegen:fields:SQL_SELECT_CODEC */timestamptz *: timestamptz)
+      RETURNING /* codegen:fields:SQL_SELECT_COLUMNS */created_at, updated_at
+    """.query(/* codegen:fields:SQL_SELECT_CODEC */timestamptz *: timestamptz)
 
   private val delete$domain_name;format="cap"$: skunk.Query[UUID, UUID] =
     sql"""
@@ -143,7 +136,7 @@ object $domain_name;format="cap"$Store {
           .map { histogram =>
             /** Times a Skunk query, recording a `db.client.operation.duration`
               * measurement tagged with `db.system`/`db.operation` (OTel
-              * semantic-convention names), plus `error.type` if it fails — this
+              * semantic-convention names), plus `error.type` if it fails - this
               * is this service's only Postgres consumer, so it's instrumented
               * directly here rather than via a new purerest combinator.
               */
@@ -168,23 +161,20 @@ object $domain_name;format="cap"$Store {
               } yield a
 
             new $domain_name;format="cap"$Store[F] {
-              def create(item: String, quantity: Int/* codegen:fields:CREATE_PARAMS */): F[$domain_name;format="cap"$] =
+              def create(/* codegen:fields:CREATE_PARAMS */): F[$domain_name;format="cap"$] =
                 for {
                   id <- Sync[F].delay(UUID.randomUUID())
                   timestamps <- timed("insert") {
                     pool.use { session =>
                       session
                         .prepare(insert$domain_name;format="cap"$)
-                        .flatMap(_.unique((id, item, quantity/* codegen:fields:SQL_INSERT_TUPLE_ARGS */)))
+                        .flatMap(_.unique((id/* codegen:fields:SQL_INSERT_TUPLE_ARGS */)))
                     }
                   }
                 } yield {
                   val (createdAt, updatedAt) = timestamps
                   $domain_name;format="cap"$(
                     id.toString,
-                    item,
-                    quantity,
-                    defaultStatus,
                     /* codegen:fields:CONSTRUCT_ARGS */
                     createdAt.toInstant,
                     updatedAt.toInstant
@@ -202,12 +192,9 @@ object $domain_name;format="cap"$Store {
                         }
                       }
                     } yield row.map {
-                      case (item, quantity, status, /* codegen:fields:SQL_SELECT_PATTERN_VARS */createdAt, updatedAt) =>
+                      case (/* codegen:fields:SQL_SELECT_PATTERN_VARS */createdAt, updatedAt) =>
                         $domain_name;format="cap"$(
                           id,
-                          item,
-                          quantity,
-                          status,
                           /* codegen:fields:SQL_SELECT_CONSTRUCT_ARGS */
                           createdAt.toInstant,
                           updatedAt.toInstant
@@ -216,9 +203,7 @@ object $domain_name;format="cap"$Store {
                 }
 
               def update(
-                  id: String,
-                  quantity: Int,
-                  status: String
+                  id: String
                   /* codegen:fields:UPDATE_PARAMS */
               ): F[Option[$domain_name;format="cap"$]] =
                 scala.util.Try(UUID.fromString(id)).toOption match {
@@ -229,16 +214,13 @@ object $domain_name;format="cap"$Store {
                         pool.use { session =>
                           session
                             .prepare(update$domain_name;format="cap"$)
-                            .flatMap(_.option((quantity, status, /* codegen:fields:SQL_UPDATE_TUPLE_ARGS */uuid)))
+                            .flatMap(_.option((/* codegen:fields:SQL_UPDATE_TUPLE_ARGS */uuid)))
                         }
                       }
                     } yield row.map {
-                      case (item, quantity, status, /* codegen:fields:SQL_SELECT_PATTERN_VARS */createdAt, updatedAt) =>
+                      case (/* codegen:fields:SQL_SELECT_PATTERN_VARS */createdAt, updatedAt) =>
                         $domain_name;format="cap"$(
                           id,
-                          item,
-                          quantity,
-                          status,
                           /* codegen:fields:SQL_SELECT_CONSTRUCT_ARGS */
                           createdAt.toInstant,
                           updatedAt.toInstant

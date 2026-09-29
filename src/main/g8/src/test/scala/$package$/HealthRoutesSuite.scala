@@ -9,13 +9,11 @@ class HealthRoutesSuite extends CatsEffectSuite {
 
   private val readyStore: $domain_name;format="cap"$Store[IO] =
     new $domain_name;format="cap"$Store[IO] {
-      def create(item: String, quantity: Int/* codegen:fields:CREATE_PARAMS */): IO[$domain_name;format="cap"$] =
+      def create(/* codegen:fields:CREATE_PARAMS */): IO[$domain_name;format="cap"$] =
         IO.raiseError(new NotImplementedError())
       def get(id: String): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
       def update(
-          id: String,
-          quantity: Int,
-          status: String
+          id: String
           /* codegen:fields:UPDATE_PARAMS */
       ): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
       def delete(id: String): IO[Boolean] = IO.pure(false)
@@ -24,13 +22,11 @@ class HealthRoutesSuite extends CatsEffectSuite {
 
   private val notReadyStore: $domain_name;format="cap"$Store[IO] =
     new $domain_name;format="cap"$Store[IO] {
-      def create(item: String, quantity: Int/* codegen:fields:CREATE_PARAMS */): IO[$domain_name;format="cap"$] =
+      def create(/* codegen:fields:CREATE_PARAMS */): IO[$domain_name;format="cap"$] =
         IO.raiseError(new NotImplementedError())
       def get(id: String): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
       def update(
-          id: String,
-          quantity: Int,
-          status: String
+          id: String
           /* codegen:fields:UPDATE_PARAMS */
       ): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
       def delete(id: String): IO[Boolean] = IO.pure(false)
