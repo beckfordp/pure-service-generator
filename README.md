@@ -77,6 +77,64 @@ one-db-per-service rule. See [`conductor/tech-stack.md`](./conductor/tech-stack.
 rationale and the deviations recorded from purerest's original `order-service` (the
 inventory-service coupling this repo intentionally doesn't carry over).
 
+## Generating a new service from this template
+
+This repo doubles as a [giter8](http://www.foundweekends.org/giter8/) template (`src/main/g8/`)
+that renames `order-service` into a new, differently-domained service.
+
+### Prerequisites
+
+Same as above (sbt/JDK, Docker), plus the same `GITHUB_ACTOR`/`GITHUB_TOKEN` — the generated
+project also resolves `purerestlib` from GitHub Packages.
+
+### Generate
+
+```
+sbt new file:///absolute/path/to/pure-service-generator --domain_name=widget
+```
+
+If your sbt version supports resolving local `file://` templates directly, that's all you need —
+follow the interactive prompts (or pass `--package=...` too, see below) and it'll scaffold a new
+`widget-service/` directory. If instead you see `Template not found for: file://...`, your sbt's
+built-in `new` command only resolves a hardcoded list of GitHub template shortcuts, not arbitrary
+`file://` URIs — use giter8's own launcher library directly instead, as a project-local dependency
+in a throwaway sbt project (this changes nothing about your global sbt setup):
+
+```
+mkdir -p /tmp/g8-out/project
+echo 'sbt.version=1.13.0' > /tmp/g8-out/project/build.properties
+echo 'libraryDependencies += "org.foundweekends.giter8" %% "giter8-launcher" % "0.18.0"' > /tmp/g8-out/build.sbt
+cd /tmp/g8-out
+sbt "runMain giter8.LauncherMain file:///absolute/path/to/pure-service-generator --domain_name=widget -o widget-service"
+```
+
+### Properties
+
+- `domain_name` (default `widget`) — lowercase, singular (e.g. `widget`, `invoice`). Drives the
+  sbt project/Docker image name, the Postgres database/table name, REST paths (see the
+  pluralization caveat below), Scala class/identifier names, and the `service-name` config
+  default.
+- `package` (default `$domain_name$service`, e.g. `widgetservice`) — the Scala package.
+  Independently overridable, including reverse-domain style (`--package=com.example.widgetservice`
+  generates nested `com/example/widgetservice/` directories — giter8's built-in behavior for a
+  property literally named `package`).
+
+### After generating
+
+```
+cd widget-service
+sbt scalafmt test   # one reformat pass is expected: identifier-length differences
+                     # (e.g. "Widget" vs "Order") shift line-wrapping vs. this repo's own
+docker compose up -d && sbt run
+```
+
+### Known limitation: naive pluralization
+
+REST paths pluralize `domain_name` by appending `s` (`/widgets`, `/invoices`) — this doesn't
+handle irregular English plurals (e.g. a domain named `company` generates `/companys`, not
+`/companies`). Hand-edit the generated `*Routes.scala`/`*RoutesSuite.scala` path segments if your
+domain name needs an irregular plural.
+
 ## Calling other services with resilience
 
 This reference service doesn't call any other service, so purerest's retry + circuit-breaker
