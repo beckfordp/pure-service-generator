@@ -1,0 +1,22 @@
+Tasks: Write and run scripts/verify-g8-template.sh (Phase 4, both tasks)
+
+Summary:
+Wrote the committed verification script formalizing everything manually
+checked during Phase 2/3: generate a real "widget" service via giter8's
+launcher library (project-local throwaway dependency, not a global plugin),
+grep for leftover order-domain references, run scalafmtCheck + test, spot-check
+an independent --package override, and confirm the source repo's own suite is
+unaffected. Ran it: all 5 checks passed on first run - nothing needed fixing,
+since the underlying template correctness was already established manually
+during Phase 2/3's debugging.
+
+Files changed:
+- scripts/verify-g8-template.sh (new)
+
+Why: This is the track's acceptance-criteria proof (spec.md) - a committed,
+re-runnable script anyone (or CI, eventually) can run to confirm the template
+still works, rather than a one-off manual check that can't be repeated.
+
+Verification: the script's own output is the verification - all 5 checks
+passed: generation succeeded, no leftover references, 52/52 tests pass,
+package override compiles, source repo unaffected.
