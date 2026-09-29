@@ -194,6 +194,47 @@ build) — it operates on an already-generated project directory, not on the tem
   doesn't support — see the backlog item in `conductor/tracks.md` for generalizing this.
 - **No optional/nullable fields** — v1 only supports required fields.
 
+## Automated generate → publish → CI pipeline
+
+`scripts/generate-and-publish-service.sh` chains everything above into one command: generate a
+service from this repo's giter8 template, optionally apply a field-spec, reformat it, create a
+new **public** GitHub repo under your account, push, wire up CI credentials, and wait for that
+first GitHub Actions run to go green.
+
+```
+./scripts/generate-and-publish-service.sh --domain-name widget \
+  [--package <package>] [--field-spec <path>] [--repo-name <name>]
+```
+
+- `--domain-name` (required) — same as the giter8 `domain_name` property.
+- `--package` (optional) — passed through to giter8.
+- `--field-spec` (optional) — a field-spec YAML path; if given, the field-codegen tool runs
+  against the generated service before it's pushed (see "Adding domain fields" above).
+- `--repo-name` (optional) — defaults to `<domain-name>-service`. The script aborts cleanly,
+  without touching anything, if a repo with that name already exists.
+
+### Prerequisites
+
+- `gh`, authenticated (`gh auth status`) with a token that has `repo` and `workflow` scopes (to
+  create repos, push, and manage Actions secrets) and `read:packages` scope (the same token is
+  reused as the generated repo's own CI credential — see below).
+- Everything the template itself needs: sbt/JDK, Docker, `GITHUB_ACTOR`/`GITHUB_TOKEN` in the
+  environment (see "Prerequisites" above).
+
+### Why a `GH_PACKAGES_TOKEN` secret
+
+The generated repo's CI workflow (`.github/workflows/ci.yml`, templated into `src/main/g8/`)
+needs to resolve `purerestlib` from GitHub Packages, published from a *different* repo
+(`beckfordp/purerest`). GitHub Actions' automatic, built-in `GITHUB_TOKEN` is scoped to the
+current repo only and can't read another repo's packages, so the script sets a real repository
+secret instead — `gh secret set GH_PACKAGES_TOKEN`, reusing the caller's own `gh auth token` —
+*before* the push that triggers the first CI run.
+
+### Visibility
+
+Repos are created **public** by default; there's no `--private` flag yet (see Non-Goals in
+`conductor/product.md`).
+
 ## Calling other services with resilience
 
 This reference service doesn't call any other service, so purerest's retry + circuit-breaker
