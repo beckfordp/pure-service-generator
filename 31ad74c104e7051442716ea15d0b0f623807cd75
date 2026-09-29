@@ -1,0 +1,25 @@
+Task: Document the template in this repo's own README
+
+Summary:
+Added a "Generating a new service from this template" section to the main
+README: prerequisites (same as running the reference service, plus the same
+GITHUB_ACTOR/GITHUB_TOKEN), the primary generation command (sbt new
+file:///path/to/repo --domain_name=widget, pointed at the repo root), a
+fallback using giter8's own giter8-launcher library directly for sbt versions
+where the built-in `new` command doesn't resolve file:// URIs (documented
+with the exact "Template not found for: file://..." symptom to watch for),
+both template properties (domain_name, package) and their defaults/behavior,
+post-generation steps (one sbt scalafmt pass expected), and the
+naive-pluralization known limitation.
+
+Files changed:
+- README.md
+
+Why: Completes this track's spec.md requirement that this repo document how
+to actually use the template it ships.
+
+Verification: ran both documented generation commands (the sbt new file://
+form and the giter8-launcher fallback) against this exact repo from a clean
+throwaway directory - both produced an identical, correct widget-service/
+output pointed at the repo root (not src/main/g8), confirming the README's
+exact commands are accurate and reproducible.
