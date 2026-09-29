@@ -73,8 +73,9 @@ names, cleaned up afterward.
       guard behaved exactly as specified.
 
 ## Phase 4: Documentation
-- [ ] Task: Document the pipeline in the README — usage, required `gh auth` scopes, the
+- [x] Task: Document the pipeline in the README — usage, required `gh auth` scopes, the
       `GH_PACKAGES_TOKEN` secret and why it's needed, `--field-spec`/`--repo-name`, and the
-      public-by-default visibility.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Documentation' (Protocol in
-      workflow.md)
+      public-by-default visibility. `1cb648f`
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Documentation' (Protocol in
+      workflow.md) - verified directly (prompting off): new README section covers usage,
+      prerequisites/scopes, the `GH_PACKAGES_TOKEN` rationale, and visibility default.
