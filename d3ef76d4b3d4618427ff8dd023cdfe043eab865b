@@ -1,0 +1,29 @@
+Task: Add ClientResilienceExampleSuite (resilience-client example for template adopters)
+
+Summary:
+User-requested addition, discussed mid-track: order-service (this repo's reference
+service) has no outbound HTTP call, so purerest's retry + circuit-breaker middleware
+was dropped entirely per the Phase 1 deviation record. But since this repo's purpose
+is to be copied/adapted into real generated services that WILL call other services,
+outright dropping it would leave adopters to rediscover the wiring pattern from
+scratch. Added a standalone, CI-verified example test instead: wraps a dummy
+Client[F] (in-memory, no real network) with Resilience.middleware, with two tests -
+transient failures retried to success, and the circuit breaker opening after
+repeated failures - mirroring purerest's own ResilienceSuite pattern. Deliberately
+NOT wired into Main.scala/OrderServiceConfig - stays example-only so the live
+service's "no resilience wiring" property (Phase 1 deviation) is unchanged.
+
+Amended spec.md's "Deviations from order-service" and tech-stack.md's "Known
+Constraints" to record this as a 2026-09-29 amendment (resilience kept as a tested
+example, not dropped outright). Added a README section ("Calling other services with
+resilience") pointing to the test.
+
+Files changed:
+- src/test/scala/orderservice/examples/ClientResilienceExampleSuite.scala (new)
+- README.md, conductor/tech-stack.md,
+  conductor/tracks/pure-service-generator_20260929/spec.md
+
+Why: Keeps the resilience pattern discoverable and verified for whoever adapts this
+template, without reintroducing dead/unexercised code into the live service.
+
+Verification: sbt scalafmtCheck test - 26/26 pass (24 existing + 2 new).
