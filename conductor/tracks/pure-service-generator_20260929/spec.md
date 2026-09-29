@@ -68,6 +68,13 @@ http4s `Client[F]`, and the inventory call is the only outbound HTTP call in the
 - Drop the resilience (retry + circuit breaker) requirement from this track's scope — there is no
   other outbound call to wrap it around, and adding one purely to exercise unused middleware
   would be scope creep beyond what this track needs.
+
+  **Amendment (2026-09-29):** since this repo's purpose is to be copied/adapted into services
+  that *will* call other services, resilience is kept as a documented, tested example rather than
+  dropped outright — not wired into `Main`/the live service, but a standalone test
+  (`ClientResilienceExampleSuite`) wrapping a dummy `Client[F]` with `Resilience.middleware`,
+  demonstrating the retry + circuit-breaker pattern for whoever adapts this template. See
+  README's "Calling other services with resilience".
 - Test suites that only exist to exercise the inventory-service integration
   (`OrderServiceIntegrationSuite`, `OrderServicePostgresIntegrationSuite`,
   `OrderServiceTraceContinuitySuite` — all import `inventoryservice.*` directly, which isn't

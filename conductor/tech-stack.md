@@ -53,11 +53,16 @@
 ## Known Constraints
 - **No generator machinery yet.** This repo currently holds one hand-adapted reference service,
   not a parameterized template — see `product.md`'s Non-Goals/Future Direction.
-- **No inventory-service coupling, no resilience wiring (2026-09-29 deviation).** order-service's
-  `POST /orders` calls a live inventory-service over HTTP at runtime to reserve stock
-  (`InventoryClient`), and purerest's retry/circuit-breaker resilience middleware exists in
-  order-service solely to wrap that one outbound call. Both conflict with this repo's
-  standalone, Postgres-only footprint, so both are dropped in the port: `POST /orders` persists
-  directly, no `reservation_id`/`reserved_quantity` columns, no outbound HTTP client, no
-  resilience middleware. See `conductor/tracks/pure-service-generator_20260929/spec.md`'s
-  "Deviations from order-service" for the full reasoning.
+- **No inventory-service coupling (2026-09-29 deviation).** order-service's `POST /orders` calls
+  a live inventory-service over HTTP at runtime to reserve stock (`InventoryClient`), which
+  conflicts with this repo's standalone, Postgres-only footprint. Dropped in the port:
+  `POST /orders` persists directly, no `reservation_id`/`reserved_quantity` columns, no outbound
+  HTTP client in `Main`/the live service. See
+  `conductor/tracks/pure-service-generator_20260929/spec.md`'s "Deviations from order-service"
+  for the full reasoning.
+- **Resilience (retry + circuit breaker) kept only as a tested example, not live wiring
+  (amended 2026-09-29).** With `InventoryClient` gone there's no outbound call in the live
+  service to wrap purerest's `Resilience.middleware` around — but since this repo exists to be
+  copied/adapted into services that *will* call others, the pattern is kept as a standalone,
+  CI-verified example test (`ClientResilienceExampleSuite`, wrapping a dummy `Client[F]`) rather
+  than dropped outright. See README's "Calling other services with resilience".
