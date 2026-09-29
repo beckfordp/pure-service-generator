@@ -3,17 +3,23 @@
 ## Phase 1: Strip the g8 template to zero domain fields
 Infrastructure, not Red/Green — verified by generation + local checks, like field-codegen's own
 Phase 1.
-- [ ] Task: Remove `item`/`quantity`/`status` entirely from every `src/main/g8/` file (case
+- [x] Task: Remove `item`/`quantity`/`status` entirely from every `src/main/g8/` file (case
       class, `Create*Request`/`Update*Request`/`*Response`, SQL migration/queries, in-memory +
       Postgres store bodies, all test files) — the anchors stay, but now some sit at the *start*
       of an otherwise-empty list (e.g. `create(/* codegen:fields:CREATE_PARAMS */)`) rather than
-      always having `item`/`quantity` already present before them.
-- [ ] Task: Regenerate a `widget` service via giter8 (no field-spec applied) and confirm it
+      always having `item`/`quantity` already present before them. `0a6b400`
+
+      Also added a new `DEFAULT_VALUE_DECLS` anchor (own-line, statement-mode) replacing the
+      hardcoded `defaultStatus` val, for Phase 3 to render `server-defaulted` fields' default
+      constants into.
+- [x] Task: Regenerate a `widget` service via giter8 (no field-spec applied) and confirm it
       still compiles and `sbt scalafmtCheck test` passes — a structurally empty
       `CreateRequest`/`UpdateRequest`/entity (just `id`/`createdAt`/`updatedAt`) is a valid,
-      if degenerate, service.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Strip the g8 template to zero domain
-      fields' (Protocol in workflow.md)
+      if degenerate, service. `0a6b400`
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Strip the g8 template to zero domain
+      fields' (Protocol in workflow.md) - verified directly (prompting off): regenerated
+      widget-service compiles (main+test), scalafmt-clean, 52/52 tests pass with a genuinely
+      zero-domain-field entity.
 
 ## Phase 2: Extend the field-spec format
 - [ ] Task: Write failing tests (Red) — `FieldSpecParser` parsing the new optional `visibility`
