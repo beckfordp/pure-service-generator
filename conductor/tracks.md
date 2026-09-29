@@ -2,9 +2,6 @@
 
 This file tracks all major tracks for the project.
 
-- [x] **Track: Parametrized field-codegen (entity-field list → case class + migration + codec)**
-  *Link: [./tracks/field-codegen_20260929/](./tracks/field-codegen_20260929/)*
-
 ---
 
 ## Backlog
@@ -18,6 +15,7 @@ through the spec/plan questions and promote it into a real track below.
   `id`/`createdAt`/`updatedAt`) themselves field-spec-driven, so a generated service isn't
   stuck with order-specific fields for non-order domains. Needs per-field create/update
   visibility in the field model (deferred out of field-codegen_20260929 v1, which assumes
-  every field appears in create/update/response uniformly) — see that track's spec.md.
+  every field appears in create/update/response uniformly) — see
+  `conductor/archive/field-codegen_20260929/spec.md`.
 
 ---
