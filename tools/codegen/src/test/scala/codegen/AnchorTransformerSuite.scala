@@ -16,7 +16,7 @@ class AnchorTransformerSuite extends FunSuite {
       "  def create(item: String, quantity: Int/* codegen:fields:CREATE_PARAMS */): F[X]"
     val expected =
       "  def create(item: String, quantity: Int, color: String, weight: Int): F[X]"
-    assertEquals(AnchorTransformer.transform(input, fields), expected)
+    assertEquals(AnchorTransformer.transform(input, fields), Right(expected))
   }
 
   test(
@@ -26,7 +26,7 @@ class AnchorTransformerSuite extends FunSuite {
       "    (String, Int, String, /* codegen:fields:SQL_SELECT_TUPLE_TYPE */OffsetDateTime, OffsetDateTime)"
     val expected =
       "    (String, Int, String, String, Int, OffsetDateTime, OffsetDateTime)"
-    assertEquals(AnchorTransformer.transform(input, fields), expected)
+    assertEquals(AnchorTransformer.transform(input, fields), Right(expected))
   }
 
   test(
@@ -36,7 +36,7 @@ class AnchorTransformerSuite extends FunSuite {
       "    .query(text *: int4 *: text *: /* codegen:fields:SQL_SELECT_CODEC */timestamptz *: timestamptz)"
     val expected =
       "    .query(text *: int4 *: text *: text *: int4 *: timestamptz *: timestamptz)"
-    assertEquals(AnchorTransformer.transform(input, fields), expected)
+    assertEquals(AnchorTransformer.transform(input, fields), Right(expected))
   }
 
   test(
@@ -57,7 +57,7 @@ class AnchorTransformerSuite extends FunSuite {
          |    weight: Int,
          |    createdAt: java.time.Instant
          |)""".stripMargin
-    assertEquals(AnchorTransformer.transform(input, fields), expected)
+    assertEquals(AnchorTransformer.transform(input, fields), Right(expected))
   }
 
   test(
@@ -76,7 +76,7 @@ class AnchorTransformerSuite extends FunSuite {
          |            color: String,
          |            weight: Int
          |        ): F[Option[Widget]] =""".stripMargin
-    assertEquals(AnchorTransformer.transform(input, fields), expected)
+    assertEquals(AnchorTransformer.transform(input, fields), Right(expected))
   }
 
   test("own-line statement mode: no trailing commas, no preceding-line fixup") {
@@ -89,7 +89,7 @@ class AnchorTransformerSuite extends FunSuite {
          |            assertEquals(updated.map(_.color), Some("red"))
          |            assertEquals(updated.map(_.weight), Some(42))
          |            assertEquals(updated.map(_.quantity), Some(9))""".stripMargin
-    assertEquals(AnchorTransformer.transform(input, fields), expected)
+    assertEquals(AnchorTransformer.transform(input, fields), Right(expected))
   }
 
   test(
@@ -104,20 +104,21 @@ class AnchorTransformerSuite extends FunSuite {
          |    color TEXT NOT NULL,
          |    weight INT NOT NULL,
          |    created_at TIMESTAMPTZ NOT NULL DEFAULT now()""".stripMargin
-    assertEquals(AnchorTransformer.transform(input, fields), expected)
+    assertEquals(AnchorTransformer.transform(input, fields), Right(expected))
   }
 
   test("lines without an anchor are left unchanged") {
     val input = "  def get(id: String): F[Option[Widget]]"
-    assertEquals(AnchorTransformer.transform(input, fields), input)
+    assertEquals(AnchorTransformer.transform(input, fields), Right(input))
   }
 
-  test("unknown anchor tag raises an error rather than silently skipping") {
+  test("unknown anchor tag is reported as a Left, not thrown") {
     val input =
       "  def create(item: String/* codegen:fields:NOT_A_REAL_TAG */): F[X]"
-    intercept[IllegalArgumentException] {
-      AnchorTransformer.transform(input, fields)
-    }
+    assertEquals(
+      AnchorTransformer.transform(input, fields),
+      Left("Unknown codegen:fields anchor tag 'NOT_A_REAL_TAG'")
+    )
   }
 
   test("a full multi-anchor file is transformed consistently end to end") {
@@ -130,11 +131,13 @@ class AnchorTransformerSuite extends FunSuite {
          |
          |def create(item: String, quantity: Int/* codegen:fields:CREATE_PARAMS */): F[Widget]""".stripMargin
     val result = AnchorTransformer.transform(input, fields)
+    assert(result.isRight, s"expected Right, got: $result")
+    val text = result.toOption.get
     assert(
-      clue(result).contains("color: String,\n    weight: Int,\n    createdAt")
+      clue(text).contains("color: String,\n    weight: Int,\n    createdAt")
     )
     assert(
-      clue(result).contains(
+      clue(text).contains(
         "create(item: String, quantity: Int, color: String, weight: Int): F[Widget]"
       )
     )

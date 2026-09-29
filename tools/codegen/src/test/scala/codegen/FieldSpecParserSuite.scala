@@ -57,4 +57,41 @@ class FieldSpecParserSuite extends FunSuite {
     val result = FieldSpecParser.parse("not: [valid, yaml")
     assert(result.isLeft, s"expected a Left, got: $result")
   }
+
+  test("rejects an example that doesn't parse as its declared type's literal") {
+    val badExamples = List(
+      """fields:
+        |  - name: weight
+        |    type: Int
+        |    example: "not-a-number"
+        |""".stripMargin,
+      """fields:
+        |  - name: fragile
+        |    type: Boolean
+        |    example: "yes"
+        |""".stripMargin,
+      """fields:
+        |  - name: expiresAt
+        |    type: Instant
+        |    example: "not-a-timestamp"
+        |""".stripMargin
+    )
+    badExamples.foreach { yaml =>
+      val result = FieldSpecParser.parse(yaml)
+      assert(result.isLeft, s"expected a Left for: $yaml, got: $result")
+    }
+  }
+
+  test(
+    "accepts a String example of any shape, since String has no narrower literal form"
+  ) {
+    val result = FieldSpecParser.parse(
+      """fields:
+        |  - name: color
+        |    type: String
+        |    example: "anything at all, even 42"
+        |""".stripMargin
+    )
+    assert(result.isRight, s"expected a Right, got: $result")
+  }
 }

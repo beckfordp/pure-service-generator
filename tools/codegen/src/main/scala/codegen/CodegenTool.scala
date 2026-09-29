@@ -2,12 +2,16 @@ package codegen
 
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters._
-import scala.util.Try
+import scala.util.{Try, Using}
 
 /** Applies a field-spec to every file under a giter8-generated project
   * directory. Deliberately directory-agnostic about package/domain naming - it
   * scans for any regular file whose content contains a `codegen:fields:` marker
   * rather than hardcoding paths, since those vary per generation.
+  *
+  * Exceptions are caught only at the genuine I/O boundary (reading/writing a
+  * file); every other failure - an unrecognized anchor tag - is a typed `Left`
+  * propagated from [[AnchorTransformer]], never an exception.
   */
 object CodegenTool:
 
@@ -16,7 +20,7 @@ object CodegenTool:
   def runOn(projectDir: Path, fieldSpecPath: Path): Either[String, List[Path]] =
     for
       _ <- requireDirectory(projectDir)
-      yamlText <- readFile(fieldSpecPath)
+      yamlText <- readFieldSpecFile(fieldSpecPath)
       spec <- FieldSpecParser.parse(yamlText)
       changed <- applyToProject(projectDir, spec.fields)
     yield changed
@@ -25,9 +29,19 @@ object CodegenTool:
     if Files.isDirectory(dir) then Right(())
     else Left(s"Project directory not found: $dir")
 
-  private def readFile(path: Path): Either[String, String] =
+  private def readFieldSpecFile(path: Path): Either[String, String] =
     if !Files.isRegularFile(path) then Left(s"Field-spec file not found: $path")
-    else Right(Files.readString(path))
+    else readFile(path)
+
+  private def readFile(path: Path): Either[String, String] =
+    Try(Files.readString(path)).toEither.left.map(e =>
+      s"Failed to read $path: ${e.getMessage}"
+    )
+
+  private def writeFile(path: Path, content: String): Either[String, Unit] =
+    Try(Files.writeString(path, content)).toEither.left
+      .map(e => s"Failed to write $path: ${e.getMessage}")
+      .map(_ => ())
 
   private def isUnderSkippedDir(projectDir: Path, path: Path): Boolean =
     projectDir
@@ -40,26 +54,29 @@ object CodegenTool:
       projectDir: Path,
       fields: List[Field]
   ): Either[String, List[Path]] =
-    val candidates =
-      Files
-        .walk(projectDir)
-        .iterator()
-        .asScala
-        .filter(Files.isRegularFile(_))
-        .filterNot(isUnderSkippedDir(projectDir, _))
-        .toList
-        .sorted
+    Using.resource(Files.walk(projectDir)) { stream =>
+      val candidates =
+        stream
+          .iterator()
+          .asScala
+          .filter(Files.isRegularFile(_))
+          .filterNot(isUnderSkippedDir(projectDir, _))
+          .toList
+          .sorted
 
-    Try {
-      candidates.flatMap { path =>
-        val content = Files.readString(path)
-        if content.contains("codegen:fields:") then
-          val updated = AnchorTransformer.transform(content, fields)
-          Files.writeString(path, updated)
-          Some(path)
-        else None
+      candidates.foldLeft[Either[String, List[Path]]](Right(Nil)) {
+        (acc, path) =>
+          acc.flatMap { changedSoFar =>
+            for
+              content <- readFile(path)
+              result <-
+                if content.contains("codegen:fields:") then
+                  for
+                    updated <- AnchorTransformer.transform(content, fields)
+                    _ <- writeFile(path, updated)
+                  yield changedSoFar :+ path
+                else Right(changedSoFar)
+            yield result
+          }
       }
-    }.toEither.left.map {
-      case e: IllegalArgumentException => e.getMessage
-      case e                           => e.getMessage
     }
