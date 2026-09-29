@@ -1,14 +1,16 @@
 # Plan: Build a giter8 (g8) template for service/domain/package renaming
 
 ## Phase 1: Scaffold the template structure and non-Scala files
-- [ ] Task: Create `src/main/g8/default.properties` (`domain_name = widget`,
+- [x] Task: Create `src/main/g8/default.properties` (`domain_name = widget`,
       `package_name = $domain_name$service`). Copy `build.sbt`, `project/build.properties`,
       `project/plugins.sbt`, `.scalafmt.conf`, `docker-compose.yml`,
       `src/main/resources/application.conf`, and the Flyway migration SQL into `src/main/g8/`,
       substituting `$domain_name$` throughout (sbt project/Docker image name, Postgres
-      db/user/password, migration table name).
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Scaffold the template structure and
-      non-Scala files' (Protocol in workflow.md)
+      db/user/password, migration table name). [60f52c0] Used property name `package` (not
+      `package_name`) for giter8's built-in dot-to-slash directory-name conversion.
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Scaffold the template structure and
+      non-Scala files' (Protocol in workflow.md). Prompting off: verified via
+      `scripts/verify-g8-phase1-scaffold.sh` instead of an interactive walkthrough. [pending]
 
 ## Phase 2: Template the Scala source
 - [ ] Task: Copy `src/main/scala/orderservice/*.scala` into
