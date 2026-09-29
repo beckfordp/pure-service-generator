@@ -1,6 +1,6 @@
 # Plan: Create pure-service-generator project from order-service reference implementation
 
-## Phase 1: Scaffold the standalone repository
+## Phase 1: Scaffold the standalone repository [checkpoint: 1ab7933]
 - [x] Task: Port order-service's source tree from purerest into this repo as a standalone sbt
       project: own `build.sbt` resolving `purerestlib` 0.1.0 from GitHub Packages (not
       `.dependsOn`), own `docker-compose.yml` (Postgres only). Per this track's "Deviations from
@@ -11,8 +11,9 @@
       `OrderRoutesSuite`, `OrderStoreSuite`, `OrderStorePostgresSuite`, `OrderServiceConfigSuite`,
       `OrderDocsSuite`, `MigrationsSuite` (dropping inventory/reservation assertions to match);
       confirm they pass against the published jar — this phase's "green" proof. [5e3b1c0]
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Scaffold the standalone repository'
-      (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Scaffold the standalone repository'
+      (Protocol in workflow.md). Prompting off: verified via `scripts/verify-standalone-scaffold.sh`
+      instead of an interactive walkthrough. [1ab7933]
 
 ## Phase 2: Adopt one-database-per-service naming
 - [ ] Task: Flatten the ported V1/V2 migrations into one initial migration creating a singular
