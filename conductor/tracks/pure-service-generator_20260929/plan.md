@@ -1,0 +1,64 @@
+# Plan: Create pure-service-generator project from order-service reference implementation
+
+## Phase 1: Scaffold the standalone repository
+- [ ] Task: Port order-service's source tree from purerest into this repo as a standalone sbt
+      project: own `build.sbt` resolving `purerestlib` from GitHub Packages (not
+      `.dependsOn`), own `docker-compose.yml` (Postgres only). Confirm the ported test suite
+      (`OrderRoutesSuite`, `OrderStoreSuite`, `OrderStorePostgresSuite`,
+      `OrderServiceConfigSuite`, `OrderDocsSuite`, etc.) passes unchanged against the published
+      jar — this is this phase's "green" proof, since nothing new is being built yet.
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Scaffold the standalone repository'
+      (Protocol in workflow.md)
+
+## Phase 2: Adopt one-database-per-service naming
+- [ ] Task: Flatten the ported V1/V2 migrations into one initial migration creating a singular
+      `order` table (domain name, not `orders`); rename the Postgres database to `order` in
+      `docker-compose.yml`/`application.conf` defaults; add an `updated_at TIMESTAMPTZ` column
+      for the update endpoint in Phase 3.
+- [ ] Task: Verify the ported `OrderStorePostgresSuite` passes against the renamed
+      database/table.
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Adopt one-database-per-service
+      naming' (Protocol in workflow.md)
+
+## Phase 3: Add `PATCH /orders/{id}` (update)
+- [ ] Task: Write failing tests (Red) — extend `OrderStoreSuite` with an `update` test
+      (in-memory store); confirm it fails to compile (no `update` method yet).
+- [ ] Task: Implement (Green) — add `update(id, quantity, status): F[Option[Order]]` to
+      `OrderStore[F]`, both in-memory and Postgres backends (sets `updated_at`); add a tapir
+      `PATCH /orders/{id}` endpoint + `OrderRoutes` wiring; extend `OrderRoutesSuite` for the
+      new endpoint. Run the suite, confirm green.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Add PATCH /orders/{id}' (Protocol in
+      workflow.md)
+
+## Phase 4: Add `DELETE /orders/{id}`
+- [ ] Task: Write failing tests (Red) — extend `OrderStoreSuite` with a `delete` test; confirm
+      it fails to compile.
+- [ ] Task: Implement (Green) — add `delete(id): F[Boolean]` to `OrderStore[F]`, both backends;
+      add a tapir `DELETE /orders/{id}` endpoint (204, subsequent `GET` 404s) + routing; extend
+      `OrderRoutesSuite`. Run the suite, confirm green.
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Add DELETE /orders/{id}' (Protocol in
+      workflow.md)
+
+## Phase 5: Add `GET /health` and `GET /health/ready`
+- [ ] Task: Write failing tests (Red) — new `HealthRoutesSuite`; confirm it fails to compile (no
+      `HealthRoutes` yet).
+- [ ] Task: Implement (Green) — `HealthRoutes` with a liveness endpoint (always 200) and a
+      readiness endpoint backed by a new `OrderStore.ping: F[Boolean]` (a trivial `SELECT 1`
+      against Postgres, always `true` for the in-memory backend), wired into `Docs.routes`
+      alongside the order endpoints. Run the suite, confirm green.
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: Add GET /health and GET /health/ready'
+      (Protocol in workflow.md)
+
+## Phase 6: Full CRUD lifecycle integration test, README, and final polish
+- [ ] Task: Write failing test (Red) — extend `OrderStorePostgresSuite` (Testcontainers) with a
+      full lifecycle test: create → read → patch → delete → read-404, plus a readiness-check
+      test against the real container. Confirm it fails for the right reason if run against a
+      pre-Phase-3/4 checkout.
+- [ ] Task: Implement (Green) — fix anything the lifecycle test surfaces; run full suite,
+      confirm green.
+- [ ] Task: Write this repo's `README.md` (prerequisites, quickstart, one-db-per-service note,
+      Swagger UI link) mirroring order-service's own docs.
+- [ ] Task: Build the Docker image and run the full stack once via `docker compose up`,
+      confirming all endpoints respond correctly end-to-end.
+- [ ] Task: Conductor - User Manual Verification 'Phase 6: Full CRUD lifecycle integration test,
+      README, and final polish' (Protocol in workflow.md)

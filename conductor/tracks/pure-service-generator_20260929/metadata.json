@@ -1,0 +1,8 @@
+{
+  "track_id": "pure-service-generator_20260929",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-09-29T00:00:00Z",
+  "updated_at": "2026-09-29T00:00:00Z",
+  "description": "Create pure-service-generator project from order-service reference implementation"
+}
