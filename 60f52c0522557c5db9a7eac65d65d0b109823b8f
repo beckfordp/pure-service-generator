@@ -1,0 +1,34 @@
+Task: Scaffold the template structure and non-Scala files (Phase 1)
+
+Summary:
+Created src/main/g8/, the standard giter8-in-source-repo template location.
+default.properties defines two properties: domain_name (e.g. "widget") and
+package (defaulting to $domain_name$service). Used the literal name "package"
+rather than spec.md's "package_name" - giter8 has a built-in special case for
+a property literally named "package": dots in its value are automatically
+converted to path separators in directory names (e.g. package=com.example.foo
+generates src/main/scala/com/example/foo/), which "package_name" would not
+get for free. Documented this naming adjustment here rather than re-asking,
+since it's a technical-correctness detail, not a scope change.
+
+Templated build.sbt (project/Docker image name), project/build.properties,
+project/plugins.sbt, .scalafmt.conf (both copied through unchanged - no
+domain-specific content), docker-compose.yml (Postgres db/user/password),
+application.conf (service-name, postgres block, env var name prefixes via
+$domain_name;format="upper"$ - e.g. WIDGET_SERVICE_PORT), and the Flyway
+migration (both its filename and CREATE TABLE target).
+
+Files changed:
+- src/main/g8/{default.properties,build.sbt,docker-compose.yml,.scalafmt.conf}
+- src/main/g8/project/{build.properties,plugins.sbt}
+- src/main/g8/src/main/resources/application.conf
+- src/main/g8/src/main/resources/db/migration/V1__create_$domain_name$_table.sql
+- scripts/verify-g8-phase1-scaffold.sh (new)
+
+Why: First step of this track's spec - the non-Scala scaffolding needed before
+Phase 2 templates the Scala source itself.
+
+Verification: scripts/verify-g8-phase1-scaffold.sh - all files present,
+default.properties correct, no stale order-service/orderservice/hardcoded
+"order" values, migration correctly templated, and this repo's own reference
+service still compiles unaffected by the new src/main/g8/ tree.
