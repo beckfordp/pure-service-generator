@@ -99,8 +99,11 @@ The core of this track — two related changes to `AnchorTransformer`/`FieldRend
       paths.
 
 ## Phase 6: Documentation
-- [ ] Task: Update the README's "Adding domain fields" section (the new `visibility`/`default`
+- [x] Task: Update the README's "Adding domain fields" section (the new `visibility`/`default`
       keys, the three categories) and "Generate"/"Quickstart" sections (a freshly-generated
-      service now has no CRUD fields until a field-spec is applied).
-- [ ] Task: Conductor - User Manual Verification 'Phase 6: Documentation' (Protocol in
-      workflow.md)
+      service now has no CRUD fields until a field-spec is applied). `42d61c0`
+- [x] Task: Conductor - User Manual Verification 'Phase 6: Documentation' (Protocol in
+      workflow.md) - verified directly (prompting off): "Adding domain fields" now documents
+      `visibility`/`default` with the dogfooded item/quantity/status example, the resolved
+      per-field-visibility limitation is removed, and "After generating" notes the base entity
+      has no domain fields until field-codegen runs.
