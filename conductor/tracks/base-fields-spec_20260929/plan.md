@@ -22,14 +22,17 @@ Phase 1.
       zero-domain-field entity.
 
 ## Phase 2: Extend the field-spec format
-- [ ] Task: Write failing tests (Red) — `FieldSpecParser` parsing the new optional `visibility`
+- [x] Task: Write failing tests (Red) — `FieldSpecParser` parsing the new optional `visibility`
       key (`create-and-update`/`create-only`/`server-defaulted`, defaulting to
       `create-and-update`) and the `default` key (required only for `server-defaulted`,
-      rejected otherwise); confirm they fail (no model/validation yet).
-- [ ] Task: Implement (Green) — extend `Field`/`FieldType` with a `Visibility` enum and
+      rejected otherwise); confirm they fail (no model/validation yet). `fbf18e8`
+- [x] Task: Implement (Green) — extend `Field`/`FieldType` with a `Visibility` enum and
       `default: Option[String]`, plus the new validation rules. Run the suite, confirm green.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Extend the field-spec format'
-      (Protocol in workflow.md)
+      `fbf18e8`
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Extend the field-spec format'
+      (Protocol in workflow.md) - verified directly (prompting off): 43/43 tests green (9 new),
+      scalafmt clean; the pre-existing simple (no-visibility) field-specs still parse
+      unchanged, confirming backward compatibility.
 
 ## Phase 3: Rework the transformation engine for per-field visibility
 The core of this track — two related changes to `AnchorTransformer`/`FieldRenderers`.
