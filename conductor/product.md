@@ -32,9 +32,12 @@ programming, no side effects outside the effect type, tagless-final style throug
 A reference microservice, adapted from purerest's own `order-service`, exposing full CRUD on a
 single domain resource (`order`) backed by its own dedicated Postgres database (one database
 per service, named after the domain), plus standard production-quality `GET /health`/`GET
-/health/ready` endpoints — fully observable and resilient via purerest, fully tested (unit
-coverage per endpoint, an integration test proving the full CRUD lifecycle against a real
-database via Testcontainers).
+/health/ready` endpoints — fully observable via purerest (tracing, structured logging, metrics),
+fully tested (unit coverage per endpoint, an integration test proving the full CRUD lifecycle
+against a real database via Testcontainers). Resilience (retry, circuit breaker) is demonstrated
+as a tested, PureConfig-driven example rather than live-wired, since this reference service makes
+no outbound calls of its own — see the repo's README for the pattern a generated service would
+actually use.
 
 ## Components
 1. **The reference service** (this repo's initial focus) — a standalone sbt project, not part
@@ -44,24 +47,48 @@ database via Testcontainers).
    service once it's solid.
 
 ## Key Features (built)
-*(none yet — Iteration 1 is in progress)*
+1. Standalone sbt project (own `build.sbt`, no source link back to purerest) consuming
+   `purerestlib` as a published GitHub Packages dependency — this project's own real-external-
+   consumer proof.
+2. One database per service: a dedicated Postgres database and primary table, both named `order`
+   (singular) — quoted throughout since `order` is a reserved PostgreSQL keyword.
+3. Full CRUD on `/orders`: `POST` (create), `GET` (read), `PATCH` (partial update), `PUT` (full
+   replace, added mid-iteration by request), `DELETE` — all persisted to real Postgres.
+4. `GET /health` (liveness, always 200) and `GET /health/ready` (readiness — a real `SELECT 1`
+   against Postgres, 200/503).
+5. Full test coverage: a unit test per endpoint (in-memory `OrderStore`), Postgres-backed tests
+   per `OrderStore` method via Testcontainers, and one integration test proving the complete
+   create → read → update → delete lifecycle plus a readiness check against a real container.
+6. A deployable Docker image (`sbt-native-packager`), verified end-to-end — built, run against
+   real Postgres, and exercised through the full CRUD + health surface.
+7. A tested, PureConfig-driven example (`ClientResilienceExampleSuite`) demonstrating purerest's
+   retry/circuit-breaker pattern for whoever adapts this template to call a real downstream
+   service — this reference service itself makes no outbound calls, so the middleware isn't
+   live-wired (see Non-Goals-adjacent deviation note below).
 
-## Iteration 1 Goals (2026-09-29)
+## Iteration 1 Goals (2026-09-29) — completed 2026-09-29
 Get a genuinely production-quality reference microservice working end-to-end before building
 any generic generator machinery on top of it.
 
-1. **Stand up the reference microservice as its own standalone project.** Ported from
-   purerest's `order-service`, consuming `purerestlib` only as a published GitHub Packages
-   dependency.
-2. **Enforce one database per service, named after the domain.** A dedicated Postgres database
-   and primary table both named `order` (singular), not the pluralized `orders` naming
-   purerest's own reference `order-service` currently uses.
-3. **Full CRUD on the domain resource, by default persisted.** `POST`/`GET`/`PATCH`/`DELETE
-   /orders` (id-addressed), each backed by real Postgres reads/writes.
-4. **Standard production-quality endpoints.** `GET /health` (liveness) and `GET /health/ready`
-   (readiness, verifying real database connectivity).
-5. **Full test coverage.** A unit test per endpoint, plus a Testcontainers-backed integration
-   test proving the complete CRUD lifecycle against a real database.
+1. **Stand up the reference microservice as its own standalone project.** ✅ Answered — ported
+   from purerest's `order-service`, consuming `purerestlib` only as a published GitHub Packages
+   dependency (never `.dependsOn`).
+2. **Enforce one database per service, named after the domain.** ✅ Answered — a dedicated
+   Postgres database and primary table both named `order` (singular), not the pluralized
+   `orders` naming purerest's own reference `order-service` uses.
+3. **Full CRUD on the domain resource, by default persisted.** ✅ Answered, and expanded mid-
+   iteration by request from four endpoints to five: `POST`/`GET`/`PATCH`/`PUT`/`DELETE /orders`
+   (id-addressed), each backed by real Postgres reads/writes. While porting order-service, found
+   its `POST /orders` genuinely depended on a live `inventory-service` at runtime (not just a
+   test-scope dependency, as purerest's own docs implied) — incompatible with this repo's
+   standalone, Postgres-only footprint, so that coupling (and the resilience middleware that
+   existed solely to wrap it) was dropped from the live service, kept only as a tested example.
+   See `conductor/tech-stack.md` and the track's `spec.md` for the full deviation record.
+4. **Standard production-quality endpoints.** ✅ Answered — `GET /health` (liveness) and
+   `GET /health/ready` (readiness, verifying real database connectivity).
+5. **Full test coverage.** ✅ Answered — a unit test per endpoint, Postgres-level tests per
+   `OrderStore` method, plus a Testcontainers-backed integration test proving the complete CRUD
+   lifecycle against a real database.
 
 ## Non-Goals (for now)
 - g8-based (or any) rename templating (service/domain/package name) — tracked as a future
