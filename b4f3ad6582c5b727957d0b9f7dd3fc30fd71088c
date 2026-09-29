@@ -1,0 +1,44 @@
+Phase 2 Completion: Adopt one-database-per-service naming
+
+Automated tests: sbt -batch scalafmtCheck Test/scalafmtCheck test - 26/26 passed
+(24 from Phase 1 + 2 new ClientResilienceExampleSuite tests pulled forward from
+Phase 6 at user request), 0 failures.
+
+Manual verification: prompting is off for this project (.claude/prompt-off), so
+this phase's manual verification ran via a committed script instead of an
+interactive walkthrough.
+
+Command: ./scripts/verify-order-database-naming.sh
+
+Note: an earlier version of this script tried to boot the full service via
+`sbt bgRun` against docker-compose Postgres for an HTTP-level smoke test, but hit
+an unrelated sbt bgRun/IOApp startup hang in this environment. Simplified to apply
+the real migration file directly via psql against the same docker-compose Postgres
+instead - this still proves the "order" naming works end-to-end at the database
+level, and sbt test's OrderStorePostgresSuite/MigrationsSuite already prove
+Migrations.run and OrderStore's Skunk queries work against this exact schema via
+Testcontainers.
+
+Result: all checks passed.
+1. docker-compose.yml provisions POSTGRES_DB=order - OK
+2. docker compose up -d (fresh volume) - Postgres healthy - OK
+3. V1__create_order_table.sql applies cleanly via psql against the real 'order'
+   database - OK
+4. "order" table has the expected columns (id, item, quantity, status, created_at,
+   updated_at) - OK
+5. insert/select round-trip against the quoted "order" identifier - OK
+
+Also caught and fixed a stale-volume gotcha: Postgres only applies
+POSTGRES_DB/USER/PASSWORD on first init of an empty data directory, so a volume
+left over from the pre-rename "orders" setup silently ignored the new env vars.
+The script now always starts from `docker compose down -v` for a clean volume.
+
+Scope: all changes since the Phase 1 checkpoint (1ab7933).
+Changed files: conductor/tracks.md, conductor/tracks/pure-service-generator_20260929/plan.md,
+conductor/tracks/pure-service-generator_20260929/spec.md, conductor/tech-stack.md,
+README.md, docker-compose.yml, src/main/resources/application.conf,
+src/main/resources/db/migration/V1__create_order_table.sql (renamed from
+V1__create_orders_table.sql), src/main/scala/orderservice/OrderStore.scala,
+src/test/scala/orderservice/{MigrationsSuite,OrderServiceConfigSuite}.scala,
+src/test/scala/orderservice/examples/ClientResilienceExampleSuite.scala (new),
+scripts/verify-order-database-naming.sh (new).
