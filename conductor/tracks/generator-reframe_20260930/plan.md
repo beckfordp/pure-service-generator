@@ -3,15 +3,24 @@
 ## Phase 1: Remove order-service
 Infrastructure/cleanup, not Red/Green — verified by regenerating the template and confirming
 nothing else broke.
-- [ ] Task: Confirm `ClientResilienceExampleSuite` already exists in the g8 template
+- [x] Task: Confirm `ClientResilienceExampleSuite` already exists in the g8 template
       (`src/main/g8/src/test/scala/$package$/examples/`), then delete
       `src/main/scala/orderservice/`, `src/test/scala/orderservice/`, root `build.sbt`,
-      `project/`, `docker-compose.yml`, `.scalafmt.conf`.
-- [ ] Task: Regenerate a `widget` service from the template and confirm it still compiles,
+      `project/`, `docker-compose.yml`, `.scalafmt.conf`. `639f0fc`
+
+      Also removed order-service's own resource files that lived outside the `orderservice`
+      package dirs (`src/main/resources/application.conf`,
+      `src/main/resources/db/migration/V1__create_order_table.sql`,
+      `src/test/resources/docker-java.properties`), which the original file list missed.
+      Caught and immediately fixed a `rm -rf src/main src/test` slip that also deleted
+      `src/main/g8/` (out of scope for this task) — restored via `git restore --source=HEAD`
+      before anything was committed; confirmed the final diff touched only the intended files.
+- [x] Task: Regenerate a `widget` service from the template and confirm it still compiles,
       scalafmt-checks, and passes its full test suite (52/52) — proves nothing in
-      `src/main/g8/`/`tools/codegen/` depended on the removed root project.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Remove order-service' (Protocol in
-      workflow.md)
+      `src/main/g8/`/`tools/codegen/` depended on the removed root project. `639f0fc`
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Remove order-service' (Protocol in
+      workflow.md) - verified directly (prompting off): regenerated widget-service
+      compiles/scalafmt-checks/52/52 tests pass; `tools/codegen`'s own suite still 60/60.
 
 ## Phase 2: Add scripts/dev-regenerate.sh and scripts/dev-diff.sh
 - [ ] Task: Write `scripts/dev-regenerate.sh` — `--domain-name` (default `devcheck`),
