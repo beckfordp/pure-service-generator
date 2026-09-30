@@ -26,16 +26,20 @@ nothing else broke.
 - [ ] Task: Write `scripts/dev-diff.sh` (plain `diff -ru` between the `.baseline` and editable
       copies, printed to the terminal — no auto-patching); make a real hand-edit to the scratch
       instance and confirm the diff shows exactly that edit, nothing more.
+- [ ] Task: Write `docs/developing-the-template.md` — the generate→edit→diff→port-back→
+      regenerate workflow, and how to use `dev-regenerate.sh`/`dev-diff.sh`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Add scripts/dev-regenerate.sh and
       scripts/dev-diff.sh' (Protocol in workflow.md)
 
-## Phase 3: README restructure
-- [ ] Task: Rewrite the README — generator-first opening; "Generating a new service" promoted
-      to the primary quickstart; new "Developing the template" section (the
-      generate→edit→port-back→regenerate workflow, `dev-regenerate.sh`); reframe "One database
-      per service" and "Calling other services with resilience" around the generator/template
-      rather than order-service; remove the old order-service quickstart/testing sections.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: README restructure' (Protocol in
+## Phase 3: Split the docs
+- [ ] Task: Move the "Adding domain fields" section content into `tools/codegen/README.md`
+      as-is (no rewrite needed, already accurate).
+- [ ] Task: Rewrite `README.md` — generator-first opening; "Generating a new service" promoted
+      to the primary quickstart; links to `tools/codegen/README.md` and
+      `docs/developing-the-template.md` in place of their former inline sections; reframe "One
+      database per service"/"Calling other services with resilience"; remove the old
+      order-service quickstart/testing sections.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Split the docs' (Protocol in
       workflow.md)
 
 ## Phase 4: Synchronize project documentation

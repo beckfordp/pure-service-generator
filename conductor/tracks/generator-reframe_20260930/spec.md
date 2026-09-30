@@ -30,12 +30,13 @@ has something real and compiler-checked to iterate against.
     (reinstating `$domain_name$`/`$package$`/`codegen:fields:` placeholders where appropriate).
     No auto-patching of the template — reverse-mapping instantiated text back onto placeholders
     is inherently ambiguous and risks silently corrupting the template.
-3. **README restructure**: lead with "this is a generator"; "Generating a new service" becomes
-   the primary quickstart (promoted above the old order-service quickstart, which is removed);
-   add a "Developing the template" section documenting the generate→edit→port-back→regenerate
-   workflow and `dev-regenerate.sh`; reframe "One database per service" and "Calling other
-   services with resilience" around what the generator/template produces rather than
-   order-service specifically.
+3. **Split the docs across three files**: `README.md` (slim, generator-first overview +
+   quickstart, links to the other two), `tools/codegen/README.md` (the field-spec/running-it/
+   limitations content moved out of the main README as-is), and `docs/developing-the-template.md`
+   (the generate→edit→diff→port-back→regenerate workflow, written in Phase 2 alongside
+   `dev-regenerate.sh`/`dev-diff.sh`, not embedded in the main README). Reframe "One database per
+   service" and "Calling other services with resilience" around what the generator/template
+   produces rather than order-service specifically; remove the old order-service quickstart.
 4. **Doc sync** (`conductor/product.md`, `tech-stack.md`, and, given the WARNING in
    `product-guidelines.md` about strategic-shift-only edits, a careful pass there too): update
    current-state sections (Vision, Components, Key Features) to reflect order-service's removal
@@ -52,6 +53,8 @@ has something real and compiler-checked to iterate against.
   used throughout this project).
 - `scripts/dev-regenerate.sh` run for real produces a compiling, passing scratch instance.
 - README no longer mentions `order-service` as this repo's subject; leads with the generator.
+- `tools/codegen/README.md` and `docs/developing-the-template.md` exist, and the main `README.md`
+  links to both rather than duplicating their content inline.
 
 ## Out of Scope
 - A `src/test/g8/` giter8 "scripted" test (the canonical giter8 CI-integrated alternative) —
