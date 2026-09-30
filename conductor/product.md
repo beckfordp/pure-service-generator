@@ -45,8 +45,9 @@ actually use.
 2. **The generator** — a giter8 template (`src/main/g8/`, Iteration 2) that renames the reference
    service's domain/package via two properties (`domain_name`, `package`).
 3. **The field-codegen tool** (`tools/codegen/`, Iteration 3) — a standalone post-generation
-   step that extends a generated service with extra domain fields (beyond the fixed
-   `item`/`quantity`/`status` example fields), driven by a small YAML field-spec.
+   step that adds every domain field to a generated service (whose base entity is just
+   `id`/`createdAt`/`updatedAt`), driven by a small YAML field-spec with per-field
+   create/update visibility (Iteration 5).
 4. **The publish pipeline** (`scripts/generate-and-publish-service.sh`, Iteration 4) — chains
    generation (+ optional field-codegen) into a single command that creates a public GitHub repo,
    pushes the generated service, and waits for its GitHub Actions CI run to go green.
@@ -76,7 +77,8 @@ actually use.
    service compiles, passes its full test suite (identical to the source repo's own), and every
    README-documented endpoint works against a live instance.
 9. A field-codegen tool (`tools/codegen/`) that extends a generated service with extra domain
-   fields from a YAML field-spec (name/type/example; String/Int/Boolean/Instant), rewriting the
+   fields from a YAML field-spec (name/type/example/visibility/default;
+   String/Int/Boolean/Instant), rewriting the
    case class, DTOs, SQL, store (in-memory + Postgres), and tests via stable anchor comments
    embedded in the giter8 template. Verified end-to-end: generates a service, applies a
    4-field/all-types spec, and the result passes its full (field-extended) test suite.
@@ -86,6 +88,13 @@ actually use.
     another repo's GitHub Packages), and waits for the triggered GitHub Actions run to pass.
     Verified against three real runs: a plain generate+publish, one with `--field-spec`, and a
     repo-name collision aborting cleanly with no side effects.
+11. A field-spec-driven base entity: the g8 template ships with zero hardcoded domain fields
+    (`id`/`createdAt`/`updatedAt` only) and an optional per-field `visibility`
+    (`create-and-update`/`create-only`/`server-defaulted`, plus `default` for the latter) lets
+    field-codegen express the asymmetric create/update patterns the old fixed
+    `item`/`quantity`/`status` fields had. Verified by dogfooding: expressing
+    `item`/`quantity`/`status` themselves as a field-spec reproduces the original
+    hardcoded template's generated code and behavior exactly (52/52 tests).
 
 ## Iteration 1 Goals (2026-09-29) — completed 2026-09-29
 Get a genuinely production-quality reference microservice working end-to-end before building
@@ -148,9 +157,17 @@ repo — this project's answer to `service-generator`'s Jenkins pipeline.
    script wasn't running the documented `sbt scalafmt` reformat pass before committing, which
    made the very first CI run fail its own scalafmtCheck.
 
+## Iteration 5 Goals (2026-09-29) — completed 2026-09-29
+Generalize field-codegen so the template's base entity carries no domain-specific fields at
+all — the last piece of the original `service-generator`-parity requirements list.
+
+1. **Per-field create/update visibility.** ✅ Answered — an optional `visibility` key
+   (`create-and-update`/`create-only`/`server-defaulted`) plus `default` for server-defaulted
+   fields, backward compatible with every existing field-spec. Verified by dogfooding
+   item/quantity/status themselves through the real pipeline with full parity, and by two
+   live runs (`verify-g8-template.sh`, `generate-and-publish-service.sh`) with no regressions.
+
 ## Non-Goals (for now)
-- Per-field create/update/response visibility (the fixed item/quantity/status fields have
-  asymmetric visibility the field-codegen tool doesn't support — see its README section).
 - Optional/nullable fields in the field-spec (v1 requires all fields).
 - Private-repo support for the publish pipeline (public only for now).
 - Kubernetes manifests.
@@ -158,5 +175,4 @@ repo — this project's answer to `service-generator`'s Jenkins pipeline.
   template does naive `+s` only; documented as a known limitation in the README.
 
 ## Future Direction (under consideration)
-Making the base entity fields themselves field-spec-driven (see the backlog item in
-`conductor/tracks.md`), and a `--private` flag for the publish pipeline.
+A `--private` flag for the publish pipeline.

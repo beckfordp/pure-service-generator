@@ -58,15 +58,19 @@
   `package` (defaults to `$domain_name$service`; giter8's built-in dot-to-slash conversion for a
   property literally named `package` supports reverse-domain nesting). Generated via
   `giter8-launcher` (see "giter8 gotchas" below), not sbt's built-in `new` command. See README's
-  "Generating a new service from this template".
+  "Generating a new service from this template". The template's base entity is just
+  `id`/`createdAt`/`updatedAt` — zero domain fields until field-codegen runs.
 - **field-codegen** (`tools/codegen/`) — a standalone sbt project (own build, not aggregated into
-  the root build) that extends a generated service with extra domain fields from a YAML
+  the root build) that adds every domain field to a generated service from a YAML
   field-spec (`circe-yaml` for parsing). Rewrites every insertion point via `codegen:fields:<TAG>`
   anchor comments embedded in the g8 template — chosen over pattern-matching Scala/SQL shape
   since this repo controls both ends. Own-line vs. inline placement and the join style (leading
-  comma, trailing comma, Skunk's `*:` combinator) are auto-detected from the surrounding text, so
-  no per-tag layout configuration is needed. See README's "Adding domain fields with the
-  field-codegen tool".
+  comma, trailing comma, bare-list-start, SQL-keyword-preceded, Skunk's `*:` combinator) are
+  auto-detected from the surrounding text (one hardcoded exception: `SQL_SELECT_CODEC` is always
+  combinator-mode, since a bare marker there has no `*:` text nearby to infer from). An optional
+  per-field `visibility` (`create-and-update`/`create-only`/`server-defaulted`, defaulting to
+  the first) lets a field-spec express asymmetric create/update participation. See README's
+  "Adding domain fields with the field-codegen tool".
 - **generate-and-publish-service.sh** (`scripts/`) — chains giter8 generation, optional
   field-codegen, an `sbt scalafmt` reformat pass, `gh repo create --public`, a
   `gh secret set GH_PACKAGES_TOKEN` (reusing the caller's own `gh auth token`, set *before* the
@@ -92,9 +96,15 @@
   automatically; anyone generating and committing by hand should too (see README).
 - **field-codegen is additive-only and not idempotent (2026-09-29).** It consumes each file's
   anchor comments as it rewrites them, so running it twice against the same generated project
-  fails on the second run. It also can't touch the fixed `item`/`quantity`/`status` fields (their
-  create/update visibility is asymmetric; the tool's field model is uniform) — see the backlog
-  item in `conductor/tracks.md` for generalizing this.
+  fails on the second run.
+- **field-codegen's join-style auto-detection required two live-testing-surfaced fixes
+  (2026-09-29, base-fields-spec track).** Once the template's fixed fields were removed, some
+  anchors could render zero fields with a fixed non-empty remainder still needing separation
+  (e.g. a bare `SQL_UPDATE_TUPLE_TYPE` marker followed directly by `UUID)`) — handled by
+  detecting SQL keywords (`SELECT`/`SET`/`RETURNING`/`VALUES`) as list-openers alongside opening
+  brackets. `SQL_SELECT_CODEC`'s Skunk-combinator join could no longer always be inferred from
+  its prefix either, once nothing reliably precedes it — fixed by marking that one tag
+  explicitly rather than inferring it.
 - **giter8 gotchas (discovered 2026-09-29, building the template).** (1) giter8's
   capitalize-first-letter format name is lowercase `cap`, not `Cap` — an unrecognized format name
   is silently ignored (falls back to the raw value) rather than erroring, so this only surfaces by
