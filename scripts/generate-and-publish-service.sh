@@ -27,6 +27,7 @@ Options:
   --field-spec <path>    Path to a field-spec YAML file (see tools/codegen's README
                           section) to apply via the field-codegen tool before pushing.
   --repo-name <name>     GitHub repo name. Defaults to "<domain-name>-service".
+  --private              Create the GitHub repo as private. Defaults to public.
   -h, --help             Show this help and exit.
 USAGE
 }
@@ -35,6 +36,7 @@ DOMAIN_NAME=""
 PACKAGE=""
 FIELD_SPEC=""
 REPO_NAME=""
+PRIVATE=false
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -53,6 +55,10 @@ while [ $# -gt 0 ]; do
     --repo-name)
       REPO_NAME="$2"
       shift 2
+      ;;
+    --private)
+      PRIVATE=true
+      shift
       ;;
     -h | --help)
       usage
@@ -88,10 +94,16 @@ fi
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CODEGEN_DIR="$ROOT_DIR/tools/codegen"
 
+VISIBILITY_FLAG="--public"
+if [ "$PRIVATE" = true ]; then
+  VISIBILITY_FLAG="--private"
+fi
+
 echo "Domain name: $DOMAIN_NAME"
 echo "Package:     ${PACKAGE:-<default>}"
 echo "Field spec:  ${FIELD_SPEC:-<none>}"
 echo "Repo name:   $REPO_NAME"
+echo "Visibility:  ${VISIBILITY_FLAG#--}"
 
 WORK_DIR="$(mktemp -d -t generate-and-publish-service)"
 cleanup() {
@@ -175,8 +187,8 @@ echo "   OK: committed on branch 'main'"
 STEP=$((STEP + 1))
 
 echo
-echo "$STEP. Creating public repo $OWNER/$REPO_NAME and wiring it as 'origin'..."
-gh repo create "$OWNER/$REPO_NAME" --public --source="$GEN_DIR" --remote=origin \
+echo "$STEP. Creating ${VISIBILITY_FLAG#--} repo $OWNER/$REPO_NAME and wiring it as 'origin'..."
+gh repo create "$OWNER/$REPO_NAME" "$VISIBILITY_FLAG" --source="$GEN_DIR" --remote=origin \
   >"$WORK_DIR/repo-create.log" 2>&1 || {
   echo "   FAIL: gh repo create failed" >&2
   cat "$WORK_DIR/repo-create.log" >&2
