@@ -2,8 +2,8 @@
 
 ## Language & Build
 - **Scala** 3.9.0
-- **sbt** — single-module build (unlike purerest's multi-module aggregate: this is one
-  standalone microservice project).
+- **sbt** — each generated service is a single-module build (unlike purerest's multi-module
+  aggregate). `tools/codegen/` is a separate, independent single-module build of its own.
 
 ## Dependency on purerest
 - **purerest** (`io.github.beckfordp` `purerestlib`) is resolved as a **published dependency
@@ -15,9 +15,9 @@
 - **Cats Effect 3** — tagless-final, typeclass-based APIs throughout (`F[_]: Async`, etc.).
 
 ## HTTP
-- **http4s** — server only. No outbound HTTP client in the live service (see "No
-  inventory-service coupling" below); `ClientResilienceExampleSuite` demonstrates purerest's
-  resilient-client pattern for whoever adapts this template to add one.
+- **http4s** — server only. No outbound HTTP client in a freshly generated service (see "No
+  inventory-service coupling" below); `ClientResilienceExampleSuite` (in the template) demonstrates
+  purerest's resilient-client pattern for whoever adapts a generated service to add one.
 
 ## API Documentation
 - **tapir** — endpoints described once as tapir values; purerest's `purerest.docs.Docs`
@@ -35,7 +35,7 @@
 - **Testcontainers** (`testcontainers-scala-postgresql`) for integration tests; a separate
   `docker-compose.yml` Postgres container for local/manual dev.
 - **One database per service:** a single dedicated Postgres database, named after the domain —
-  `order` (singular), not `orders`.
+  singular (e.g. a `widget` domain gets a `widget` database), not the pluralized form.
 
 ## Observability
 - **Tracing**: OpenTelemetry via **otel4s**, via purerest.
@@ -53,7 +53,7 @@
   purerest's own reference services' packaging.
 
 ## Code Generation
-- **giter8** (`src/main/g8/`) templates the entire reference service, parameterized by
+- **giter8** (`src/main/g8/`) templates a full production-quality microservice, parameterized by
   `domain_name` (lowercase, singular — drives naming/DB/REST paths) and an independently-settable
   `package` (defaults to `$domain_name$service`; giter8's built-in dot-to-slash conversion for a
   property literally named `package` supports reverse-domain nesting). Generated via
@@ -76,6 +76,13 @@
   `gh secret set GH_PACKAGES_TOKEN` (reusing the caller's own `gh auth token`, set *before* the
   push that triggers the first CI run), and `gh run watch --exit-status` to confirm that run
   passes. See README's "Automated generate → publish → CI pipeline".
+- **dev-regenerate.sh / dev-diff.sh** (`scripts/`) — generates a disposable, compiler-checked
+  scratch instance (`.dev/<domain-name>-service`, gitignored) plus a frozen `.baseline` sibling
+  from the same generation, for developing the template itself (its placeholder-laden files
+  can't be type-checked directly). `dev-diff.sh` diffs the two — plain output only, no
+  auto-patching of the template (reverse-mapping instantiated text back onto
+  `$domain_name$`/`$package$`/`codegen:fields:` placeholders is inherently ambiguous). See
+  `docs/developing-the-template.md`.
 
 ## CI (generated services)
 - **GitHub Actions** (`.github/workflows/ci.yml`, templated into `src/main/g8/`) —
@@ -86,6 +93,10 @@
   `purerestlib`'s GitHub Packages from a *different* repo (`beckfordp/purerest`).
 
 ## Known Constraints
+- **dev-regenerate.sh's `.baseline` must be frozen after formatting, not before
+  (2026-09-30, generator-reframe track).** Copying it before `sbt scalafmt` ran made
+  `dev-diff.sh` show scalafmt's own reformatting as a spurious diff even with zero hand-edits —
+  found via live testing, fixed by reordering: format → freeze baseline → test.
 - **The publish pipeline creates public repos only (2026-09-29).** No `--private` flag yet —
   see `product.md`'s Non-Goals/Future Direction.
 - **Generated services need an `sbt scalafmt` pass before their first commit (confirmed via
@@ -126,10 +137,10 @@
   backgrounded from a verify script (the pattern purerest's own scripts use) hung indefinitely
   here with no log output — plain foreground `sbt run`, backgrounded at the shell level
   (`sbt run > log 2>&1 & PID=$!`), boots cleanly instead (migrations run, server binds to 8080)
-  and can be `kill`ed normally. Verify scripts in this repo use the latter.
+  and can be `kill`ed normally.
 - **Resilience (retry + circuit breaker) kept only as a tested example, not live wiring
-  (amended 2026-09-29).** With `InventoryClient` gone there's no outbound call in the live
-  service to wrap purerest's `Resilience.middleware` around — but since this repo exists to be
-  copied/adapted into services that *will* call others, the pattern is kept as a standalone,
-  CI-verified example test (`ClientResilienceExampleSuite`, wrapping a dummy `Client[F]`) rather
-  than dropped outright. See README's "Calling other services with resilience".
+  (amended 2026-09-29).** A freshly generated service has no outbound call to wrap purerest's
+  `Resilience.middleware` around — but since generated services are meant to be adapted into
+  ones that *will* call others, the pattern is kept as a standalone, CI-verified example test in
+  the template (`ClientResilienceExampleSuite`, wrapping a dummy `Client[F]`) rather than
+  dropped outright. See README's "Calling other services with resilience".

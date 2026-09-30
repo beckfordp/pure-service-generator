@@ -11,6 +11,9 @@ single, genuinely production-quality reference microservice — everything a rea
 endpoints, full test coverage, a deployable image) — and only *then* builds the generic
 generator machinery (name/package templating, field codegen, CI/CD wiring) on top of a template
 that has actually been proven out end-to-end.
+Once the template could reliably reproduce an equivalent instance on demand, the standalone
+reference implementation was retired (Iteration 6) — the generator's own output is now the
+product, not a parallel hand-maintained copy.
 
 ## Target Users
 - Internal engineering (primarily the author) — a personal platform-engineering project and
@@ -29,72 +32,58 @@ purerest's own design guidelines instead (see `product-guidelines.md`): pure fun
 programming, no side effects outside the effect type, tagless-final style throughout.
 
 ## Core Use Case
-A reference microservice, adapted from purerest's own `order-service`, exposing full CRUD on a
-single domain resource (`order`) backed by its own dedicated Postgres database (one database
+The generator produces a microservice exposing full CRUD on a single domain resource
+(parameterized by `domain_name`) backed by its own dedicated Postgres database (one database
 per service, named after the domain), plus standard production-quality `GET /health`/`GET
 /health/ready` endpoints — fully observable via purerest (tracing, structured logging, metrics),
 fully tested (unit coverage per endpoint, an integration test proving the full CRUD lifecycle
 against a real database via Testcontainers). Resilience (retry, circuit breaker) is demonstrated
-as a tested, PureConfig-driven example rather than live-wired, since this reference service makes
-no outbound calls of its own — see the repo's README for the pattern a generated service would
-actually use.
+as a tested, PureConfig-driven example rather than live-wired by default, since a freshly
+generated service makes no outbound calls of its own — see the repo's README for the pattern a
+generated service would actually use. Originally proven out as a single hand-adapted reference
+implementation (`order-service`, from purerest's own reference service of the same name) before
+the generator machinery was built on top of it; that standalone copy was retired once the
+generator could reproduce an equivalent instance on demand (Iteration 6).
 
 ## Components
-1. **The reference service** — a standalone sbt project, not part of purerest's own build,
-   consuming purerest as a published dependency.
-2. **The generator** — a giter8 template (`src/main/g8/`, Iteration 2) that renames the reference
+1. **The generator** — a giter8 template (`src/main/g8/`, Iteration 2) that parameterizes a
    service's domain/package via two properties (`domain_name`, `package`).
-3. **The field-codegen tool** (`tools/codegen/`, Iteration 3) — a standalone post-generation
+2. **The field-codegen tool** (`tools/codegen/`, Iteration 3) — a standalone post-generation
    step that adds every domain field to a generated service (whose base entity is just
    `id`/`createdAt`/`updatedAt`), driven by a small YAML field-spec with per-field
    create/update visibility (Iteration 5).
-4. **The publish pipeline** (`scripts/generate-and-publish-service.sh`, Iteration 4) — chains
+3. **The publish pipeline** (`scripts/generate-and-publish-service.sh`, Iteration 4) — chains
    generation (+ optional field-codegen) into a single command that creates a public GitHub repo,
    pushes the generated service, and waits for its GitHub Actions CI run to go green.
 
 ## Key Features (built)
-1. Standalone sbt project (own `build.sbt`, no source link back to purerest) consuming
-   `purerestlib` as a published GitHub Packages dependency — this project's own real-external-
-   consumer proof.
-2. One database per service: a dedicated Postgres database and primary table, both named `order`
-   (singular) — quoted throughout since `order` is a reserved PostgreSQL keyword.
-3. Full CRUD on `/orders`: `POST` (create), `GET` (read), `PATCH` (partial update), `PUT` (full
-   replace, added mid-iteration by request), `DELETE` — all persisted to real Postgres.
-4. `GET /health` (liveness, always 200) and `GET /health/ready` (readiness — a real `SELECT 1`
-   against Postgres, 200/503).
-5. Full test coverage: a unit test per endpoint (in-memory `OrderStore`), Postgres-backed tests
-   per `OrderStore` method via Testcontainers, and one integration test proving the complete
-   create → read → update → delete lifecycle plus a readiness check against a real container.
-6. A deployable Docker image (`sbt-native-packager`), verified end-to-end — built, run against
-   real Postgres, and exercised through the full CRUD + health surface.
-7. A tested, PureConfig-driven example (`ClientResilienceExampleSuite`) demonstrating purerest's
-   retry/circuit-breaker pattern for whoever adapts this template to call a real downstream
-   service — this reference service itself makes no outbound calls, so the middleware isn't
-   live-wired (see Non-Goals-adjacent deviation note below).
-8. A giter8 template (`src/main/g8/`) that generates a new, differently-domained service from
-   the reference service — two properties, `domain_name` (drives naming/paths/DB) and `package`
-   (independently settable, supports reverse-domain nesting). Verified end-to-end: a generated
-   service compiles, passes its full test suite (identical to the source repo's own), and every
-   README-documented endpoint works against a live instance.
-9. A field-codegen tool (`tools/codegen/`) that extends a generated service with extra domain
+1. A giter8 template (`src/main/g8/`) that generates a new, differently-domained service — two
+   properties, `domain_name` (drives naming/paths/DB) and `package` (independently settable,
+   supports reverse-domain nesting). Verified end-to-end: a generated service compiles, passes
+   its full test suite, and every README-documented endpoint works against a live instance.
+2. A field-codegen tool (`tools/codegen/`) that extends a generated service with extra domain
    fields from a YAML field-spec (name/type/example/visibility/default;
    String/Int/Boolean/Instant), rewriting the
    case class, DTOs, SQL, store (in-memory + Postgres), and tests via stable anchor comments
    embedded in the giter8 template. Verified end-to-end: generates a service, applies a
    4-field/all-types spec, and the result passes its full (field-extended) test suite.
-10. A publish pipeline (`scripts/generate-and-publish-service.sh`) that generates a service,
-    optionally applies a field-spec, reformats it, creates a public GitHub repo, pushes, wires
-    up a `GH_PACKAGES_TOKEN` CI secret (the automatic built-in `GITHUB_TOKEN` can't resolve
-    another repo's GitHub Packages), and waits for the triggered GitHub Actions run to pass.
-    Verified against three real runs: a plain generate+publish, one with `--field-spec`, and a
-    repo-name collision aborting cleanly with no side effects.
-11. A field-spec-driven base entity: the g8 template ships with zero hardcoded domain fields
-    (`id`/`createdAt`/`updatedAt` only) and an optional per-field `visibility`
-    (`create-and-update`/`create-only`/`server-defaulted`, plus `default` for the latter) lets
-    field-codegen express the asymmetric create/update patterns the old fixed
-    `item`/`quantity`/`status` fields had. Verified by dogfooding: expressing
-    `item`/`quantity`/`status` themselves as a field-spec reproduces the original
-    hardcoded template's generated code and behavior exactly (52/52 tests).
+3. A publish pipeline (`scripts/generate-and-publish-service.sh`) that generates a service,
+   optionally applies a field-spec, reformats it, creates a public GitHub repo, pushes, wires
+   up a `GH_PACKAGES_TOKEN` CI secret (the automatic built-in `GITHUB_TOKEN` can't resolve
+   another repo's GitHub Packages), and waits for the triggered GitHub Actions run to pass.
+   Verified against three real runs: a plain generate+publish, one with `--field-spec`, and a
+   repo-name collision aborting cleanly with no side effects.
+4. A field-spec-driven base entity: the g8 template ships with zero hardcoded domain fields
+   (`id`/`createdAt`/`updatedAt` only) and an optional per-field `visibility`
+   (`create-and-update`/`create-only`/`server-defaulted`, plus `default` for the latter) lets
+   field-codegen express asymmetric create/update patterns. Verified by dogfooding: expressing
+   the original order-service's `item`/`quantity`/`status` fields as a field-spec reproduces its
+   generated code and behavior exactly (52/52 tests).
+5. A template-development workflow (`scripts/dev-regenerate.sh`/`scripts/dev-diff.sh`) —
+   generates a disposable, compiler-checked scratch instance (plus a frozen `.baseline` sibling)
+   to develop the template against, and a plain diff between them to review before manually
+   porting a change back into `src/main/g8/`. Deliberately no auto-patching of the template
+   (see `docs/developing-the-template.md` for why).
 
 ## Iteration 1 Goals (2026-09-29) — completed 2026-09-29
 Get a genuinely production-quality reference microservice working end-to-end before building
@@ -166,6 +155,25 @@ all — the last piece of the original `service-generator`-parity requirements l
    fields, backward compatible with every existing field-spec. Verified by dogfooding
    item/quantity/status themselves through the real pipeline with full parity, and by two
    live runs (`verify-g8-template.sh`, `generate-and-publish-service.sh`) with no regressions.
+
+## Iteration 6 Goals (2026-09-30) — completed 2026-09-30
+Retire the standalone order-service reference implementation now that the generator can
+reproduce an equivalent instance on demand, and reframe the project's docs around the generator
+(not a specific service) as the deliverable.
+
+1. **Remove the reference service.** ✅ Answered — order-service had diverged from what it was
+   meant to demonstrate (still hardcoded item/quantity/status, while the *template's* base
+   entity was generalized to field-spec-driven id/createdAt/updatedAt in Iteration 5) and
+   duplicated what `generate-and-publish-service.sh` can now produce on demand. Removed
+   `src/main/scala/orderservice/`, its tests, and the root sbt project
+   (`build.sbt`/`project/`/`docker-compose.yml`/`.scalafmt.conf`) — `tools/codegen/` and the
+   template's own build are independent and unaffected.
+2. **A template-development workflow to replace it.** ✅ Answered —
+   `scripts/dev-regenerate.sh`/`scripts/dev-diff.sh`, documented in
+   `docs/developing-the-template.md`.
+3. **Split the docs.** ✅ Answered — `README.md` (generator-first overview),
+   `tools/codegen/README.md` (field-spec format), `docs/developing-the-template.md` (the dev
+   workflow).
 
 ## Non-Goals (for now)
 - Optional/nullable fields in the field-spec (v1 requires all fields).
