@@ -1,12 +1,13 @@
 # Plan: Add a --private flag to the publish pipeline
 
 ## Phase 1: Implement the flag
-- [ ] Task: Add `--private` to `scripts/generate-and-publish-service.sh`'s argument parsing and
+- [x] Task: Add `--private` to `scripts/generate-and-publish-service.sh`'s argument parsing and
       `--help` text; update the `gh repo create` step to pass `--private` when set, `--public`
       otherwise (unchanged default). Verify locally: `--help` output shows the new flag,
-      `bash -n` syntax check passes.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Implement the flag' (Protocol in
-      workflow.md)
+      `bash -n` syntax check passes. `5cb2b07`
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Implement the flag' (Protocol in
+      workflow.md) - verified directly (prompting off): `--help` output includes `--private`,
+      `bash -n` passes.
 
 ## Phase 2: Live verification
 Real, external side effects (creates public/private GitHub repos) — proceeds directly per
