@@ -1,93 +1,28 @@
 # pure-service-generator
 
-A production-quality reference microservice — `order-service` — built on
-[purerest](https://github.com/beckfordp/purerest), adapted as a standalone repository: its own
-`build.sbt`, resolving `purerestlib` as a published GitHub Packages dependency rather than a
-source link. Eventually this becomes a generator for new purerest-based services; today it's one
-hand-adapted reference implementation. See
+A generator for new [purerest](https://github.com/beckfordp/purerest)-based microservices: point
+it at a domain name (and, optionally, a field-spec), and it produces a production-quality,
+fully-tested Scala 3 / Cats Effect / http4s / Skunk service — full CRUD, health checks, Postgres
+persistence, observability, and CI — ready to push as its own repo.
+
+The generator is a [giter8](http://www.foundweekends.org/giter8/) template (`src/main/g8/`) plus
+two companion tools: [`tools/codegen/`](./tools/codegen/README.md) (adds domain fields to a
+generated service) and `scripts/generate-and-publish-service.sh` (chains generation → field
+codegen → a new GitHub repo → CI, in one command). See
 [`conductor/product.md`](./conductor/product.md) for the vision and
 [`conductor/tracks.md`](./conductor/tracks.md) for in-progress/planned work.
 
 ## Prerequisites
 
-- sbt / JDK 21 (for building and running)
-- Docker Desktop (or another Docker engine) with Docker Compose v2
+- sbt / JDK 21
+- Docker Desktop (or another Docker engine) with Docker Compose v2 — for the generated service's
+  Postgres-backed tests
 - A GitHub [personal access token](https://github.com/settings/tokens) with `read:packages`
   scope, exported as `GITHUB_TOKEN` (and `GITHUB_ACTOR` set to your GitHub username) — needed to
   resolve `purerestlib` from GitHub Packages. GitHub Packages requires authentication to *read*
   Maven artifacts even from a public repo.
 
-## Quickstart
-
-```
-export GITHUB_ACTOR=<your-github-username>
-export GITHUB_TOKEN=<your-PAT-with-read:packages>
-
-docker compose up -d   # starts Postgres
-sbt run                # runs migrations, then starts the service on :8080
-```
-
-Then, in another terminal:
-
-```
-# Create an order
-curl -X POST http://localhost:8080/orders \
-  -H "Content-Type: application/json" -d '{"item":"widget","quantity":3}'
-
-# Read it back (substitute the id from the response above)
-curl http://localhost:8080/orders/<id>
-
-# Partially update it (quantity/status)
-curl -X PATCH http://localhost:8080/orders/<id> \
-  -H "Content-Type: application/json" -d '{"quantity":5,"status":"shipped"}'
-
-# Or fully replace it (same required fields as PATCH — this resource has no
-# other client-writable ones — but PUT is idempotent full-replace semantics)
-curl -X PUT http://localhost:8080/orders/<id> \
-  -H "Content-Type: application/json" -d '{"quantity":5,"status":"shipped"}'
-
-# Delete it
-curl -X DELETE http://localhost:8080/orders/<id>
-
-# Liveness / readiness
-curl http://localhost:8080/health
-curl http://localhost:8080/health/ready
-```
-
-Swagger UI (generated from the same tapir endpoint definitions as the real routes — see
-`purerest.docs.Docs`) is browsable at **http://localhost:8080/docs**.
-
-## Testing
-
-```
-sbt scalafmtCheck test
-```
-
-Unit tests use an in-memory `OrderStore`; Postgres-backed tests spin up a real, ephemeral
-container via Testcontainers — no local Postgres or manual setup needed to run `sbt test`.
-
-## One database per service
-
-Unlike purerest's own `order-service` (which uses the pluralized `orders`/`orders` naming), this
-repo adopts a **one database per service, named after the domain** convention: a dedicated
-Postgres database named `order` (singular), with an `order` table (quoted throughout — `order` is
-a reserved PostgreSQL keyword). REST paths stay pluralized (`/orders`, `/orders/{id}`) per
-ordinary resource-collection convention; only the database/table naming reflects the
-one-db-per-service rule. See [`conductor/tech-stack.md`](./conductor/tech-stack.md) for the full
-rationale and the deviations recorded from purerest's original `order-service` (the
-inventory-service coupling this repo intentionally doesn't carry over).
-
-## Generating a new service from this template
-
-This repo doubles as a [giter8](http://www.foundweekends.org/giter8/) template (`src/main/g8/`)
-that renames `order-service` into a new, differently-domained service.
-
-### Prerequisites
-
-Same as above (sbt/JDK, Docker), plus the same `GITHUB_ACTOR`/`GITHUB_TOKEN` — the generated
-project also resolves `purerestlib` from GitHub Packages.
-
-### Generate
+## Generating a new service
 
 ```
 sbt new file:///absolute/path/to/pure-service-generator --domain_name=widget
@@ -139,68 +74,12 @@ handle irregular English plurals (e.g. a domain named `company` generates `/comp
 `/companies`). Hand-edit the generated `*Routes.scala`/`*RoutesSuite.scala` path segments if your
 domain name needs an irregular plural.
 
-## Adding domain fields with the field-codegen tool
+## Adding domain fields
 
-The generated service's base entity is just `id`/`createdAt`/`updatedAt` — every domain-specific
-field is added via the `tools/codegen/` tool as a post-generation step: it takes a small YAML
-field-spec and rewrites the generated project's case class, DTOs, SQL, store (in-memory +
-Postgres), and tests to add each field, and is exercised through the generated CRUD test suite
-(create/get/update/delete, plus the full-lifecycle test).
-
-### Field-spec format
-
-```yaml
-fields:
-  - name: item
-    type: String
-    example: "widget"
-    visibility: create-only
-  - name: quantity
-    type: Int
-    example: "4"
-  - name: status
-    type: String
-    example: "shipped"
-    visibility: server-defaulted
-    default: "created"
-```
-
-- `name` — a camelCase Scala identifier (e.g. `expiresAt`); its Postgres column name is derived by
-  converting to snake_case (`expires_at`).
-- `type` — one of `String`, `Int`, `Boolean`, `Instant` (`java.time.Instant`, stored as
-  `TIMESTAMPTZ`). No other types are supported.
-- `example` — a literal value (as a string) used to rewrite existing test call sites whose arity
-  changes when the field is added, and to assert on in the full-lifecycle test.
-- `visibility` (optional, default `create-and-update`) — how the field participates in
-  `create`/`update`:
-  - `create-and-update` — the client sets it at create, and can change it via update (the
-    default).
-  - `create-only` — the client sets it at create; immutable after (excluded from `UpdateRequest`
-    and update SQL).
-  - `server-defaulted` — the server assigns a `default` value at create (never client-settable
-    there — excluded from `CreateRequest`); settable via update like `create-and-update`.
-- `default` — required for, and only valid on, `server-defaulted` fields: a literal (of `type`)
-  used for the generated `private val default<Field>` constant.
-
-### Running it
-
-```
-cd tools/codegen
-sbt "runMain codegen.Main /absolute/path/to/widget-service /absolute/path/to/field-spec.yaml"
-cd /absolute/path/to/widget-service
-sbt scalafmt test   # reformats the tool's inserted lines to this project's style, then verifies
-```
-
-`tools/codegen/` is a standalone sbt project (sibling to, not aggregated into, this repo's own
-build) — it operates on an already-generated project directory, not on the template itself.
-
-### Limitations
-
-- **Additive only, one-shot** — the tool consumes the g8 template's `codegen:fields:` anchor
-  comments as it rewrites each file, so it isn't idempotent: running it twice against the same
-  generated project will fail (the anchors are gone after the first run). Generate fresh from the
-  template if you need to change the field spec.
-- **No optional/nullable fields** — v1 only supports required fields.
+Every domain-specific field beyond the base `id`/`createdAt`/`updatedAt` entity is added via a
+small YAML field-spec and the `tools/codegen/` tool — see
+[`tools/codegen/README.md`](./tools/codegen/README.md) for the field-spec format, how to run it,
+and its limitations.
 
 ## Automated generate → publish → CI pipeline
 
@@ -243,11 +122,30 @@ secret instead — `gh secret set GH_PACKAGES_TOKEN`, reusing the caller's own `
 Repos are created **public** by default; there's no `--private` flag yet (see Non-Goals in
 `conductor/product.md`).
 
+## Developing the template
+
+`src/main/g8/`'s files are giter8 templates, not plain Scala/SQL — you can't type-check or run
+them directly. See [`docs/developing-the-template.md`](./docs/developing-the-template.md) for
+the generate → edit → diff → port-back → regenerate workflow and its two helper scripts
+(`scripts/dev-regenerate.sh`, `scripts/dev-diff.sh`).
+
+## One database per service
+
+Every service the generator produces owns exactly one dedicated Postgres database, named after
+its domain — singular, e.g. a `widget` domain gets a `widget` database and an `widget` table
+(quoted throughout, since some plausible domain names like `order`, `user`, or `group` are
+reserved PostgreSQL keywords). REST paths stay pluralized (`/widgets`, `/widgets/{id}`) per
+ordinary resource-collection convention; only the database/table naming reflects the
+one-db-per-service rule. See [`conductor/tech-stack.md`](./conductor/tech-stack.md) for the full
+rationale.
+
 ## Calling other services with resilience
 
-This reference service doesn't call any other service, so purerest's retry + circuit-breaker
-middleware (`purerest.resilience.Resilience.middleware`) isn't wired into `Main`. When you adapt
-this template to call a real downstream service, wrap its http4s `Client[F]` with
-`Resilience.middleware` before building your own client on top of it — see
-[`ClientResilienceExampleSuite`](./src/test/scala/orderservice/examples/ClientResilienceExampleSuite.scala)
-for the pattern, tested against a dummy client so it stays correct as purerest evolves.
+The generated service doesn't call any other service by default, so purerest's retry +
+circuit-breaker middleware (`purerest.resilience.Resilience.middleware`) isn't wired into
+`Main`. When you adapt a generated service to call a real downstream service, wrap its http4s
+`Client[F]` with `Resilience.middleware` before building your own client on top of it — every
+generated service ships a tested, PureConfig-driven example of the pattern at
+`src/test/scala/$package$/examples/ClientResilienceExampleSuite.scala` (see
+[`src/main/g8/src/test/scala/$package$/examples/ClientResilienceExampleSuite.scala`](./src/main/g8/src/test/scala/$package$/examples/ClientResilienceExampleSuite.scala)
+in the template), tested against a dummy client so it stays correct as purerest evolves.
