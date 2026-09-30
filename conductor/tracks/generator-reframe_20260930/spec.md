@@ -17,11 +17,19 @@ has something real and compiler-checked to iterate against.
    the resilience-pattern documentation stays accurate for generated services.
 2. **`scripts/dev-regenerate.sh`**: generates a scratch instance from the template (reusing the
    `giter8.LauncherMain` pattern) into a fixed, gitignored local directory
-   (`.dev/<domain-name>-service`, wiped and regenerated fresh each run), optionally applies a
-   `--field-spec` via `tools/codegen`, then runs `sbt scalafmt test` and prints the path — one
-   command to get something real to develop against. Flags mirror
+   (`.dev/<domain-name>-service`, wiped and regenerated fresh each run), plus an untouched sibling
+   `.dev/<domain-name>-service.baseline` copy from the same generation (for `dev-diff.sh` below).
+   Optionally applies a `--field-spec` via `tools/codegen` (to the editable copy only, not the
+   baseline), then runs `sbt scalafmt test` and prints the path — one command to get something
+   real to develop against. Flags mirror
    `generate-and-publish-service.sh`'s style: `--domain-name` (default `devcheck`), `--package`,
    `--field-spec`.
+2a. **`scripts/dev-diff.sh`**: diffs `.dev/<domain-name>-service.baseline` against
+    `.dev/<domain-name>-service` (plain `diff -ru`, printed to the terminal) so a developer can
+    see exactly what they changed while iterating, to manually port back into `src/main/g8/`
+    (reinstating `$domain_name$`/`$package$`/`codegen:fields:` placeholders where appropriate).
+    No auto-patching of the template — reverse-mapping instantiated text back onto placeholders
+    is inherently ambiguous and risks silently corrupting the template.
 3. **README restructure**: lead with "this is a generator"; "Generating a new service" becomes
    the primary quickstart (promoted above the old order-service quickstart, which is removed);
    add a "Developing the template" section documenting the generate→edit→port-back→regenerate

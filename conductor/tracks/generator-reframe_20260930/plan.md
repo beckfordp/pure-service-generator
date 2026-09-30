@@ -13,15 +13,21 @@ nothing else broke.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Remove order-service' (Protocol in
       workflow.md)
 
-## Phase 2: Add scripts/dev-regenerate.sh
+## Phase 2: Add scripts/dev-regenerate.sh and scripts/dev-diff.sh
 - [ ] Task: Write `scripts/dev-regenerate.sh` — `--domain-name` (default `devcheck`),
       `--package`, `--field-spec` (optional); generates into `.dev/<domain-name>-service`
       (wiped and regenerated fresh each run), optionally applies field-codegen, runs
-      `sbt scalafmt test`, prints the resulting path. Add `.dev/` to `.gitignore`.
+      `sbt scalafmt test`, prints the resulting path. Also produces an untouched
+      `.dev/<domain-name>-service.baseline` sibling copy from the same generation (before any
+      `--field-spec` is applied to the editable copy). Add `.dev/` to `.gitignore`.
 - [ ] Task: Run it for real (with and without `--field-spec`); confirm a compiling, passing
-      scratch instance each time.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Add scripts/dev-regenerate.sh'
-      (Protocol in workflow.md)
+      scratch instance each time, and that the `.baseline` sibling matches a fresh generation
+      byte-for-byte.
+- [ ] Task: Write `scripts/dev-diff.sh` (plain `diff -ru` between the `.baseline` and editable
+      copies, printed to the terminal — no auto-patching); make a real hand-edit to the scratch
+      instance and confirm the diff shows exactly that edit, nothing more.
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Add scripts/dev-regenerate.sh and
+      scripts/dev-diff.sh' (Protocol in workflow.md)
 
 ## Phase 3: README restructure
 - [ ] Task: Rewrite the README — generator-first opening; "Generating a new service" promoted
