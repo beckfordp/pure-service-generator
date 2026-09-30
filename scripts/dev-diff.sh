@@ -45,6 +45,12 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+if [[ ! "$DOMAIN_NAME" =~ ^[a-z][a-z0-9]*$ ]]; then
+  echo "Error: --domain-name must be lowercase alphanumeric, starting with a letter" \
+    "(got: $DOMAIN_NAME)." >&2
+  exit 1
+fi
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GEN_DIR="$ROOT_DIR/.dev/${DOMAIN_NAME}-service"
 BASELINE_DIR="$ROOT_DIR/.dev/${DOMAIN_NAME}-service.baseline"

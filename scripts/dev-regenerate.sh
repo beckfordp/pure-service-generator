@@ -67,6 +67,12 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+if [[ ! "$DOMAIN_NAME" =~ ^[a-z][a-z0-9]*$ ]]; then
+  echo "Error: --domain-name must be lowercase alphanumeric, starting with a letter" \
+    "(got: $DOMAIN_NAME)." >&2
+  exit 1
+fi
+
 if [ -n "$FIELD_SPEC" ]; then
   if [ ! -f "$FIELD_SPEC" ]; then
     echo "Error: --field-spec file not found: $FIELD_SPEC" >&2
@@ -76,6 +82,10 @@ if [ -n "$FIELD_SPEC" ]; then
   FIELD_SPEC="$(cd "$(dirname "$FIELD_SPEC")" && pwd)/$(basename "$FIELD_SPEC")"
 fi
 
+# GEN_DIR/BASELINE_DIR below are built directly from DOMAIN_NAME and then
+# rm -rf'd - the validation above (not just giter8's own naming convention)
+# is what keeps a typo like "--domain-name ../.." from resolving outside
+# .dev/ and deleting something unintended.
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CODEGEN_DIR="$ROOT_DIR/tools/codegen"
 DEV_DIR="$ROOT_DIR/.dev"
