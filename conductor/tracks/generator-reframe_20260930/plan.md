@@ -75,3 +75,6 @@ nothing else broke.
       (Protocol in workflow.md) - verified directly (prompting off): both files reviewed
       end-to-end for stray order-service framing after the edits; none remain outside the
       dated, intentionally-unedited historical Iteration/deviation records.
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions `d7b6257`
