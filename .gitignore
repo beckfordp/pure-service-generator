@@ -1,6 +1,9 @@
 # macOS
 .DS_Store
 
+# scripts/dev-regenerate.sh scratch output - see docs/developing-the-template.md
+.dev/
+
 # sbt specific
 dist/*
 target/
