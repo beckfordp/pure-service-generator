@@ -5,7 +5,7 @@ This file tracks all major tracks for the project.
 - [ ] **Track: Add a --private flag to the publish pipeline (scripts/generate-and-publish-service.sh)**
   *Link: [./tracks/private-repo-flag_20260930/](./tracks/private-repo-flag_20260930/)*
 
-- [ ] **Track: Remove order-service reference implementation, reframe README around the generator, add a dev-regenerate helper script for template development**
+- [~] **Track: Remove order-service reference implementation, reframe README around the generator, add a dev-regenerate helper script for template development**
   *Link: [./tracks/generator-reframe_20260930/](./tracks/generator-reframe_20260930/)*
 
 ---
