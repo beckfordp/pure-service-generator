@@ -74,9 +74,9 @@ handle irregular English plurals (e.g. a domain named `company` generates `/comp
 `/companies`). Hand-edit the generated `*Routes.scala`/`*RoutesSuite.scala` path segments if your
 domain name needs an irregular plural.
 
-## Adding domain fields
+## Adding domain entity fields
 
-Every domain-specific field beyond the base `id`/`createdAt`/`updatedAt` entity is added via a
+Every domain-specific domain field beyond the base `id`/`createdAt`/`updatedAt` entity is added via a
 small YAML field-spec and the `tools/codegen/` tool — see
 [`tools/codegen/README.md`](./tools/codegen/README.md) for the field-spec format, how to run it,
 and its limitations.
