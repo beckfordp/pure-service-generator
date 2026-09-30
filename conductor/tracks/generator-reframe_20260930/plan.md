@@ -62,10 +62,16 @@ nothing else broke.
       ClientResilienceExampleSuite.scala) resolves to a real file.
 
 ## Phase 4: Synchronize project documentation
-- [ ] Task: Update `product.md`'s Vision/Components/Key Features and `tech-stack.md`'s
+- [x] Task: Update `product.md`'s Vision/Components/Key Features and `tech-stack.md`'s
       references to order-service, reflecting its removal (historical Iteration records stay
       unedited). Per `product-guidelines.md`'s own WARNING (strategic-shift-only edits), propose
       any changes there explicitly rather than editing silently — standard end-of-track doc-sync
-      protocol (`AskUserQuestion` approval for each file).
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Synchronize project documentation'
-      (Protocol in workflow.md)
+      protocol (`AskUserQuestion` approval for each file). `819f847`
+
+      `product-guidelines.md` reviewed and left untouched — its "order" naming-convention
+      examples are illustrative, not claims about repo state, and nothing in this track rises
+      to its own "significant strategic shift" bar.
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Synchronize project documentation'
+      (Protocol in workflow.md) - verified directly (prompting off): both files reviewed
+      end-to-end for stray order-service framing after the edits; none remain outside the
+      dated, intentionally-unedited historical Iteration/deviation records.
