@@ -48,15 +48,18 @@ nothing else broke.
       the real runs above: zero-edit diff is empty, a real hand-edit shows exactly that edit.
 
 ## Phase 3: Split the docs
-- [ ] Task: Move the "Adding domain fields" section content into `tools/codegen/README.md`
-      as-is (no rewrite needed, already accurate).
-- [ ] Task: Rewrite `README.md` — generator-first opening; "Generating a new service" promoted
+- [x] Task: Move the "Adding domain fields" section content into `tools/codegen/README.md`
+      as-is (no rewrite needed, already accurate). `6b17472`
+- [x] Task: Rewrite `README.md` — generator-first opening; "Generating a new service" promoted
       to the primary quickstart; links to `tools/codegen/README.md` and
       `docs/developing-the-template.md` in place of their former inline sections; reframe "One
       database per service"/"Calling other services with resilience"; remove the old
-      order-service quickstart/testing sections.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Split the docs' (Protocol in
-      workflow.md)
+      order-service quickstart/testing sections. `6b17472`
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Split the docs' (Protocol in
+      workflow.md) - verified directly (prompting off): no leftover order-service references in
+      any of the three doc files; every relative link (README.md ↔ tools/codegen/README.md ↔
+      docs/developing-the-template.md ↔ conductor/*.md ↔ the template's
+      ClientResilienceExampleSuite.scala) resolves to a real file.
 
 ## Phase 4: Synchronize project documentation
 - [ ] Task: Update `product.md`'s Vision/Components/Key Features and `tech-stack.md`'s
