@@ -23,22 +23,29 @@ nothing else broke.
       compiles/scalafmt-checks/52/52 tests pass; `tools/codegen`'s own suite still 60/60.
 
 ## Phase 2: Add scripts/dev-regenerate.sh and scripts/dev-diff.sh
-- [ ] Task: Write `scripts/dev-regenerate.sh` — `--domain-name` (default `devcheck`),
+- [x] Task: Write `scripts/dev-regenerate.sh` — `--domain-name` (default `devcheck`),
       `--package`, `--field-spec` (optional); generates into `.dev/<domain-name>-service`
       (wiped and regenerated fresh each run), optionally applies field-codegen, runs
       `sbt scalafmt test`, prints the resulting path. Also produces an untouched
       `.dev/<domain-name>-service.baseline` sibling copy from the same generation (before any
-      `--field-spec` is applied to the editable copy). Add `.dev/` to `.gitignore`.
-- [ ] Task: Run it for real (with and without `--field-spec`); confirm a compiling, passing
+      `--field-spec` is applied to the editable copy). Add `.dev/` to `.gitignore`. `f66774e`
+- [x] Task: Run it for real (with and without `--field-spec`); confirm a compiling, passing
       scratch instance each time, and that the `.baseline` sibling matches a fresh generation
-      byte-for-byte.
-- [ ] Task: Write `scripts/dev-diff.sh` (plain `diff -ru` between the `.baseline` and editable
+      byte-for-byte. `f66774e`
+
+      First live run surfaced a real bug: the `.baseline` copy was frozen *before* `sbt
+      scalafmt` ran, so it differed from the editable copy purely from scalafmt's own
+      reformatting (identifier-length line-wrapping), even with zero hand-edits. Fixed the
+      ordering (field-spec → scalafmt → freeze baseline → test) before re-verifying; confirmed
+      byte-for-byte identical (excluding `target/` build artifacts) on the corrected run.
+- [x] Task: Write `scripts/dev-diff.sh` (plain `diff -ru` between the `.baseline` and editable
       copies, printed to the terminal — no auto-patching); make a real hand-edit to the scratch
-      instance and confirm the diff shows exactly that edit, nothing more.
-- [ ] Task: Write `docs/developing-the-template.md` — the generate→edit→diff→port-back→
-      regenerate workflow, and how to use `dev-regenerate.sh`/`dev-diff.sh`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Add scripts/dev-regenerate.sh and
-      scripts/dev-diff.sh' (Protocol in workflow.md)
+      instance and confirm the diff shows exactly that edit, nothing more. `f66774e`
+- [x] Task: Write `docs/developing-the-template.md` — the generate→edit→diff→port-back→
+      regenerate workflow, and how to use `dev-regenerate.sh`/`dev-diff.sh`. `f66774e`
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Add scripts/dev-regenerate.sh and
+      scripts/dev-diff.sh' (Protocol in workflow.md) - verified directly (prompting off) via
+      the real runs above: zero-edit diff is empty, a real hand-edit shows exactly that edit.
 
 ## Phase 3: Split the docs
 - [ ] Task: Move the "Adding domain fields" section content into `tools/codegen/README.md`
