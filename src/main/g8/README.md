@@ -54,6 +54,12 @@ curl http://localhost:8080/health/ready
 Swagger UI (generated from the same tapir endpoint definitions as the real routes — see
 `purerest.docs.Docs`) is browsable at **http://localhost:8080/docs**.
 
+## Development guidelines
+
+Extending this service? See [`development-guidelines.md`](./development-guidelines.md) for the
+pure-FP/tagless-final standards it follows — error modeling as ADTs, patterns to follow (and
+avoid) — before adding new code.
+
 ## Testing
 
 ```
