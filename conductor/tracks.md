@@ -4,8 +4,6 @@ This file tracks all major tracks for the project.
 
 - [~] **Track: Add a --private flag to the publish pipeline (scripts/generate-and-publish-service.sh)**
   *Link: [./tracks/private-repo-flag_20260930/](./tracks/private-repo-flag_20260930/)*
-- [x] **Track: Add CORS support to the generated service template**
-  *Link: [./tracks/cors_20261010/](./tracks/cors_20261010/)*
 
 ---
 
