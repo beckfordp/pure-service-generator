@@ -139,6 +139,18 @@ ordinary resource-collection convention; only the database/table naming reflects
 one-db-per-service rule. See [`conductor/tech-stack.md`](./conductor/tech-stack.md) for the full
 rationale.
 
+## CORS
+
+Every generated service sends CORS headers on every response (success and error alike) —
+`Cors.middleware` (`src/main/g8/src/main/scala/$package$/Cors.scala`) wraps the fully-composed
+routes in `Main.scala`, before `.withHttpApp(routes.orNotFound)`. The default policy is
+deliberately permissive: allow **all origins**, methods restricted to the five the template's
+own CRUD routes expose (`GET`/`POST`/`PATCH`/`PUT`/`DELETE`), the `Content-Type` header (needed
+for JSON request bodies), and **credentials disallowed** — required anyway alongside an
+allow-all-origins policy, since browsers reject credentialed requests against a wildcard origin.
+This matches a freshly generated service's no-auth, no-decided-frontend-origin posture; tighten
+it (a real origin allow-list, credentialed requests) once a service actually needs to.
+
 ## Calling other services with resilience
 
 The generated service doesn't call any other service by default, so purerest's retry +

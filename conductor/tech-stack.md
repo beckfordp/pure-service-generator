@@ -18,6 +18,10 @@
 - **http4s** — server only. No outbound HTTP client in a freshly generated service (see "No
   inventory-service coupling" below); `ClientResilienceExampleSuite` (in the template) demonstrates
   purerest's resilient-client pattern for whoever adapts a generated service to add one.
+- **CORS** — `org.http4s.server.middleware.CORS` (ships in `http4s-server`, no new dependency)
+  wraps every response. Default policy: allow all origins, methods limited to the template's own
+  five CRUD routes, `Content-Type` header allowed, credentials disallowed. See `README.md`'s
+  "CORS" section for the rationale.
 
 ## API Documentation
 - **tapir** — endpoints described once as tapir values; purerest's `purerest.docs.Docs`
