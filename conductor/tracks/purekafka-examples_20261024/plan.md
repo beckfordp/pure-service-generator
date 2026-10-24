@@ -34,15 +34,15 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Producer resilience example'
       (Protocol in workflow.md) `d5c5a7d`
 
-## Phase 3: Consumer supervision + DLQ example
+## Phase 3: Consumer supervision + DLQ example [checkpoint: 46cb41f]
 - [x] Task 3.1: `KafkaConsumerExampleSuite.scala`
   - [x] Red: tests proving (a) a crashing synthetic `Stream` gets restarted via
         `StreamSupervisor`, (b) a permanently-failing message is routed to the DLQ via
         `DeadLetter` — mirroring purekafka's own `StreamSupervisorSuite`/`DeadLetterSuite`
         synthetic-stream convention, no Docker Kafka
   - [x] Green: implement the example
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Consumer supervision + DLQ example'
-      (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Consumer supervision + DLQ example'
+      (Protocol in workflow.md) `46cb41f`
 
 ## Phase 4: Outbox-CDC example
 - [ ] Task 4.1: `V2__create_outbox_events.sql` migration (copy order-service's generic schema:
