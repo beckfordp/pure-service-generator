@@ -1,12 +1,16 @@
 package $package$
 
 import cats.effect.{IO, IOApp, Resource}
+import cats.syntax.semigroupk._
 import com.comcast.ip4s._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits._
+import purekafka.docs.{Docs => AsyncApiDocs}
 import purerest.docs.Docs
 import purerest.metrics.ServerMetrics
 import purerest.tracing.ServerTracing
+
+import $package$.examples.ExampleAsyncApiChannels
 
 /** Acquires every dependency this service needs, builds the routes, and serves
   * them — a single flat `Resource` for-comprehension, one `<-` per dependency.
@@ -62,7 +66,21 @@ object Main extends IOApp.Simple {
         HealthRoutes.readyServerEndpoint[IO](store)
       )
     )
-    tracedRoutes = ServerTracing.middleware(telemetry.tracer)(docsRoutes)
+    asyncApiRoutes = AsyncApiDocs.routes[IO](
+      "$domain_name;format="cap"$ Service",
+      "1.0",
+      ExampleAsyncApiChannels.channels
+    )
+    // asyncApiRoutes must come before docsRoutes: docsRoutes' Swagger UI
+    // bundle serves a wildcard /docs/{resource} route for its own static
+    // assets, which returns its own real 404 (not a http4s fallthrough
+    // None) for any /docs/* path it doesn't recognize - including
+    // /docs/asyncapi.json - short-circuiting <+> before asyncApiRoutes
+    // ever sees the request. Same ordering order-service's own AppRoutes
+    // uses.
+    tracedRoutes = ServerTracing.middleware(telemetry.tracer)(
+      asyncApiRoutes <+> docsRoutes
+    )
     meteredRoutes = ServerMetrics.middleware[IO](telemetry.meter)(tracedRoutes)
     routes = Cors.middleware[IO](meteredRoutes)
     _ <- EmberServerBuilder
