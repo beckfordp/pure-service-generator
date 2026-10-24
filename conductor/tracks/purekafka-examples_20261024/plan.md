@@ -50,11 +50,11 @@
   - [x] Red: a migrations test asserting the `outbox_events` table exists post-migration,
         alongside the existing `V1` table
   - [x] Green: add the migration
-- [ ] Task 4.2: `OutboxExampleSuite.scala` — a self-contained, Testcontainers-Postgres-backed
+- [x] Task 4.2: `OutboxExampleSuite.scala` — a self-contained, Testcontainers-Postgres-backed
       example demonstrating a same-transaction insert into both the base entity's table and
       `outbox_events` (does not touch the real `$domain_name$Store`)
-  - [ ] Red: write the test
-  - [ ] Green: implement the example
+  - [x] Red: write the test
+  - [x] Green: implement the example
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Outbox-CDC example' (Protocol in
       workflow.md)
 
