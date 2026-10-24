@@ -59,10 +59,10 @@
       workflow.md) `94c817e`
 
 ## Phase 5: Documentation + final verification
-- [ ] Task 5.1: `docs/examples.md` — all four examples (HTTP `ClientResilienceExampleSuite` +
+- [x] Task 5.1: `docs/examples.md` — all four examples (HTTP `ClientResilienceExampleSuite` +
       the three new Kafka ones): what each demonstrates, how to promote to production code, how
       to remove cleanly (flagging the outbox migration's append-only caveat)
-- [ ] Task 5.2: Short pointer section in `README.md` linking to `docs/examples.md`, same style
+- [x] Task 5.2: Short pointer section in `README.md` linking to `docs/examples.md`, same style
       as the "Developing the template" section
 - [ ] Task 5.3: `./scripts/dev-regenerate.sh --domain-name devcheck` → confirm `sbt scalafmt
       test` green (including all new example suites) → confirm `sbt compile` produces a real,

@@ -165,3 +165,12 @@ generated service ships a tested, PureConfig-driven example of the pattern at
 `src/test/scala/$package$/examples/ClientResilienceExampleSuite.scala` (see
 [`src/main/g8/src/test/scala/$package$/examples/ClientResilienceExampleSuite.scala`](./src/main/g8/src/test/scala/$package$/examples/ClientResilienceExampleSuite.scala)
 in the template), tested against a dummy client so it stays correct as purerest evolves.
+
+## Generated examples
+
+Beyond the HTTP resilience example above, every generated service also ships tested examples
+for Kafka producer resilience, consumer supervision + dead-letter routing, the outbox-CDC
+pattern, and AsyncAPI documentation — none wired into production code by default, same
+reasoning as above. See [`docs/examples.md`](./docs/examples.md) for what each demonstrates, how
+to promote it into real production code, and how to remove it cleanly if your service doesn't
+need it.
