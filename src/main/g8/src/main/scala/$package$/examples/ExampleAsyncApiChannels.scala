@@ -1,9 +1,9 @@
-package $package$
+package $package$.examples
 
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 import purekafka.docs.{AsyncApiChannel, AsyncApiChannelsProvider, ChannelDirection}
-import sttp.tapir.Schema
+import sttp.tapir.{Schema, Validator}
 
 import java.time.Instant
 
@@ -13,25 +13,41 @@ import java.time.Instant
   * `asyncApiGenerateSpec`/`asyncApiGenerate` (see `PureKafkaDocsPlugin` in
   * `build.sbt`) something real to render instead of an empty channel list, so
   * every generated service's AsyncAPI docs pipeline is genuinely exercised by
-  * default. See `docs/examples.md` for how to replace this with your own real
-  * event type, or remove it entirely.
+  * default. `status` demonstrates the enum-validator pattern (see this
+  * object's own `statusValidator`) - a plain `String` on the wire, but
+  * constrained to a fixed set in the generated JSON Schema. See
+  * `docs/examples.md` for how to replace this with your own real event type,
+  * or remove it entirely.
   */
 final case class ExampleEvent(
     id: String,
+    status: String,
     occurredAt: Instant
 )
 
 object ExampleEvent {
   implicit val codec: Codec[ExampleEvent] = deriveCodec
-  implicit val schema: Schema[ExampleEvent] = Schema.derived
+
+  // status is a plain String on the wire, but only ever one of these three
+  // illustrative values - Validator.enumeration documents that fixed set in
+  // the generated AsyncAPI JSON Schema ("enum": [...]) without changing the
+  // wire format, same convention order-service's own OrderStatusChangedEvent
+  // uses. The `.encode(identity)` step is required: tapir-apispec-docs
+  // silently drops an enumeration validator with no encode function rather
+  // than rendering it.
+  private val statusValidator: Validator[String] =
+    Validator.enumeration(List("created", "updated", "deleted")).encode(identity)
+
+  implicit val schema: Schema[ExampleEvent] =
+    Schema.derived[ExampleEvent].modify(_.status)(_.validate(statusValidator))
 }
 
 /** Registers one illustrative Kafka channel so the `sbt-purekafka-docs`
   * plugin has something real to generate AsyncAPI docs from out of the box.
   * `direction = Subscribe` ties it narratively to the consumer example in
-  * `src/test/scala/$package$/examples/` (which illustrates subscribing to
-  * this same topic/eventType) - this registration itself is independent of
-  * that example actually running.
+  * this same `examples` package (which illustrates subscribing to this same
+  * topic/eventType) - this registration itself is independent of that
+  * example actually running.
   *
   * Implements `AsyncApiChannelsProvider` (not just a plain `List`) so the
   * plugin's `AsyncApiSpecWriter` can load this singleton reflectively by

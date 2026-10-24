@@ -1,4 +1,4 @@
-package $package$
+package $package$.examples
 
 import io.circe.parser.parse
 import munit.FunSuite
@@ -11,7 +11,7 @@ import purekafka.docs.{
 
 import java.nio.file.Files
 
-class ExampleAsyncApiChannelsSuite extends FunSuite {
+class AsyncApiChannelsExampleSuite extends FunSuite {
 
   test(
     "ExampleAsyncApiChannels registers exactly the illustrative ExampleEvent channel"
@@ -30,7 +30,7 @@ class ExampleAsyncApiChannelsSuite extends FunSuite {
   }
 
   test(
-    "$package$.ExampleAsyncApiChannels is reflectively loadable by name, matching build.sbt's asyncApiChannelsClass setting - a regression guard for sbt-purekafka-docs' AsyncApiSpecWriter"
+    "$package$.examples.ExampleAsyncApiChannels is reflectively loadable by name, matching build.sbt's asyncApiChannelsClass setting - a regression guard for sbt-purekafka-docs' AsyncApiSpecWriter"
   ) {
     val outputPath =
       Files.createTempFile("$domain_name$-service-asyncapi-test", ".json")
@@ -38,7 +38,7 @@ class ExampleAsyncApiChannelsSuite extends FunSuite {
 
     AsyncApiSpecWriter.main(
       Array(
-        "$package$.ExampleAsyncApiChannels",
+        "$package$.examples.ExampleAsyncApiChannels",
         "$domain_name;format="cap"$ Service",
         "1.0",
         outputPath.toString
@@ -53,5 +53,27 @@ class ExampleAsyncApiChannelsSuite extends FunSuite {
     )
 
     assertEquals(written, expected)
+  }
+
+  test(
+    "the generated AsyncAPI document constrains ExampleEvent.status to the enum [created, updated, deleted]"
+  ) {
+    val doc = AsyncApiDoc.generate(
+      "$domain_name;format="cap"$ Service",
+      "1.0",
+      ExampleAsyncApiChannels.channels
+    )
+
+    // String-based, not a guessed cursor path through channels/subscribe/
+    // message/oneOf - robust to exactly how AsyncApiDoc nests a
+    // single-message channel's schema, while still proving the enum
+    // constraint reaches the real generated document, not just the Scala-side
+    // Validator/Schema values.
+    assert(
+      doc.noSpaces.contains(
+        """"status":{"type":"string","enum":["created","updated","deleted"]}"""
+      ),
+      "expected the generated doc to constrain status to the enum, got: " + doc.noSpaces
+    )
   }
 }

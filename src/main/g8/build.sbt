@@ -45,14 +45,15 @@ lazy val root = project
     version := "0.1.0",
     // Drives the sbt-purekafka-docs plugin's asyncApiGenerateSpec/
     // asyncApiGenerate tasks, auto-chained after Compile/compile - see
-    // ExampleAsyncApiChannels.scala ($package$.ExampleAsyncApiChannels, an
+    // examples/ExampleAsyncApiChannels.scala
+    // ($package$.examples.ExampleAsyncApiChannels, an
     // AsyncApiChannelsProvider). Title/version match Main.scala's own
     // Docs.routes[IO]("$domain_name;format="cap"$ Service", "1.0", ...)
     // call for the live /docs/asyncapi.json route - otherwise the
     // build-time generated docs default to name.value/version.value
     // ("$domain_name$-service"/"0.1.0") and silently disagree with what's
     // actually served live.
-    asyncApiChannelsClass := "$package$.ExampleAsyncApiChannels",
+    asyncApiChannelsClass := "$package$.examples.ExampleAsyncApiChannels",
     asyncApiTitle := "$domain_name;format="cap"$ Service",
     asyncApiVersion := "1.0",
     // purerestlib resolved as an ordinary published artifact from GitHub
