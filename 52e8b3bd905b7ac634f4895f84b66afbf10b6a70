@@ -1,0 +1,21 @@
+Task 1.1: Add temporary local-snapshot dependency pins (purekafka, fs2-kafka, sbt-purekafka-docs)
+
+Summary: Added fs2KafkaVersion/purekafkaVersion vals and the purekafka/fs2-kafka
+library dependencies to src/main/g8/build.sbt, and the sbt-purekafka-docs plugin
+to src/main/g8/project/plugins.sbt. Mirrors order-service's own existing local-ivy
+pin pattern (purekafka has no GitHub Packages release yet - blocked on a billing
+issue - so this resolves from ~/.ivy2/local via sbt pureKafka/publishLocal and
+sbt sbtPureKafkaDocs/publishLocal, both already run earlier this session).
+
+Files changed:
+- src/main/g8/build.sbt
+- src/main/g8/project/plugins.sbt
+
+Why: Foundation for the rest of Phase 1 (AsyncAPI channel registration + plugin
+wiring) and later phases (producer/consumer/outbox-CDC examples) - none of those
+can reference purekafka/fs2-kafka types without these dependencies present first.
+
+Verification: ./scripts/dev-regenerate.sh --domain-name devcheck - generates,
+reformats, and runs sbt test on a fresh scratch copy; confirmed dependencies
+resolve and all 57 existing tests still pass (no new code yet exercises the new
+dependencies - that's Tasks 1.2-1.4 and Phases 2-4).
