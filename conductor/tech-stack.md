@@ -27,6 +27,18 @@
 - **tapir** — endpoints described once as tapir values; purerest's `purerest.docs.Docs`
   interprets that into both real `HttpRoutes[F]` and a generated OpenAPI spec + Swagger UI.
 
+## Kafka (optional)
+- **purekafka** (`io.github.beckfordp`) and **fs2-kafka** — resolved as published GitHub
+  Packages dependencies, same pattern as `purerestlib`. A freshly generated service has no
+  outbound Kafka producer/consumer by default; `KafkaProducerResilienceExampleSuite`/
+  `KafkaConsumerExampleSuite`/`OutboxExampleSuite` (in the template) demonstrate the patterns
+  for whoever adapts a generated service to add one.
+- **sbt-purekafka-docs** (`io.github.beckfordp`, an sbt plugin) — generates AsyncAPI
+  documentation (`target/asyncapi-docs-spec/asyncapi.json` + `target/asyncapi-docs/index.html`)
+  on every `sbt compile`, from an `AsyncApiChannelsProvider` registration
+  (`ExampleAsyncApiChannels` in the template) — the Kafka-side analogue of tapir's OpenAPI
+  generation. Also served live at `/docs/asyncapi.json` via `Main`. See `docs/examples.md`.
+
 ## JSON
 - **circe**, via `http4s-circe`.
 

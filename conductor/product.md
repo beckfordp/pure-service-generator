@@ -84,6 +84,13 @@ generator could reproduce an equivalent instance on demand (Iteration 6).
    to develop the template against, and a plain diff between them to review before manually
    porting a change back into `src/main/g8/`. Deliberately no auto-patching of the template
    (see `docs/developing-the-template.md` for why).
+6. purekafka examples + AsyncAPI documentation (Iteration 7) — the template ships four more
+   tested, PureConfig-driven examples alongside the existing HTTP resilience one (Kafka producer
+   resilience, consumer supervision + dead-letter routing, the outbox-CDC pattern with a real
+   `outbox_events` migration), plus an always-on `sbt-purekafka-docs` plugin generating AsyncAPI
+   documentation (build-time JSON/HTML + a live `/docs/asyncapi.json` route) from a registered
+   illustrative channel. See `docs/examples.md` for what each demonstrates and how to
+   promote/remove it.
 
 ## Iteration 1 Goals (2026-09-29) — completed 2026-09-29
 Get a genuinely production-quality reference microservice working end-to-end before building
@@ -174,6 +181,21 @@ reproduce an equivalent instance on demand, and reframe the project's docs aroun
 3. **Split the docs.** ✅ Answered — `README.md` (generator-first overview),
    `tools/codegen/README.md` (field-spec format), `docs/developing-the-template.md` (the dev
    workflow).
+
+## Iteration 7 Goals (2026-10-24) — completed 2026-10-24
+Retrofit the base template with purekafka support (ADR 0010 in gluon's Rework 3) now that
+purerest's `purekafka`/`sbt-purekafka-docs` modules are published, mirroring the existing
+HTTP-resilience-example pattern rather than generator flags.
+
+1. **Producer/consumer/outbox-CDC examples.** ✅ Answered — three new tested examples in
+   `src/test/scala/$package$/examples/`, same self-contained, PureConfig-driven,
+   zero-production-wiring convention as the existing `ClientResilienceExampleSuite`.
+2. **AsyncAPI documentation, on by default.** ✅ Answered — `PureKafkaDocsPlugin` wired into
+   `build.sbt`, an illustrative `ExampleAsyncApiChannels` registration (the one example that's
+   main-code, not test-space, since the plugin needs a real compiled class to load), and a live
+   `/docs/asyncapi.json` route in `Main`.
+3. **Document all five examples' promote/remove paths.** ✅ Answered — new
+   `docs/examples.md`, linked from `README.md`.
 
 ## Non-Goals (for now)
 - Optional/nullable fields in the field-spec (v1 requires all fields).
