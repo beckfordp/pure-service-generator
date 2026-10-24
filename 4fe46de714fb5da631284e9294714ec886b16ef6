@@ -1,0 +1,21 @@
+Task 1.3: Wire PureKafkaDocsPlugin into build.sbt
+
+Summary: Added PureKafkaDocsPlugin to the root project's enablePlugins call
+and set asyncApiChannelsClass/asyncApiTitle/asyncApiVersion, mirroring
+order-service's own build.sbt block exactly (including its explanatory
+comment about why title/version are set explicitly rather than left at the
+plugin's name.value/version.value defaults - they must match what Main.scala
+serves live at /docs/asyncapi.json, wired in the next task).
+
+Files changed:
+- src/main/g8/build.sbt
+
+Why: Without this, ExampleAsyncApiChannels (Task 1.2) exists but nothing
+tells the sbt-purekafka-docs plugin to actually use it.
+
+Verification: ./scripts/dev-regenerate.sh --domain-name devcheck (60 tests
+still pass), then sbt compile directly in the generated copy - confirmed
+target/asyncapi-docs-spec/asyncapi.json (title "Devcheck Service", one
+channel "devcheck-events") and target/asyncapi-docs/index.html both
+generated correctly. Diffed generated build.sbt against hand-substituted
+template source - identical, no formatting drift to port back.
