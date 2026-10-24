@@ -1,0 +1,26 @@
+Phase 4 Completion Verification Report - purekafka-examples_20261024
+
+Scope: all changes since Phase 3's checkpoint (46cb41f) through Task 4.2
+(c074695) - the purekafka/sbt-purekafka-docs re-pin to the real v0.2.1
+release (a side effect of resolving the Node.js/CI publish detour mid-phase),
+V2__create_outbox_events.sql, MigrationsSuite's new test, and
+OutboxExampleSuite.scala.
+
+Automated test command: ./scripts/dev-regenerate.sh --domain-name devcheck
+(with GITHUB_ACTOR/GITHUB_TOKEN set, resolving the real release)
+Result: PASS - Passed: Total 68.
+
+Test coverage check: no production/main code added beyond the migration SQL
+(self-covering via MigrationsSuite) and the example test file itself - no
+gaps.
+
+Manual verification (performed by assistant, confirmed by user without
+re-running):
+1. dev-regenerate.sh with real GitHub Packages credentials
+2. sbt testOnly devcheckservice.MigrationsSuite devcheckservice.examples.OutboxExampleSuite
+3. All 3 relevant tests pass (outbox_events table exists; same-transaction
+   write; rollback-on-failure proof)
+4. Migration + example read as sensible, copy-adaptable, pointing at
+   order-service's real OrderStore.scala
+
+User confirmation: "Yes, confirmed".
