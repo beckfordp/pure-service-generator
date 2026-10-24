@@ -38,11 +38,23 @@ ThisBuild / dependencyOverrides ++= Seq(
 
 lazy val root = project
   .in(file("."))
-  .enablePlugins(JavaAppPackaging, DockerPlugin)
+  .enablePlugins(JavaAppPackaging, DockerPlugin, PureKafkaDocsPlugin)
   .settings(
     name := "$domain_name$-service",
     scalaVersion := scala3Version,
     version := "0.1.0",
+    // Drives the sbt-purekafka-docs plugin's asyncApiGenerateSpec/
+    // asyncApiGenerate tasks, auto-chained after Compile/compile - see
+    // ExampleAsyncApiChannels.scala ($package$.ExampleAsyncApiChannels, an
+    // AsyncApiChannelsProvider). Title/version match Main.scala's own
+    // Docs.routes[IO]("$domain_name;format="cap"$ Service", "1.0", ...)
+    // call for the live /docs/asyncapi.json route - otherwise the
+    // build-time generated docs default to name.value/version.value
+    // ("$domain_name$-service"/"0.1.0") and silently disagree with what's
+    // actually served live.
+    asyncApiChannelsClass := "$package$.ExampleAsyncApiChannels",
+    asyncApiTitle := "$domain_name;format="cap"$ Service",
+    asyncApiVersion := "1.0",
     // purerestlib resolved as an ordinary published artifact from GitHub
     // Packages, not a source/`.dependsOn` link back to the purerest repo —
     // the same real-external-consumer proof purerest's own smoke-test/
