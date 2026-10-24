@@ -1,0 +1,15 @@
+Task 4.1: Add V2__create_outbox_events.sql migration + MigrationsSuite test
+
+Summary: Direct copy of order-service's V7__create_outbox_events.sql (already
+fully generic). Added a second test to the existing MigrationsSuite.scala
+(same withContainers/Migrations.run shape as the existing V1 test) asserting
+the outbox_events table's columns exist post-migration.
+
+Files changed:
+- src/main/g8/src/main/resources/db/migration/V2__create_outbox_events.sql (new)
+- src/main/g8/src/test/scala/$package$/MigrationsSuite.scala
+
+Verification: ./scripts/dev-regenerate.sh --domain-name devcheck - confirmed
+red (MigrationsSuite failed, table didn't exist) before the migration file
+existed, green (66 tests) after. Zero diff between generated+formatted files
+and hand-substituted template source for both files.
