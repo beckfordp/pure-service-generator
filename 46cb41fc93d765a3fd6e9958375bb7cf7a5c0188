@@ -1,0 +1,22 @@
+Phase 3 Completion Verification Report - purekafka-examples_20261024
+
+Scope: all changes since Phase 2's checkpoint (d5c5a7d) through Task 3.1
+(012bcf4) - KafkaConsumerExampleSuite.scala only.
+
+Automated test command: ./scripts/dev-regenerate.sh --domain-name devcheck
+Result: PASS - Passed: Total 65.
+
+Test coverage check: no production code added this phase - the new test
+file is itself the coverage. No gaps.
+
+Manual verification (performed by assistant, confirmed by user without
+re-running):
+1. ./scripts/dev-regenerate.sh --domain-name devcheck
+2. sbt "testOnly devcheckservice.examples.KafkaConsumerExampleSuite" in the
+   generated copy
+3. Both tests pass: DLQ-routing (poison message dead-lettered, stream keeps
+   consuming), stream-restart (3 builds: 1 initial + 2 restarts after
+   simulated broker blips)
+4. The generated example reads as a sensible, copy-adaptable composition
+
+User confirmation: "Yes, confirmed".
