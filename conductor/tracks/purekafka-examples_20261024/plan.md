@@ -1,6 +1,6 @@
 # Plan — purekafka examples + AsyncAPI docs for the base template
 
-## Phase 1: Dependency pins + always-on AsyncAPI channel registration
+## Phase 1: Dependency pins + always-on AsyncAPI channel registration [checkpoint: c3f7271]
 - [x] Task 1.1: Add temporary local-snapshot dependency pins (purekafka, fs2-kafka,
       sbt-purekafka-docs) to `build.sbt`/`project/plugins.sbt`, mirroring order-service's own
       pin comments (re-pin once GitHub Packages release lands) `52e8b3b`
@@ -20,8 +20,8 @@
   - [x] Red/Green: no unit test for `Main` exists in this template (same as order-service);
         verified live instead — curled `/docs/asyncapi.json` against a running generated
         service, byte-for-byte identical to Task 1.3's build-time output, enum included
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Dependency pins + AsyncAPI wiring'
-      (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Dependency pins + AsyncAPI wiring'
+      (Protocol in workflow.md) `c3f7271`
 
 ## Phase 2: Producer resilience example
 - [ ] Task 2.1: Add `example-kafka-producer` config block to `application.conf` (same "not read
