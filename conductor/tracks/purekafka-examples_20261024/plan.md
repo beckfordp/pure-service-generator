@@ -1,9 +1,9 @@
 # Plan — purekafka examples + AsyncAPI docs for the base template
 
 ## Phase 1: Dependency pins + always-on AsyncAPI channel registration
-- [ ] Task 1.1: Add temporary local-snapshot dependency pins (purekafka, fs2-kafka,
+- [x] Task 1.1: Add temporary local-snapshot dependency pins (purekafka, fs2-kafka,
       sbt-purekafka-docs) to `build.sbt`/`project/plugins.sbt`, mirroring order-service's own
-      pin comments (re-pin once GitHub Packages release lands)
+      pin comments (re-pin once GitHub Packages release lands) `52e8b3b`
 - [ ] Task 1.2: Create `$package$/ExampleAsyncApiChannels.scala` (an `AsyncApiChannelsProvider`
       registering one illustrative `"$domain_name$-events"` channel + generic `ExampleEvent`
       payload)
