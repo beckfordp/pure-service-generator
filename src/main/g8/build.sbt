@@ -12,9 +12,16 @@ val flywayVersion = "11.8.2"
 val postgresqlJdbcVersion = "42.7.13"
 val pureconfigVersion = "0.17.10"
 val testcontainersScalaVersion = "0.43.6"
+val fs2KafkaVersion = "3.6.0"
 // Pinned to match the purerestlib version this service is built against — see
 // README's "Consuming purerest as a dependency" section.
 val purerestlibVersion = "0.1.0"
+// purekafka has no release tag yet — this is sbt-dynver's untagged-history
+// format, exactly as `sbt publishLocal` printed it in the sibling `purerest`
+// checkout. Resolves from `~/.ivy2/local` (checked before the GitHub Packages
+// resolver below), so no network/token is needed for this one. Re-pin once a
+// real tag exists.
+val purekafkaVersion = "0.1.0+126-d6834d01"
 
 // Skunk 1.0.0 depends on otel4s-core/-core-common/-core-metrics 0.16.0 (its own
 // optional tracing integration), which conflicts with purerestlib's otel4s 1.1.0
@@ -56,6 +63,12 @@ lazy val root = project
     Universal / javaOptions += "-Dlogback.configurationFile=logback-docker.xml",
     libraryDependencies ++= Seq(
       "io.github.beckfordp" %% "purerestlib" % purerestlibVersion,
+      // purekafka: Kafka resilience/observability combinators (stream
+      // supervision, dead-letter routing, generic F[A] call resilience) —
+      // used by the generated producer/consumer examples (see
+      // src/test/scala/$package$/examples/).
+      "io.github.beckfordp" %% "purekafka" % purekafkaVersion,
+      "com.github.fd4s" %% "fs2-kafka" % fs2KafkaVersion,
       "org.typelevel" %% "cats-effect" % catsEffectVersion,
       "org.http4s" %% "http4s-ember-server" % http4sVersion,
       "org.http4s" %% "http4s-dsl" % http4sVersion,
