@@ -58,7 +58,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Outbox-CDC example' (Protocol in
       workflow.md) `94c817e`
 
-## Phase 5: Documentation + final verification
+## Phase 5: Documentation + final verification [checkpoint: 5b37baf]
 - [x] Task 5.1: `docs/examples.md` — all four examples (HTTP `ClientResilienceExampleSuite` +
       the three new Kafka ones): what each demonstrates, how to promote to production code, how
       to remove cleanly (flagging the outbox migration's append-only caveat)
@@ -67,5 +67,5 @@
 - [x] Task 5.3: `./scripts/dev-regenerate.sh --domain-name devcheck` → confirm `sbt scalafmt
       test` green (including all new example suites) → confirm `sbt compile` produces a real,
       non-empty `target/asyncapi-docs-spec/asyncapi.json` + `target/asyncapi-docs/index.html`
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Documentation + final verification'
-      (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Documentation + final verification'
+      (Protocol in workflow.md) `5b37baf`
