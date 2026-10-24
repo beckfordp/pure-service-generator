@@ -1,0 +1,8 @@
+{
+  "track_id": "purekafka-examples_20261024",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-10-24T10:34:43Z",
+  "updated_at": "2026-10-24T10:34:43Z",
+  "description": "Retrofit the base template (src/main/g8) with purekafka support: three new generated examples (producer resilience, consumer supervision+DLQ, outbox-CDC), each with its own test, mirroring the existing ClientResilienceExampleSuite.scala pattern. Also wire the sbt-purekafka-docs plugin (PureKafkaDocsPlugin) into the template's build.sbt/project/plugins.sbt, with an AsyncApiChannels registration, so every generated service gets Kafka AsyncAPI docs by default. Merges gluon PLAN.md's Rework 3 (ADR 0010) 'Retrofit pure-service-generator' item with this repo's own backlog entry for the three examples. Builds against purekafka/sbt-purekafka-docs' current local-only publish (GitHub Packages release blocked on a billing issue, to be resolved later)."
+}
