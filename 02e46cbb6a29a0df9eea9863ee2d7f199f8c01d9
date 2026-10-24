@@ -1,0 +1,37 @@
+Amendment to Task 1.2: move AsyncAPI example into examples/, add enum-validated status field
+
+Summary: Moved ExampleAsyncApiChannels.scala/ExampleEvent from src/main/scala/$package$/
+to src/main/scala/$package$/examples/ (package $package$.examples) - the plugin's
+asyncApiChannelsClass setting updated to match. Renamed and moved the test file
+from ExampleAsyncApiChannelsSuite.scala to examples/AsyncApiChannelsExampleSuite.scala,
+adopting ClientResilienceExampleSuite's own <Concept>ExampleSuite naming convention.
+Added a status: String field to ExampleEvent, constrained via
+Validator.enumeration(List("created","updated","deleted")).encode(identity) +
+Schema.derived[...].modify(_.status)(_.validate(...)) - same pattern order-service's
+OrderStatusChangedEvent uses - so the generated AsyncAPI docs visibly show an enum
+constraint, not just flat scalar fields.
+
+Files changed:
+- src/main/g8/build.sbt (asyncApiChannelsClass path update)
+- src/main/g8/src/main/scala/$package$/examples/ExampleAsyncApiChannels.scala (moved + enum field)
+- src/main/g8/src/test/scala/$package$/examples/AsyncApiChannelsExampleSuite.scala (moved, renamed, +1 test)
+
+Why: User feedback mid-task - the AsyncAPI example should live alongside the httpclient
+example in examples/ for discoverability/consistency, and the enum field makes the
+generated docs demonstrably richer than a trivial example.
+
+Process note: the first commit attempt (bd80c49) silently captured stale (pre-edit)
+content due to a failed 'git add -A' with an invalid pathspec aborting the whole add
+without staging anything, while the index still held an earlier git-mv-only state.
+Caught by diffing HEAD's content against the working tree immediately after; fixed
+with this new commit (02e46cb), not an amend.
+
+Verification: fixed a giter8 generation failure found along the way - a Scala string
+interpolation ${doc.noSpaces} in the new test was being parsed by giter8's own $-scanner
+and aborting generation entirely ('Check that all literal $ are properly escaped with
+\$') - replaced with plain string concatenation. Then: ./scripts/dev-regenerate.sh
+--domain-name devcheck (61 tests pass), sbt compile in the generated copy, confirmed
+target/asyncapi-docs-spec/asyncapi.json literally contains
+"status":{"type":"string","enum":["created","updated","deleted"]}. Diffed
+generated+formatted files against hand-substituted template source - only expected
+identifier-length line-wrapping noise.
