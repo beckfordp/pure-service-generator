@@ -73,7 +73,7 @@ class AsyncApiChannelsExampleSuite extends FunSuite {
       doc.noSpaces.contains(
         """"status":{"type":"string","enum":["created","updated","deleted"]}"""
       ),
-      "expected the generated doc to constrain status to the enum, got: " + doc.noSpaces
+      s"expected the generated doc to constrain status to the enum, got: \$doc"
     )
   }
 }
