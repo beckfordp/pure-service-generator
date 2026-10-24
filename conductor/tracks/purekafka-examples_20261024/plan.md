@@ -69,3 +69,6 @@
       non-empty `target/asyncapi-docs-spec/asyncapi.json` + `target/asyncapi-docs/index.html`
 - [x] Task: Conductor - User Manual Verification 'Phase 5: Documentation + final verification'
       (Protocol in workflow.md) `5b37baf`
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions `e1e43fc`
