@@ -35,12 +35,12 @@
       (Protocol in workflow.md) `d5c5a7d`
 
 ## Phase 3: Consumer supervision + DLQ example
-- [ ] Task 3.1: `KafkaConsumerExampleSuite.scala`
-  - [ ] Red: tests proving (a) a crashing synthetic `Stream` gets restarted via
+- [x] Task 3.1: `KafkaConsumerExampleSuite.scala`
+  - [x] Red: tests proving (a) a crashing synthetic `Stream` gets restarted via
         `StreamSupervisor`, (b) a permanently-failing message is routed to the DLQ via
         `DeadLetter` — mirroring purekafka's own `StreamSupervisorSuite`/`DeadLetterSuite`
         synthetic-stream convention, no Docker Kafka
-  - [ ] Green: implement the example
+  - [x] Green: implement the example
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Consumer supervision + DLQ example'
       (Protocol in workflow.md)
 
