@@ -23,7 +23,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Dependency pins + AsyncAPI wiring'
       (Protocol in workflow.md) `c3f7271`
 
-## Phase 2: Producer resilience example
+## Phase 2: Producer resilience example [checkpoint: d5c5a7d]
 - [x] Task 2.1: Add `example-kafka-producer` config block to `application.conf` (same "not read
       by the live service" convention as `example-client`)
 - [x] Task 2.2: `KafkaProducerResilienceExampleSuite.scala`
@@ -31,8 +31,8 @@
         succeeds), and sustained failure (circuit breaker opens)
   - [x] Green: implement the example composition (`Resilience.middleware` + PureConfig-loaded
         `ResilienceConfig`)
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Producer resilience example'
-      (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Producer resilience example'
+      (Protocol in workflow.md) `d5c5a7d`
 
 ## Phase 3: Consumer supervision + DLQ example
 - [ ] Task 3.1: `KafkaConsumerExampleSuite.scala`
