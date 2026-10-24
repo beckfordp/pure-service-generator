@@ -45,11 +45,11 @@
       (Protocol in workflow.md) `46cb41f`
 
 ## Phase 4: Outbox-CDC example
-- [ ] Task 4.1: `V2__create_outbox_events.sql` migration (copy order-service's generic schema:
+- [x] Task 4.1: `V2__create_outbox_events.sql` migration (copy order-service's generic schema:
       id/aggregate_id/payload/trace_parent/correlation_id/created_at)
-  - [ ] Red: a migrations test asserting the `outbox_events` table exists post-migration,
+  - [x] Red: a migrations test asserting the `outbox_events` table exists post-migration,
         alongside the existing `V1` table
-  - [ ] Green: add the migration
+  - [x] Green: add the migration
 - [ ] Task 4.2: `OutboxExampleSuite.scala` — a self-contained, Testcontainers-Postgres-backed
       example demonstrating a same-transaction insert into both the base entity's table and
       `outbox_events` (does not touch the real `$domain_name$Store`)
