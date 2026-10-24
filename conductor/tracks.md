@@ -4,7 +4,7 @@ This file tracks all major tracks for the project.
 
 - [~] **Track: Add a --private flag to the publish pipeline (scripts/generate-and-publish-service.sh)**
   *Link: [./tracks/private-repo-flag_20260930/](./tracks/private-repo-flag_20260930/)*
-- [~] **Track: purekafka examples + AsyncAPI docs for the base template**
+- [x] **Track: purekafka examples + AsyncAPI docs for the base template**
   *Link: [./tracks/purekafka-examples_20261024/](./tracks/purekafka-examples_20261024/)*
 
 ---
