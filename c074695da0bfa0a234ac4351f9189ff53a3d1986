@@ -1,0 +1,34 @@
+Task 4.2: Add outbox-CDC example (same-transaction write + rollback demo)
+
+Summary: OutboxExampleSuite.scala demonstrates writing a $domain_name$ row
+and an outbox_events row in one Skunk session.transaction.use block, against
+a self-contained session (not the real $domain_name;format="cap"$Store),
+mirroring order-service's OrderStore.insertOutboxRow pattern. Two tests: (1)
+the happy path - both rows exist after one successful transaction; (2) a
+rollback proof - reusing the same outbox id across two transactions violates
+outbox_events' primary key, failing the second transaction entirely, and the
+second entity's row is confirmed absent (count 0) - proving the two writes
+really are atomic together, not just two inserts that happened to both
+succeed in the common case.
+
+Files changed:
+- src/main/g8/src/test/scala/$package$/examples/OutboxExampleSuite.scala (new)
+
+Bugs found and fixed during the Red/Green cycle (none were giter8-escaping
+this time - checked that proactively and it was clean):
+1. Missing cross-package import - Migrations/PostgresConfig live in
+   $package$, this file is in $package$.examples; needed an explicit import,
+   same issue as Task 1.2's ExampleAsyncApiChannels fix.
+2. skunk.Command.execute(...) returns F[Completion], not F[Unit] - the
+   transaction block's last statement needed .void to match
+   insertEntityAndOutboxEvent's declared IO[Unit] return type.
+3. Session.Builder needs an implicit Tracer[F]/Meter[F] in scope for its own
+   instrumentation - added the same Implicits.noop imports
+   $domain_name;format="cap"$Store.postgres already uses for its own
+   construction.
+
+Verification: ./scripts/dev-regenerate.sh --domain-name devcheck (with
+GITHUB_ACTOR/GITHUB_TOKEN set from gh auth token, resolving the real
+purekafka v0.2.1/sbt-purekafka-docs release) - 68 tests pass (66 existing +
+2 new). Diffed generated+formatted file against hand-substituted template
+source - only expected line-wrapping/escape-display noise.
