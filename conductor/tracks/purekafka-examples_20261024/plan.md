@@ -44,7 +44,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Consumer supervision + DLQ example'
       (Protocol in workflow.md) `46cb41f`
 
-## Phase 4: Outbox-CDC example
+## Phase 4: Outbox-CDC example [checkpoint: 94c817e]
 - [x] Task 4.1: `V2__create_outbox_events.sql` migration (copy order-service's generic schema:
       id/aggregate_id/payload/trace_parent/correlation_id/created_at)
   - [x] Red: a migrations test asserting the `outbox_events` table exists post-migration,
@@ -55,8 +55,8 @@
       `outbox_events` (does not touch the real `$domain_name$Store`)
   - [x] Red: write the test
   - [x] Green: implement the example
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Outbox-CDC example' (Protocol in
-      workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Outbox-CDC example' (Protocol in
+      workflow.md) `94c817e`
 
 ## Phase 5: Documentation + final verification
 - [ ] Task 5.1: `docs/examples.md` — all four examples (HTTP `ClientResilienceExampleSuite` +
