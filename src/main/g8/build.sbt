@@ -76,7 +76,8 @@ lazy val root = project
       // purekafka: Kafka resilience/observability combinators (stream
       // supervision, dead-letter routing, generic F[A] call resilience) —
       // used by the generated producer/consumer examples (see
-      // src/test/scala/$package$/examples/).
+      // src/test/scala/$package$/examples/) and by the always-on
+      // AsyncAPI channel registration (src/main/scala/$package$/examples/).
       "io.github.beckfordp" %% "purekafka" % purekafkaVersion,
       "com.github.fd4s" %% "fs2-kafka" % fs2KafkaVersion,
       "org.typelevel" %% "cats-effect" % catsEffectVersion,
