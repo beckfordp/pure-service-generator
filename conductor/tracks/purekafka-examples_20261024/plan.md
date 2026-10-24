@@ -15,10 +15,11 @@
   - [x] Green: implement `ExampleAsyncApiChannels`
 - [x] Task 1.3: Wire `PureKafkaDocsPlugin` into `build.sbt` (`enablePlugins`,
       `asyncApiChannelsClass`/`asyncApiTitle`/`asyncApiVersion`) `4fe46de`
-- [ ] Task 1.4: Serve the raw AsyncAPI spec from `Main`'s routes (`/docs/asyncapi.json` via
-      `purekafka.docs.Docs.routes`, matching order-service)
-  - [ ] Red: a routes test asserting `/docs/asyncapi.json` returns 200 with the expected channel
-  - [ ] Green: implement the route wiring
+- [x] Task 1.4: Serve the raw AsyncAPI spec from `Main`'s routes (`/docs/asyncapi.json` via
+      `purekafka.docs.Docs.routes`, matching order-service) `8603764`
+  - [x] Red/Green: no unit test for `Main` exists in this template (same as order-service);
+        verified live instead — curled `/docs/asyncapi.json` against a running generated
+        service, byte-for-byte identical to Task 1.3's build-time output, enum included
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Dependency pins + AsyncAPI wiring'
       (Protocol in workflow.md)
 
