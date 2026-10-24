@@ -1,0 +1,39 @@
+Tasks 2.1+2.2: Add Kafka producer resilience example
+
+Summary: Mirrors ClientResilienceExampleSuite exactly, swapping purerest's
+HTTP Resilience.middleware for purekafka's generic one, and a dummy Client[IO]
+for a dummy (String, String) => IO[Unit] publish function. Added an
+example-kafka-producer config block to application.conf (same shape/values as
+example-client, not read by the live service). Two tests: transient-failure-
+then-success (retried to success, 3 attempts), and sustained failure (circuit
+breaker opens after a lowered threshold, third call rejected with
+CircuitBreakerOpen before reaching the dummy publish function).
+
+Also fixed a real giter8-escaping bug found along the way, and retroactively
+applied the same fix convention to Task 1.2's amendment: a bare $n inside an
+s-string (s"boom $n") is itself giter8 template syntax (an unmatched $
+starts a property-name scan that can silently corrupt/truncate generation
+with NO error reported by dev-regenerate.sh's own success check) - the fix is
+the established convention already used throughout this template (e.g.
+Migrations.scala, $domain_name;format="cap"$ServiceConfig.scala): escape as
+\$n in the template source, which giter8 unescapes to plain $n in the
+generated output, correctly interpolated there. Previously (Task 1.2's
+amendment) I'd worked around an equivalent issue with string concatenation
+instead of this escape - went back and converted that one to the same
+convention for consistency, once the real mechanism was understood. Also
+root-caused a separate, unrelated red herring during this investigation: a
+leftover 'sbt run' process from Task 1.4's manual verification was never
+actually killed (pkill -f "sbt run" didn't match it), and interfered with
+later sbt invocations against the same regenerated directory - killed it
+directly by PID once found.
+
+Files changed:
+- src/main/g8/src/main/resources/application.conf
+- src/main/g8/src/test/scala/$package$/examples/KafkaProducerResilienceExampleSuite.scala (new)
+- src/main/g8/src/test/scala/$package$/examples/AsyncApiChannelsExampleSuite.scala (escape-convention fix)
+
+Verification: ./scripts/dev-regenerate.sh --domain-name devcheck - confirmed
+red (ConfigReaderException: Key not found: 'example-kafka-producer') before
+the config block existed, green (63 tests) after. Diffed generated+formatted
+files against hand-substituted template source - only expected
+line-wrapping/sed-artifact noise.
