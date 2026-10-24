@@ -64,7 +64,7 @@
       to remove cleanly (flagging the outbox migration's append-only caveat)
 - [x] Task 5.2: Short pointer section in `README.md` linking to `docs/examples.md`, same style
       as the "Developing the template" section
-- [ ] Task 5.3: `./scripts/dev-regenerate.sh --domain-name devcheck` → confirm `sbt scalafmt
+- [x] Task 5.3: `./scripts/dev-regenerate.sh --domain-name devcheck` → confirm `sbt scalafmt
       test` green (including all new example suites) → confirm `sbt compile` produces a real,
       non-empty `target/asyncapi-docs-spec/asyncapi.json` + `target/asyncapi-docs/index.html`
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Documentation + final verification'
