@@ -24,12 +24,12 @@
       (Protocol in workflow.md) `c3f7271`
 
 ## Phase 2: Producer resilience example
-- [ ] Task 2.1: Add `example-kafka-producer` config block to `application.conf` (same "not read
+- [x] Task 2.1: Add `example-kafka-producer` config block to `application.conf` (same "not read
       by the live service" convention as `example-client`)
-- [ ] Task 2.2: `KafkaProducerResilienceExampleSuite.scala`
-  - [ ] Red: tests against a fake publish function — transient-failure-then-success (retried,
+- [x] Task 2.2: `KafkaProducerResilienceExampleSuite.scala`
+  - [x] Red: tests against a fake publish function — transient-failure-then-success (retried,
         succeeds), and sustained failure (circuit breaker opens)
-  - [ ] Green: implement the example composition (`Resilience.middleware` + PureConfig-loaded
+  - [x] Green: implement the example composition (`Resilience.middleware` + PureConfig-loaded
         `ResilienceConfig`)
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Producer resilience example'
       (Protocol in workflow.md)
