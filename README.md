@@ -129,6 +129,10 @@ them directly. See [`docs/developing-the-template.md`](./docs/developing-the-tem
 the generate → edit → diff → port-back → regenerate workflow and its two helper scripts
 (`scripts/dev-regenerate.sh`, `scripts/dev-diff.sh`).
 
+See [`docs/writing-main.md`](./docs/writing-main.md) for the convention `Main.scala` follows —
+one `Resource` per dependency, acquired via a `.resource` method on its own owning type — and
+for order-service as the fuller worked example once a service grows optional dependencies.
+
 ## One database per service
 
 Every service the generator produces owns exactly one dedicated Postgres database, named after

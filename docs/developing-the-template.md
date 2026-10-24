@@ -81,3 +81,5 @@ want real compiler/test feedback before committing to how the template should re
   (`format="cap"` vs `format="Cap"`, `\$` escaping).
 - [`tools/codegen/README.md`](../tools/codegen/README.md) — the field-spec format, relevant if
   your change touches a field-codegen insertion point.
+- [`docs/writing-main.md`](./writing-main.md) — the convention `Main.scala` follows, if your
+  change touches it.
