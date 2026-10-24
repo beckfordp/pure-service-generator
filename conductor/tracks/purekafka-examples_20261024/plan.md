@@ -4,10 +4,13 @@
 - [x] Task 1.1: Add temporary local-snapshot dependency pins (purekafka, fs2-kafka,
       sbt-purekafka-docs) to `build.sbt`/`project/plugins.sbt`, mirroring order-service's own
       pin comments (re-pin once GitHub Packages release lands) `52e8b3b`
-- [x] Task 1.2: Create `$package$/ExampleAsyncApiChannels.scala` (an `AsyncApiChannelsProvider`
-      registering one illustrative `"$domain_name$-events"` channel + generic `ExampleEvent`
-      payload) `81e2184`
-  - [x] Red: `ExampleAsyncApiChannelsSuite.scala` asserting the provider's `channels` list
+- [x] Task 1.2: Create `$package$/examples/ExampleAsyncApiChannels.scala` (an
+      `AsyncApiChannelsProvider` registering one illustrative `"$domain_name$-events"` channel
+      + generic `ExampleEvent` payload, with an enum-validated `status` field) `81e2184`,
+      amended `02e46cb` (moved into `examples/` subpackage alongside
+      `ClientResilienceExampleSuite`, test renamed to `AsyncApiChannelsExampleSuite` per its
+      naming convention, added the `status` enum field)
+  - [x] Red: `AsyncApiChannelsExampleSuite.scala` asserting the provider's `channels` list
         contains the expected topic/eventType
   - [x] Green: implement `ExampleAsyncApiChannels`
 - [x] Task 1.3: Wire `PureKafkaDocsPlugin` into `build.sbt` (`enablePlugins`,
