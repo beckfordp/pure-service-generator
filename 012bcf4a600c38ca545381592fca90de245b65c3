@@ -1,0 +1,20 @@
+Task 3.1: Add Kafka consumer supervision + DLQ example
+
+Summary: KafkaConsumerExampleSuite.scala composes purekafka's StreamSupervisor
+and DeadLetter together against synthetic input (no Docker Kafka), mirroring
+order-service's real KafkaConsumers.scala composition. Two tests: (1) a
+synthetic 3-message stream where one message always fails processing - routed
+to <topic>-dlq, the other two still processed, proving the stream keeps going
+past a poison message; (2) a stream-builder that fails its first 2 builds then
+succeeds on the 3rd - proving StreamSupervisor restarts it with backoff
+(1 initial + 2 restarts).
+
+Files added:
+- src/main/g8/src/test/scala/$package$/examples/KafkaConsumerExampleSuite.scala
+
+Verification: checked for unescaped $ before the first regenerate attempt
+this time (lesson from the two earlier giter8-escaping bugs this session) -
+clean on the first try. ./scripts/dev-regenerate.sh --domain-name devcheck:
+65 tests pass (63 existing + 2 new). Diffed generated+formatted file against
+hand-substituted template source - only expected line-wrapping/escape-display
+noise, nothing to port back.
