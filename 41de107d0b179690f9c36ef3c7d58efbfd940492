@@ -1,0 +1,21 @@
+Tasks 5.1+5.2: Add docs/examples.md + README pointer
+
+Summary: New docs/examples.md covers all five generated examples (HTTP
+resilience, Kafka producer resilience, Kafka consumer supervision+DLQ,
+outbox-CDC, AsyncAPI docs) - what each demonstrates, how to promote to
+production code, how to remove cleanly. The AsyncAPI section's removal
+guidance is the most involved, since it's main-code (not test-space) with
+build.sbt/Main.scala/project/plugins.sbt wiring to unwind. The outbox section
+explicitly flags Flyway's append-only-migration caveat. Added a short
+pointer section to README.md, same placement/style as the existing
+'Developing the template' pointer, right after the existing 'Calling other
+services with resilience' section (left that section unchanged - examples.md
+is the fuller reference, not a replacement).
+
+Files changed:
+- docs/examples.md (new)
+- README.md
+
+Verification: confirmed every file path named in docs/examples.md actually
+exists in src/main/g8/ via a direct ls check (read-through only - this is
+documentation, no code to test).
