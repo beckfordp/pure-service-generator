@@ -101,20 +101,34 @@ This pipeline runs two ways: `sbt compile` regenerates
 (via `PureKafkaDocsPlugin`, `build.sbt`), and `Main` serves the same JSON live at
 `/docs/asyncapi.json`.
 
+A third task, `schemaRegistryCheck` (Rework 5 step 3/4, ADR 0003), reuses the same
+`ExampleAsyncApiChannels` registration to check/register each channel's JSON Schema against an
+Apicurio Registry instance (`schemaRegistryUrl`/`schemaRegistryGroupId` in `build.sbt`), failing
+the build on an incompatible change. Unlike `asyncApiGenerate`, it's *not* auto-chained after
+`Compile / compile` — it makes a real network call, so `sbt compile`/`sbt test` keep working even
+when no registry is running. Run it explicitly (`sbt schemaRegistryCheck`), e.g. in CI — see
+`.github/workflows/ci.yml`'s throwaway `docker run` Apicurio container step.
+
 - **Promote to production:** once you register real Kafka channels (e.g. alongside the producer
   or consumer examples above, once promoted), replace `ExampleAsyncApiChannels`'s illustrative
   channel with your real ones in the same file (or a new one, updating `build.sbt`'s
-  `asyncApiChannelsClass` to match). See order-service's
+  `asyncApiChannelsClass` to match) — this automatically carries through to `schemaRegistryCheck`
+  too, since both tasks read the same registration. See order-service's
   [`AsyncApiChannels.scala`](https://github.com/beckfordp/order-service/blob/main/src/main/scala/orderservice/AsyncApiChannels.scala)
-  for a real, multi-channel registration.
-- **Remove entirely if you don't want AsyncAPI docs:**
+  for a real, multi-channel registration, and its
+  [`schemaRegistryCheck` adoption](https://github.com/beckfordp/order-service/blob/main/build.sbt)
+  in the same `build.sbt`.
+- **Remove entirely if you don't want AsyncAPI docs (or the schema registry check):**
   1. Delete `ExampleAsyncApiChannels.scala`.
   2. In `build.sbt`: drop `PureKafkaDocsPlugin` from the root project's `.enablePlugins(...)`
-     call, and remove the `asyncApiChannelsClass`/`asyncApiTitle`/`asyncApiVersion` settings.
+     call, and remove the `asyncApiChannelsClass`/`asyncApiTitle`/`asyncApiVersion`/
+     `schemaRegistryUrl`/`schemaRegistryGroupId` settings.
   3. In `Main.scala`: drop the `asyncApiRoutes` value and its `<+>` into `tracedRoutes`, and the
      now-unused `purekafka.docs.{Docs => AsyncApiDocs}`/`$package$.examples.ExampleAsyncApiChannels`
      imports.
-  4. If nothing else in your service uses `purekafka` either (i.e. you also removed the
+  4. In `.github/workflows/ci.yml`: drop the "Start/Stop a throwaway Apicurio Registry" and
+     "schemaRegistryCheck" steps.
+  5. If nothing else in your service uses `purekafka` either (i.e. you also removed the
      producer/consumer examples above without promoting them), drop the `purekafka`/`fs2-kafka`
      library dependencies and the `sbt-purekafka-docs` plugin dependency from
      `build.sbt`/`project/plugins.sbt` too.
