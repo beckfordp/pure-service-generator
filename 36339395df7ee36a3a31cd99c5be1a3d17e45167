@@ -1,0 +1,10 @@
+Phase 1: Template changes + verification via dev-regenerate.sh scratch instance — reduced-prompting mode (prompt-off): the real scratch-instance generation, test run, and schemaRegistryCheck invocation are the verification, no interactive walkthrough.
+
+- ./scripts/dev-regenerate.sh (domain devcheck): 68/68 tests passed.
+- sbt schemaRegistryCheck: registered devcheck-events-ExampleEvent under
+  the real devcheck-service group in the real local Apicurio instance.
+- Confirmed g8's $...$ substitution left the new CI step's $(seq 1 60)
+  and ${{ }} syntax intact in the generated output.
+- Hit and fixed along the way: an interrupted first dev-regenerate.sh run
+  left a partial .dev/devcheck-service directory blocking a clean rm -rf
+  on retry; removed it manually (confirmed gitignored, not tracked).
