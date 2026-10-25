@@ -1,6 +1,6 @@
 # Plan — Retrofit base template with schemaRegistryCheck (Rework 5 step 4, ADR 0003)
 
-## Phase 1: Template changes + verification via dev-regenerate.sh scratch instance [checkpoint: TBD]
+## Phase 1: Template changes + verification via dev-regenerate.sh scratch instance [checkpoint: 3633939]
 - [x] Task: Bump `src/main/g8/project/plugins.sbt`'s `sbt-purekafka-docs`
       `0.1.0-dev` -> `0.2.0-dev`; bump `src/main/g8/build.sbt`'s
       `purekafkaVersion` `0.2.1` -> `0.3.0` `9188057`
