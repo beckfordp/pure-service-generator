@@ -61,12 +61,21 @@ lazy val root = project
     // instance (default here, matching gluon's own local-infra
     // convention - adjust for your own setup); in CI, a throwaway
     // `docker run` container with no access to that local instance (see
-    // ci.yml). schemaRegistryGroupId is left at the plugin's own
-    // default (name.value = "$domain_name$-service").
+    // ci.yml).
     schemaRegistryUrl := sys.env.getOrElse(
       "SCHEMA_REGISTRY_URL",
       "http://apicurio-registry.gluon-local.svc.cluster.local:8080"
     ),
+    // One shared group across every gluon service (not the plugin's own
+    // per-service default, name.value - adjust if deploying this service
+    // outside the gluon ecosystem). A producer's and a consumer's
+    // registration of the *same* real topic/eventType contract need to
+    // land in the same group/version-lineage for the BACKWARD
+    // compatibility check to actually compare them against each other -
+    // the whole point of this check (confirmed live 2026-10-25: with
+    // per-service groups, two services' independent registrations of
+    // the same contract were never cross-checked at all).
+    schemaRegistryGroupId := "gluon",
     // Bakes asyncApiGenerate's output into the Docker image itself -
     // previously only ever worked via a bare `sbt run`; neither
     // docker-compose nor a real k8s deployment ever packaged these files
