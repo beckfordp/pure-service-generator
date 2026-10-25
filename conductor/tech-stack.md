@@ -38,6 +38,11 @@
   on every `sbt compile`, from an `AsyncApiChannelsProvider` registration
   (`ExampleAsyncApiChannels` in the template) — the Kafka-side analogue of tapir's OpenAPI
   generation. Also served live at `/docs/asyncapi.json` via `Main`. See `docs/examples.md`.
+  The same plugin's `schemaRegistryCheck` task (Rework 5 step 3/4, ADR 0003) reuses that
+  registration to check/register each channel's JSON Schema against Apicurio Registry, run
+  explicitly (not chained after `compile`): `schemaRegistryUrl`/`schemaRegistryGroupId` in
+  `build.sbt`; a throwaway `docker run` Apicurio container in `ci.yml` (no production registry
+  is reachable from CI). Build/CI-time only, zero runtime presence.
 
 ## JSON
 - **circe**, via `http4s-circe`.
