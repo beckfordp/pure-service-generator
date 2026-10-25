@@ -4,6 +4,8 @@ This file tracks all major tracks for the project.
 
 - [~] **Track: Add a --private flag to the publish pipeline (scripts/generate-and-publish-service.sh)**
   *Link: [./tracks/private-repo-flag_20260930/](./tracks/private-repo-flag_20260930/)*
+- [ ] **Track: Retrofit base template with schemaRegistryCheck (Rework 5 step 4, ADR 0003)**
+  *Link: [./tracks/schema-registry_20261025/](./tracks/schema-registry_20261025/)*
 
 ---
 

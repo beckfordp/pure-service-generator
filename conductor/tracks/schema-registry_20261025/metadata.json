@@ -1,0 +1,8 @@
+{
+  "track_id": "schema-registry_20261025",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-10-25T11:02:13Z",
+  "updated_at": "2026-10-25T11:02:13Z",
+  "description": "Rework 5 step 4 (ADR 0003): retrofit the generator's base template so every future generated service gets the build-time schema registry check by default."
+}
