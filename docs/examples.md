@@ -98,8 +98,9 @@ default has something real to render, out of the box, instead of an empty docume
 
 This pipeline runs two ways: `sbt compile` regenerates
 `target/asyncapi-docs-spec/asyncapi.json` + `target/asyncapi-docs/index.html` automatically
-(via `PureKafkaDocsPlugin`, `build.sbt`), and `Main` serves the same JSON live at
-`/docs/asyncapi.json`.
+(via `PureKafkaDocsPlugin`, `build.sbt`), and `AppRoutes` serves the same JSON live at
+`/docs/asyncapi.json`, plus the rendered HTML at `/docs/asyncapi/index.html` (from
+`target/asyncapi-docs`, overridable with `ASYNCAPI_HTML_DIR`).
 
 A third task, `schemaRegistryCheck` (Rework 5 step 3/4, ADR 0003), reuses the same
 `ExampleAsyncApiChannels` registration to check/register each channel's JSON Schema against an
@@ -123,9 +124,12 @@ when no registry is running. Run it explicitly (`sbt schemaRegistryCheck`), e.g.
   2. In `build.sbt`: drop `PureKafkaDocsPlugin` from the root project's `.enablePlugins(...)`
      call, and remove the `asyncApiChannelsClass`/`asyncApiTitle`/`asyncApiVersion`/
      `schemaRegistryUrl`/`schemaRegistryGroupId` settings.
-  3. In `Main.scala`: drop the `asyncApiRoutes` value and its `<+>` into `tracedRoutes`, and the
-     now-unused `purekafka.docs.{Docs => AsyncApiDocs}`/`$package$.examples.ExampleAsyncApiChannels`
-     imports.
+  3. In `AppRoutes.scala`: drop the `asyncApiRoutes`/`staticAsyncApiRoutes` values and their
+     `<+>`s into `tracedRoutes`, drop the `channels` and `staticAsyncApiDocsDir` parameters, and
+     remove the now-unused `purekafka.docs.*`, `fs2.io.file.Files`, and
+     `org.http4s.server.staticcontent.*` imports. In `Main.scala`: drop the
+     `$package$.examples.ExampleAsyncApiChannels` import and the `channels` argument to
+     `AppRoutes.all`. In `build.sbt`: also remove the `Universal / mappings ++=` AsyncAPI block.
   4. In `.github/workflows/ci.yml`: drop the "Start/Stop a throwaway Apicurio Registry" and
      "schemaRegistryCheck" steps.
   5. If nothing else in your service uses `purekafka` either (i.e. you also removed the

@@ -38,7 +38,9 @@
   documentation (`target/asyncapi-docs-spec/asyncapi.json` + `target/asyncapi-docs/index.html`)
   on every `sbt compile`, from an `AsyncApiChannelsProvider` registration
   (`ExampleAsyncApiChannels` in the template) — the Kafka-side analogue of tapir's OpenAPI
-  generation. Also served live at `/docs/asyncapi.json` via `Main`. See `docs/examples.md`.
+  generation. Served live by `AppRoutes` at `/docs/asyncapi.json` (raw spec) and
+  `/docs/asyncapi/index.html` (rendered static HTML from `target/asyncapi-docs`, overridable
+  via `ASYNCAPI_HTML_DIR`). See `docs/examples.md`.
   The same plugin's `schemaRegistryCheck` task (Rework 5 step 3/4, ADR 0003) reuses that
   registration to check/register each channel's JSON Schema against Apicurio Registry, run
   explicitly (not chained after `compile`): `schemaRegistryUrl`/`schemaRegistryGroupId` in

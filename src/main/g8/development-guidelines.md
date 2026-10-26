@@ -49,8 +49,8 @@ These are the standards to keep applying as you extend this service beyond what 
 
 Code is written against `F[_]: Async` (or a narrower capability typeclass), not a concrete effect
 type. Dependencies are wired in via explicit combinators/constructor parameters (see how
-`Main.scala` assembles `$domain_name;format="cap"$Store`/`$domain_name;format="cap"$Routes`/
-`HealthRoutes`), not annotations, reflection, or macros. Keep extending the service the same way —
+`Main.scala` acquires `$domain_name;format="cap"$Store`; `AppRoutes.scala` assembles
+`$domain_name;format="cap"$Routes`/`HealthRoutes`), not annotations, reflection, or macros. Keep extending the service the same way —
 an algebra as a trait parameterized by `F[_]`, a concrete instance built from capability
 typeclasses, wired together explicitly at the composition root.
 

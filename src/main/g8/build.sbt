@@ -45,8 +45,8 @@ lazy val root = project
     // asyncApiGenerate tasks, auto-chained after Compile/compile - see
     // examples/ExampleAsyncApiChannels.scala
     // ($package$.examples.ExampleAsyncApiChannels, an
-    // AsyncApiChannelsProvider). Title/version match Main.scala's own
-    // Docs.routes[IO]("$domain_name;format="cap"$ Service", "1.0", ...)
+    // AsyncApiChannelsProvider). Title/version match AppRoutes.scala's own
+    // Docs.routes[F]("$domain_name;format="cap"$ Service", "1.0", ...)
     // call for the live /docs/asyncapi.json route - otherwise the
     // build-time generated docs default to name.value/version.value
     // ("$domain_name$-service"/"0.1.0") and silently disagree with what's
@@ -82,7 +82,8 @@ lazy val root = project
     // in (confirmed live in gluon's 4 generated services: 404 in both,
     // fixed 2026-10-25). Mapped under the exact same relative path
     // (`target/asyncapi-docs`) AppRoutes.scala's staticAsyncApiDocsDir
-    // already looks for, so no code change needed there - the image's
+    // default already looks for (override with ASYNCAPI_HTML_DIR), so no
+    // code change needed there - the image's
     // working directory (/opt/docker for JavaAppPackaging/DockerPlugin)
     // just needs that directory to actually exist.
     // `asyncApiGenerate.value` (not just the output-dir setting) forces

@@ -59,6 +59,33 @@ curl http://localhost:8080/health/ready
 Swagger UI (generated from the same tapir endpoint definitions as the real routes — see
 `purerest.docs.Docs`) is browsable at **http://localhost:8080/docs**.
 
+## View Kafka AsyncAPI docs
+
+This service registers one illustrative Kafka channel (`ExampleEvent` on `$domain_name$-events`)
+for [AsyncAPI](https://www.asyncapi.com/) documentation via `purekafka.docs` (see
+`ExampleAsyncApiChannels`), the same way tapir generates the OpenAPI docs above. Replace it with
+your real event types in the same file (or a new one, updating `build.sbt`'s
+`asyncApiChannelsClass`).
+
+Generation is handled by the `sbt-purekafka-docs` plugin (`asyncApiChannelsClass` in
+`build.sbt`), auto-chained after `Compile / compile` — every `sbt compile`/`run`/
+`Docker/publishLocal` regenerates both files locally, no running server or manual script
+needed. Run it directly with:
+
+```
+sbt asyncApiGenerate
+```
+
+- **Raw spec** — generated at `target/asyncapi-docs-spec/asyncapi.json`; also served live at
+  http://localhost:8080/docs/asyncapi.json while the service is running.
+- **Rendered HTML** — generated at `target/asyncapi-docs/index.html`
+  (`open target/asyncapi-docs/index.html`); also served live at
+  http://localhost:8080/docs/asyncapi/index.html while the service is running.
+
+The HTML renderer needs Node.js/npm. If the Node toolchain is unavailable, the plugin logs a
+warning and skips HTML generation (the JSON spec is still generated), so
+`/docs/asyncapi/index.html` returns 404 until a successful `sbt asyncApiGenerate`.
+
 ## Development guidelines
 
 Extending this service? See [`development-guidelines.md`](./development-guidelines.md) for the

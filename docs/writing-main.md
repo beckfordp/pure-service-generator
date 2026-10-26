@@ -1,9 +1,10 @@
 # Writing `Main`
 
-A generated service's `Main.scala` acquires every dependency, builds the routes, and serves
-them. This doc is the one place that convention is written down — follow it whether you're
-editing the base template (`src/main/g8/`) or hand-extending a generated service with something
-the template doesn't produce (an HTTP client, a Redis cache, a Kafka producer/consumer).
+A generated service's `Main.scala` acquires every dependency, delegates route assembly to
+`AppRoutes.all`, and serves the result. This doc is the one place that convention is written
+down — follow it whether you're editing the base template (`src/main/g8/`) or hand-extending a
+generated service with something the template doesn't produce (an HTTP client, a Redis cache, a
+Kafka producer/consumer).
 
 ## The rule
 
@@ -39,7 +40,7 @@ val run: IO[Unit] = (for {
   telemetry      <- Telemetry.resource[IO](config.serviceName, config.metricsPort)
   _              <- Resource.eval(telemetry.logger.info(/* ... */)("$domain_name$-service starting"))
   store          <- $domain_name;format="cap"$Store.postgres[IO](config.postgres, telemetry.meter)
-  routes          = /* ... */
+  routes          = AppRoutes.all[IO](store, telemetry, ExampleAsyncApiChannels.channels)
   _              <- EmberServerBuilder.default[IO] /* ... */ .build
 } yield ()).useForever
 ```
@@ -48,6 +49,18 @@ val run: IO[Unit] = (for {
 the base template needs: it groups `tracer`/`meter`/`logger` — three dependencies every layer of
 `Main` ends up needing — behind one `Telemetry.resource[F](serviceName, metricsPort)` call,
 instead of three separate nested acquisitions.
+
+## Route assembly lives in `AppRoutes`
+
+`AppRoutes.all[F]` (`src/main/g8/src/main/scala/$package$/AppRoutes.scala`) owns everything
+route-related: `Docs.routes` (OpenAPI/Swagger), `AsyncApiDocs.routes` (raw AsyncAPI spec),
+`fileService` (the rendered AsyncAPI HTML at `/docs/asyncapi`), the mandatory
+`asyncApi <+> staticAsyncApi <+> docs` ordering (Swagger's wildcard `/docs/*` route shadows
+anything mounted after it), and the tracing/metrics/CORS middleware chain. `Main` calls it once
+and passes the result to `EmberServerBuilder`. `AppRoutes` stays polymorphic (`[F[_]: Async]`)
+like the rest of the template; its `staticAsyncApiDocsDir` parameter defaults to
+`target/asyncapi-docs` (or `ASYNCAPI_HTML_DIR`) and is overridden by `AppRoutesSuite` with a
+temporary fixture directory so tests don't depend on build-time Node-generated HTML.
 
 ## The fuller example: order-service
 
@@ -68,7 +81,7 @@ val run: IO[Unit] = (for {
   httpClient     <- EmberClientBuilder.default[IO].build   // already a Resource - no wrapper
   inventoryClient = InventoryClient.resilient[IO](httpClient, config.inventoryClient, telemetry)
   historyCache   <- OrderHistoryCache.resource[IO](config.redis, telemetry.logger)
-  routes          = /* ... */
+  routes          = AppRoutes.all[IO](store, inventoryClient, historyCache, telemetry, AsyncApiChannels.channels)
   _              <- EmberServerBuilder.default[IO] /* ... */ .build
 } yield ()).useForever
 ```
@@ -86,5 +99,6 @@ Don't re-derive it; that section already works through the shopping-cart-style e
 ## Related docs
 
 - [`docs/developing-the-template.md`](./developing-the-template.md) — the generate → edit → diff
-  → port-back workflow for changing anything under `src/main/g8/`, including `Main.scala` itself.
+  → port-back workflow for changing anything under `src/main/g8/`, including `Main.scala` and
+  `AppRoutes.scala` themselves.
 - [`README.md`](../README.md) — generating a service, the known giter8 gotchas.

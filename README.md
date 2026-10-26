@@ -148,7 +148,8 @@ rationale.
 
 Every generated service sends CORS headers on every response (success and error alike) —
 `Cors.middleware` (`src/main/g8/src/main/scala/$package$/Cors.scala`) wraps the fully-composed
-routes in `Main.scala`, before `.withHttpApp(routes.orNotFound)`. The default policy is
+routes in `AppRoutes.scala`; `Main.scala` only calls `AppRoutes.all` and passes the result to
+`.withHttpApp(routes.orNotFound)`. The default policy is
 deliberately permissive: allow **all origins**, methods restricted to the five the template's
 own routes expose (`GET`/`POST`/`PATCH`/`PUT`/`DELETE`), the `Content-Type` header (needed for
 JSON request bodies), `X-Total-Count` exposed to browser JS (the list endpoint's pagination
