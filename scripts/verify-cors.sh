@@ -16,11 +16,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 DOMAIN_NAME="corscheck"
 DEV_DIR="$REPO_DIR/.dev/${DOMAIN_NAME}-service"
+SBT_LOG="$(mktemp -t cors-sbt-run.XXXXXX)"
 
 cleanup() {
   echo "== Cleaning up =="
-  [ -n "${SBT_PID:-}" ] && kill "$SBT_PID" 2>/dev/null || true
+  if [ -n "${SBT_PID:-}" ]; then
+    pkill -9 -P "$SBT_PID" 2>/dev/null || true
+    kill -9 "$SBT_PID" 2>/dev/null || true
+    wait "$SBT_PID" 2>/dev/null || true
+  fi
   (cd "$DEV_DIR" && docker compose down 2>/dev/null) || true
+  rm -f "$SBT_LOG"
 }
 trap cleanup EXIT
 
@@ -31,16 +37,23 @@ echo "== Starting Postgres =="
 (cd "$DEV_DIR" && docker compose up -d)
 
 echo "== Starting the service =="
-(cd "$DEV_DIR" && sbt run) &
+(cd "$DEV_DIR" && exec sbt -batch run >"$SBT_LOG" 2>&1 </dev/null) &
 SBT_PID=$!
 
 echo "== Waiting for /health =="
-for _ in $(seq 1 30); do
+HEALTHY=0
+for _ in $(seq 1 60); do
   if curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/health 2>/dev/null | grep -q 200; then
+    HEALTHY=1
     break
   fi
   sleep 2
 done
+if [ "$HEALTHY" -ne 1 ]; then
+  echo "FAIL: service did not become healthy" >&2
+  tail -50 "$SBT_LOG" >&2 || true
+  exit 1
+fi
 
 echo "== GET with Origin header (expect Access-Control-Allow-Origin, even on a non-matching route) =="
 GET_HEADERS="$(curl -sD - -o /dev/null -H "Origin: http://example.com" "http://localhost:8080/${DOMAIN_NAME}s")"
