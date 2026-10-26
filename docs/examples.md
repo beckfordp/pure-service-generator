@@ -129,7 +129,7 @@ when no registry is running. Run it explicitly (`sbt schemaRegistryCheck`), e.g.
      remove the now-unused `purekafka.docs.*`, `fs2.io.file.Files`, and
      `org.http4s.server.staticcontent.*` imports. In `Main.scala`: drop the
      `$package$.examples.ExampleAsyncApiChannels` import and the `channels` argument to
-     `AppRoutes.all`. In `build.sbt`: also remove the `Universal / mappings ++=` AsyncAPI block.
+     `AppRoutes.all`.
   4. In `.github/workflows/ci.yml`: drop the "Start/Stop a throwaway Apicurio Registry" and
      "schemaRegistryCheck" steps.
   5. If nothing else in your service uses `purekafka` either (i.e. you also removed the
