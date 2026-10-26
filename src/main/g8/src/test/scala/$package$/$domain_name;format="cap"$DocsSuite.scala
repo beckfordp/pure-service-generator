@@ -16,7 +16,16 @@ class $domain_name;format="cap"$DocsSuite extends CatsEffectSuite {
     for {
       store <- $domain_name;format="cap"$Store.inMemory[IO]
       endpoint = $domain_name;format="cap"$Routes.serverEndpoint[IO](store, NoOpLogger[IO])
-      routes = Docs.routes[IO]("$domain_name;format="cap"$ Service", "1.0", List(endpoint))
+      listEndpoint =
+        $domain_name;format="cap"$Routes.list$domain_name;format="cap"$sServerEndpoint[IO](
+          store,
+          NoOpLogger[IO]
+        )
+      routes = Docs.routes[IO](
+        "$domain_name;format="cap"$ Service",
+        "1.0",
+        List(endpoint, listEndpoint)
+      )
       request = Request[IO](Method.POST, uri"/$domain_name$s")
         .withEntity(Create$domain_name;format="cap"$Request(/* codegen:fields:TEST_CREATE_REQUEST_ARGS */))
       response <- routes.orNotFound.run(request)
@@ -30,6 +39,7 @@ class $domain_name;format="cap"$DocsSuite extends CatsEffectSuite {
       assert(entity.id.nonEmpty)
       assertEquals(docsResponse.status, Status.Ok)
       assert(clue(docsBody).contains("/$domain_name$s"))
+      assert(clue(docsBody).contains("X-Total-Count"))
     }
   }
 }

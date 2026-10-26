@@ -20,6 +20,7 @@ object Cors {
         Set(Method.GET, Method.POST, Method.PATCH, Method.PUT, Method.DELETE)
       )
       .withAllowHeadersIn(Set(ci"Content-Type"))
+      .withExposeHeadersIn(Set(ci"X-Total-Count"))
       .withAllowCredentials(false)
       .apply(routes)
 }

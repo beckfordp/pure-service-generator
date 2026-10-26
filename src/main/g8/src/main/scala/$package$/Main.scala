@@ -62,6 +62,10 @@ object Main extends IOApp.Simple {
           store,
           telemetry.logger
         ),
+        $domain_name;format="cap"$Routes.list$domain_name;format="cap"$sServerEndpoint[IO](
+          store,
+          telemetry.logger
+        ),
         HealthRoutes.healthServerEndpoint[IO],
         HealthRoutes.readyServerEndpoint[IO](store)
       )

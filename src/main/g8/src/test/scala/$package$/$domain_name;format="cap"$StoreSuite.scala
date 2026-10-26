@@ -3,6 +3,8 @@ package $package$
 import cats.effect.IO
 import munit.CatsEffectSuite
 
+import scala.concurrent.duration._
+
 class $domain_name;format="cap"$StoreSuite extends CatsEffectSuite {
 
   test("create returns a persisted entity with a generated id") {
@@ -73,5 +75,42 @@ class $domain_name;format="cap"$StoreSuite extends CatsEffectSuite {
       store <- $domain_name;format="cap"$Store.inMemory[IO]
       deleted <- store.delete("unknown-id")
     } yield assert(!deleted)
+  }
+
+  test("list returns newest-first pages with the total count") {
+    for {
+      store <- $domain_name;format="cap"$Store.inMemory[IO]
+      first <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+      _ <- IO.sleep(2.millis)
+      second <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+      _ <- IO.sleep(2.millis)
+      _ <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+      (page, total) <- store.list(limit = 2, offset = 1)
+    } yield {
+      assertEquals(page.map(_.id), List(second.id, first.id))
+      assertEquals(total, 3L)
+    }
+  }
+
+  test("list on an empty store returns no entities and a zero total") {
+    for {
+      store <- $domain_name;format="cap"$Store.inMemory[IO]
+      (page, total) <- store.list(limit = 20, offset = 0)
+    } yield {
+      assertEquals(page, Nil)
+      assertEquals(total, 0L)
+    }
+  }
+
+  test("list past the end returns an empty page with the full total") {
+    for {
+      store <- $domain_name;format="cap"$Store.inMemory[IO]
+      _ <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+      _ <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+      (page, total) <- store.list(limit = 10, offset = 5)
+    } yield {
+      assertEquals(page, Nil)
+      assertEquals(total, 2L)
+    }
   }
 }

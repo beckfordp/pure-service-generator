@@ -1,6 +1,7 @@
 package $package$
 
 import cats.effect.IO
+import cats.syntax.all._
 import munit.CatsEffectSuite
 import org.http4s.circe.CirceEntityCodec._
 import org.http4s.implicits._
@@ -12,7 +13,10 @@ import org.typelevel.log4cats.testing.StructuredTestingLogger.{
   INFO,
   WARN
 }
+import org.typelevel.ci._
 import purerest.tracing.{ServerTracing, Tracing}
+
+import scala.concurrent.duration._
 
 class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
 
@@ -27,6 +31,10 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       ): IO[Option[$domain_name;format="cap"$]] =
         IO.raiseError(error)
       def delete(id: String): IO[Boolean] = IO.raiseError(error)
+      def list(
+          limit: Int,
+          offset: Int
+      ): IO[(List[$domain_name;format="cap"$], Long)] = IO.raiseError(error)
       def ping: IO[Boolean] = IO.raiseError(error)
     }
 
@@ -465,5 +473,163 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
         assertEquals(spans.map(_.getName), List("POST /$domain_name$s"))
       }
     }
+  }
+
+  test(
+    "GET /$domain_name$s with no query params returns up to 20 entities newest-first with X-Total-Count"
+  ) {
+    for {
+      store <- $domain_name;format="cap"$Store.inMemory[IO]
+      routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
+      first <- routes.orNotFound.run(
+        Request[IO](Method.POST, uri"/$domain_name$s").withEntity(
+          Create$domain_name;format="cap"$Request(/* codegen:fields:TEST_CREATE_REQUEST_ARGS */)
+        )
+      )
+      firstEntity <- first.as[$domain_name;format="cap"$Response]
+      _ <- IO.sleep(2.millis)
+      second <- routes.orNotFound.run(
+        Request[IO](Method.POST, uri"/$domain_name$s").withEntity(
+          Create$domain_name;format="cap"$Request(/* codegen:fields:TEST_CREATE_REQUEST_ARGS */)
+        )
+      )
+      secondEntity <- second.as[$domain_name;format="cap"$Response]
+      response <- routes.orNotFound.run(
+        Request[IO](Method.GET, uri"/$domain_name$s")
+      )
+      body <- response.as[List[$domain_name;format="cap"$Response]]
+    } yield {
+      assertEquals(response.status, Status.Ok)
+      assertEquals(body.map(_.id), List(secondEntity.id, firstEntity.id))
+      assertEquals(
+        response.headers.get(ci"X-Total-Count").map(_.head.value),
+        Some("2")
+      )
+    }
+  }
+
+  test("GET /$domain_name$s defaults to a page of at most 20 entities") {
+    for {
+      store <- $domain_name;format="cap"$Store.inMemory[IO]
+      routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
+      _ <- List.fill(21)(store.create(/* codegen:fields:TEST_CREATE_ARGS */)).sequence
+      response <- routes.orNotFound.run(
+        Request[IO](Method.GET, uri"/$domain_name$s")
+      )
+      body <- response.as[List[$domain_name;format="cap"$Response]]
+    } yield {
+      assertEquals(response.status, Status.Ok)
+      assertEquals(body.size, 20)
+      assertEquals(
+        response.headers.get(ci"X-Total-Count").map(_.head.value),
+        Some("21")
+      )
+    }
+  }
+
+  test("GET /$domain_name$s respects limit and offset") {
+    for {
+      store <- $domain_name;format="cap"$Store.inMemory[IO]
+      routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
+      first <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+      _ <- IO.sleep(2.millis)
+      second <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+      _ <- IO.sleep(2.millis)
+      _ <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+      response <- routes.orNotFound.run(
+        Request[IO](
+          Method.GET,
+          uri"/$domain_name$s".withQueryParam("limit", 1).withQueryParam("offset", 1)
+        )
+      )
+      body <- response.as[List[$domain_name;format="cap"$Response]]
+    } yield {
+      assertEquals(response.status, Status.Ok)
+      assertEquals(body.map(_.id), List(second.id))
+      assertNotEquals(second.id, first.id)
+      assertEquals(
+        response.headers.get(ci"X-Total-Count").map(_.head.value),
+        Some("3")
+      )
+    }
+  }
+
+  test(
+    "GET /$domain_name$s on an empty store returns 200 with [] and X-Total-Count: 0"
+  ) {
+    for {
+      store <- $domain_name;format="cap"$Store.inMemory[IO]
+      routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
+      response <- routes.orNotFound.run(
+        Request[IO](Method.GET, uri"/$domain_name$s")
+      )
+      body <- response.as[List[$domain_name;format="cap"$Response]]
+    } yield {
+      assertEquals(response.status, Status.Ok)
+      assertEquals(body, Nil)
+      assertEquals(
+        response.headers.get(ci"X-Total-Count").map(_.head.value),
+        Some("0")
+      )
+    }
+  }
+
+  test(
+    "GET /$domain_name$s with an offset past the end returns [] and the full total"
+  ) {
+    for {
+      store <- $domain_name;format="cap"$Store.inMemory[IO]
+      routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
+      _ <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+      _ <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+      response <- routes.orNotFound.run(
+        Request[IO](Method.GET, uri"/$domain_name$s".withQueryParam("offset", 5))
+      )
+      body <- response.as[List[$domain_name;format="cap"$Response]]
+    } yield {
+      assertEquals(response.status, Status.Ok)
+      assertEquals(body, Nil)
+      assertEquals(
+        response.headers.get(ci"X-Total-Count").map(_.head.value),
+        Some("2")
+      )
+    }
+  }
+
+  test("GET /$domain_name$s with limit<=0 returns 400") {
+    for {
+      store <- $domain_name;format="cap"$Store.inMemory[IO]
+      routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
+      response <- routes.orNotFound.run(
+        Request[IO](Method.GET, uri"/$domain_name$s".withQueryParam("limit", 0))
+      )
+      body <- response.as[io.circe.Json]
+    } yield {
+      assertEquals(response.status, Status.BadRequest)
+      assert(
+        body.asObject.exists(_.contains("error")),
+        s"expected a JSON error body, got: \$body"
+      )
+    }
+  }
+
+  test("GET /$domain_name$s with limit>100 returns 400") {
+    for {
+      store <- $domain_name;format="cap"$Store.inMemory[IO]
+      routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
+      response <- routes.orNotFound.run(
+        Request[IO](Method.GET, uri"/$domain_name$s".withQueryParam("limit", 101))
+      )
+    } yield assertEquals(response.status, Status.BadRequest)
+  }
+
+  test("GET /$domain_name$s with offset<0 returns 400") {
+    for {
+      store <- $domain_name;format="cap"$Store.inMemory[IO]
+      routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
+      response <- routes.orNotFound.run(
+        Request[IO](Method.GET, uri"/$domain_name$s".withQueryParam("offset", -1))
+      )
+    } yield assertEquals(response.status, Status.BadRequest)
   }
 }

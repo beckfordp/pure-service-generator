@@ -26,6 +26,7 @@ trait $domain_name;format="cap"$Store[F[_]] {
   def get(id: String): F[Option[$domain_name;format="cap"$]]
   def update(id: String/* codegen:fields:UPDATE_PARAMS */): F[Option[$domain_name;format="cap"$]]
   def delete(id: String): F[Boolean]
+  def list(limit: Int, offset: Int): F[(List[$domain_name;format="cap"$], Long)]
   def ping: F[Boolean]
 }
 
@@ -71,6 +72,13 @@ object $domain_name;format="cap"$Store {
             if (entities.contains(id)) (entities - id, true) else (entities, false)
           }
 
+        def list(limit: Int, offset: Int): F[(List[$domain_name;format="cap"$], Long)] =
+          ref.get.map { entities =>
+            val sorted = entities.values.toList
+              .sortBy(_.createdAt)(using Ordering[java.time.Instant].reverse)
+            (sorted.slice(offset, offset + limit), sorted.size.toLong)
+          }
+
         def ping: F[Boolean] = Sync[F].pure(true)
       }
     }
@@ -114,6 +122,29 @@ object $domain_name;format="cap"$Store {
   private val pingQuery: skunk.Query[skunk.Void, Int] = sql"SELECT 1".query(
     int4
   )
+
+  // count(*) OVER() rides along with each row so the page and its total are
+  // read from one consistent query result, not two separate round trips that
+  // could otherwise observe different data if a write lands in between.
+  private val select$domain_name;format="cap"$Page: skunk.Query[
+    (Int, Int),
+    (UUID, /* codegen:fields:SQL_SELECT_TUPLE_TYPE */OffsetDateTime, OffsetDateTime, Long)
+  ] =
+    sql"""
+      SELECT id, /* codegen:fields:SQL_SELECT_COLUMNS */created_at, updated_at,
+             count(*) OVER() AS total_count
+      FROM "$domain_name$"
+      ORDER BY created_at DESC
+      LIMIT \$int4 OFFSET \$int4
+    """.query(
+      uuid *: /* codegen:fields:SQL_SELECT_CODEC */timestamptz *: timestamptz *: int8
+    )
+
+  // Fallback for when select$domain_name;format="cap"$Page returns zero rows (empty
+  // table, or offset past the end) -- count(*) OVER() has no row to ride along
+  // with in that case, so the total still needs a direct query.
+  private val count$domain_name;format="cap"$: skunk.Query[skunk.Void, Long] =
+    sql"""SELECT count(*) FROM "$domain_name$"""".query(int8)
 
   def postgres[F[_]: Async: Console: Network](
       config: PostgresConfig,
@@ -241,6 +272,46 @@ object $domain_name;format="cap"$Store {
                       }
                     }
                 }
+
+              def list(
+                  limit: Int,
+                  offset: Int
+              ): F[(List[$domain_name;format="cap"$], Long)] =
+                for {
+                  rows <- timed("list") {
+                    pool.use { session =>
+                      session
+                        .prepare(select$domain_name;format="cap"$Page)
+                        .flatMap(_.stream((limit, offset), 1024).compile.toList)
+                    }
+                  }
+                  total <- rows.headOption match {
+                    case Some(row) =>
+                      // The row's last element is always count(*) OVER()'s
+                      // total_count; using productElement keeps this working
+                      // regardless of how many field-spec columns precede it.
+                      Sync[F].pure(
+                        row
+                          .productElement(row.productArity - 1)
+                          .asInstanceOf[Long]
+                      )
+                    case None =>
+                      timed("count") { pool.use(_.unique(count$domain_name;format="cap"$)) }
+                  }
+                } yield rows.map {
+                  case (
+                        id,
+                        /* codegen:fields:SQL_SELECT_PATTERN_VARS */createdAt,
+                        updatedAt,
+                        _
+                      ) =>
+                    $domain_name;format="cap"$(
+                      id.toString,
+                      /* codegen:fields:SQL_SELECT_CONSTRUCT_ARGS */
+                      createdAt.toInstant,
+                      updatedAt.toInstant
+                    )
+                } -> total
 
               def ping: F[Boolean] =
                 timed("ping") {

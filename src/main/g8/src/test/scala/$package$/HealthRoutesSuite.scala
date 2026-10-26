@@ -17,6 +17,8 @@ class HealthRoutesSuite extends CatsEffectSuite {
           /* codegen:fields:UPDATE_PARAMS */
       ): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
       def delete(id: String): IO[Boolean] = IO.pure(false)
+      def list(limit: Int, offset: Int): IO[(List[$domain_name;format="cap"$], Long)] =
+        IO.pure((Nil, 0L))
       def ping: IO[Boolean] = IO.pure(true)
     }
 
@@ -30,6 +32,8 @@ class HealthRoutesSuite extends CatsEffectSuite {
           /* codegen:fields:UPDATE_PARAMS */
       ): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
       def delete(id: String): IO[Boolean] = IO.pure(false)
+      def list(limit: Int, offset: Int): IO[(List[$domain_name;format="cap"$], Long)] =
+        IO.pure((Nil, 0L))
       def ping: IO[Boolean] = IO.pure(false)
     }
 

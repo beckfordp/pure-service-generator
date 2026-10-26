@@ -71,6 +71,27 @@ object $domain_name;format="cap"$Routes {
         ErrorResponse("$domain_name;format="cap"$ not found")
       )
 
+  private val invalidPaginationOutput: EndpointOutput[$domain_name;format="cap"$Error] =
+    statusCode(StatusCode.BadRequest)
+      .and(jsonBody[ErrorResponse])
+      .map[$domain_name;format="cap"$Error](_ => InvalidPagination)(_ =>
+        ErrorResponse("Invalid pagination parameters")
+      )
+
+  private val list$domain_name;format="cap"$sEndpoint: PublicEndpoint[
+    (Option[Int], Option[Int]),
+    $domain_name;format="cap"$Error,
+    (List[$domain_name;format="cap"$Response], String),
+    Any
+  ] =
+    endpoint.get
+      .in("$domain_name$s")
+      .in(query[Option[Int]]("limit"))
+      .in(query[Option[Int]]("offset"))
+      .out(jsonBody[List[$domain_name;format="cap"$Response]])
+      .out(header[String]("X-Total-Count"))
+      .errorOut(invalidPaginationOutput)
+
   private val get$domain_name;format="cap"$Endpoint: PublicEndpoint[
     String,
     $domain_name;format="cap"$Error,
@@ -228,6 +249,51 @@ object $domain_name;format="cap"$Routes {
       } yield result
     }
 
+  private val defaultLimit = 20
+  private val maxLimit = 100
+
+  def list$domain_name;format="cap"$sServerEndpoint[F[_]: Async](
+      store: $domain_name;format="cap"$Store[F],
+      logger: StructuredLogger[F]
+  ): ServerEndpoint[Any, F] =
+    list$domain_name;format="cap"$sEndpoint.serverLogic[F] { case (limitParam, offsetParam) =>
+      val limit = limitParam.getOrElse(defaultLimit)
+      val offset = offsetParam.getOrElse(0)
+      for {
+        _ <- logger.info(
+          Map("method" -> "GET", "path" -> "/$domain_name$s")
+        )("Received request")
+        result <-
+          if (limit <= 0 || limit > maxLimit || offset < 0) {
+            logger
+              .warn(
+                Map("limit" -> limit.toString, "offset" -> offset.toString)
+              )("Invalid pagination parameters")
+              .as(Left(InvalidPagination))
+          } else {
+            store.list(limit, offset).flatMap { case (entities, total) =>
+              logger
+                .info(
+                  Map(
+                    "limit" -> limit.toString,
+                    "offset" -> offset.toString,
+                    "count" -> entities.size.toString,
+                    "total" -> total.toString
+                  )
+                )("Request completed")
+                .as(
+                  Right(
+                    (
+                      entities.map($domain_name;format="cap"$Response.apply),
+                      total.toString
+                    )
+                  )
+                )
+            }
+          }
+      } yield result
+    }
+
   def routes[F[_]: Async](
       store: $domain_name;format="cap"$Store[F],
       logger: StructuredLogger[F]
@@ -238,7 +304,8 @@ object $domain_name;format="cap"$Routes {
         get$domain_name;format="cap"$ServerEndpoint(store, logger),
         update$domain_name;format="cap"$ServerEndpoint(store, logger),
         replace$domain_name;format="cap"$ServerEndpoint(store, logger),
-        delete$domain_name;format="cap"$ServerEndpoint(store, logger)
+        delete$domain_name;format="cap"$ServerEndpoint(store, logger),
+        list$domain_name;format="cap"$sServerEndpoint(store, logger)
       )
     )
 }

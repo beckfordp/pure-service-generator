@@ -8,7 +8,10 @@ import munit.CatsEffectSuite
 import org.testcontainers.utility.DockerImageName
 import org.typelevel.otel4s.metrics.Meter
 import purerest.metrics.Metrics
+import skunk.Session
+import skunk.implicits._
 
+import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
 class $domain_name;format="cap"$StorePostgresSuite
@@ -28,6 +31,24 @@ class $domain_name;format="cap"$StorePostgresSuite
       user = postgres.username,
       password = postgres.password
     )
+
+  // TestContainerForAll shares one Postgres instance (and its "$domain_name$"
+  // table) across every test in this suite, so the `list` tests -- the only
+  // ones here that assert over the *whole* table rather than rows looked up
+  // by their own id -- truncate first for isolation.
+  private def truncate$domain_name;format="cap"$Table(config: PostgresConfig): IO[Unit] = {
+    import org.typelevel.otel4s.trace.Tracer.Implicits.noop
+    import org.typelevel.otel4s.metrics.Meter.Implicits.noop
+    Session
+      .single[IO](
+        host = config.host,
+        port = config.port,
+        user = config.user,
+        database = config.database,
+        password = Some(config.password)
+      )
+      .use(_.execute(sql"""TRUNCATE TABLE "$domain_name$"""".command).void)
+  }
 
   test("create persists an entity and returns it with a generated id") {
     withContainers { postgres =>
@@ -312,6 +333,60 @@ class $domain_name;format="cap"$StorePostgresSuite
             assertEquals(read2, updated)
             assert(deleted, "expected delete to report the entity existed")
             assertEquals(read3, None)
+          }
+        }
+    }
+  }
+
+  test("list returns a newest-first page and the total row count") {
+    withContainers { postgres =>
+      val config = configFor(postgres)
+      Migrations.run[IO](config) *> truncate$domain_name;format="cap"$Table(config) *> $domain_name;format="cap"$Store
+        .postgres[IO](config, Meter.noop[IO])
+        .use { store =>
+          for {
+            first <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+            _ <- IO.sleep(2.millis)
+            second <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+            _ <- IO.sleep(2.millis)
+            third <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+            (page, total) <- store.list(limit = 2, offset = 1)
+          } yield {
+            assertEquals(page, List(second, first))
+            assertEquals(total, 3L)
+            assertNotEquals(second.id, third.id)
+          }
+        }
+    }
+  }
+
+  test("list on an empty table returns no entities and a zero total") {
+    withContainers { postgres =>
+      val config = configFor(postgres)
+      Migrations.run[IO](config) *> truncate$domain_name;format="cap"$Table(config) *> $domain_name;format="cap"$Store
+        .postgres[IO](config, Meter.noop[IO])
+        .use { store =>
+          store.list(limit = 20, offset = 0).map { case (page, total) =>
+            assertEquals(page, Nil)
+            assertEquals(total, 0L)
+          }
+        }
+    }
+  }
+
+  test("list past the end returns an empty page with the full total") {
+    withContainers { postgres =>
+      val config = configFor(postgres)
+      Migrations.run[IO](config) *> truncate$domain_name;format="cap"$Table(config) *> $domain_name;format="cap"$Store
+        .postgres[IO](config, Meter.noop[IO])
+        .use { store =>
+          for {
+            _ <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+            _ <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+            (page, total) <- store.list(limit = 10, offset = 5)
+          } yield {
+            assertEquals(page, Nil)
+            assertEquals(total, 2L)
           }
         }
     }
