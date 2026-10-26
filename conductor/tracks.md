@@ -4,6 +4,8 @@ This file tracks all major tracks for the project.
 
 - [~] **Track: Add a --private flag to the publish pipeline (scripts/generate-and-publish-service.sh)**
   *Link: [./tracks/private-repo-flag_20260930/](./tracks/private-repo-flag_20260930/)*
+- [ ] **Track: Paginated list endpoint in the generator's base template (Rework 6 / TD-4)**
+  *Link: [./tracks/list-endpoint_20261026/](./tracks/list-endpoint_20261026/)*
 
 ---
 
