@@ -68,8 +68,9 @@
 
 ## Phase 3: Gluon cross-repo checkoff
 
-- [ ] Task: In `gluon/PLAN.md`, mark Rework 6 `— DONE` and tick TD-4.1; in
+- [x] Task: In `gluon/PLAN.md`, mark Rework 6 `— DONE` and tick TD-4.1; in
       `gluon/TECHNICAL_DEBT.md`, tick TD-4.1. Commit in the gluon repo (separate commit,
-      user-approved).
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Gluon cross-repo checkoff' (Protocol in
-      workflow.md) — confirm PLAN.md/TECHNICAL_DEBT.md reflect the completed Rework 6.
+      user-approved). (c18b34b)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Gluon cross-repo checkoff' (Protocol in
+      workflow.md) — confirmed PLAN.md/TECHNICAL_DEBT.md reflect the completed Rework 6.
+      (c18b34b)
