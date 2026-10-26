@@ -7,8 +7,8 @@ library (Scala 3, Cats Effect, http4s) supplying observability (tracing, structu
 metrics) and resilience (retry, circuit breaker) infrastructure as composable building blocks.
 Rather than starting from a generator engine and working backwards, this project starts from a
 single, genuinely production-quality reference microservice — everything a real service needs
-(full CRUD on its domain resource, one dedicated database per service, health/readiness
-endpoints, full test coverage, a deployable image) — and only *then* builds the generic
+(full CRUD plus a paginated list endpoint on its domain resource, one dedicated database per
+service, health/readiness endpoints, full test coverage, a deployable image) — and only *then* builds the generic
 generator machinery (name/package templating, field codegen, CI/CD wiring) on top of a template
 that has actually been proven out end-to-end.
 Once the template could reliably reproduce an equivalent instance on demand, the standalone
@@ -32,7 +32,8 @@ purerest's own design guidelines instead (see `product-guidelines.md`): pure fun
 programming, no side effects outside the effect type, tagless-final style throughout.
 
 ## Core Use Case
-The generator produces a microservice exposing full CRUD on a single domain resource
+The generator produces a microservice exposing full CRUD plus a paginated
+`GET /<resource>s` list endpoint on a single domain resource
 (parameterized by `domain_name`) backed by its own dedicated Postgres database (one database
 per service, named after the domain), plus standard production-quality `GET /health`/`GET
 /health/ready` endpoints — fully observable via purerest (tracing, structured logging, metrics),
