@@ -74,3 +74,8 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Gluon cross-repo checkoff' (Protocol in
       workflow.md) — confirmed PLAN.md/TECHNICAL_DEBT.md reflect the completed Rework 6.
       (c18b34b)
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions 87ea537 — removed two redundant `assertNotEquals`
+      assertions from the list tests; regenerated instance green (83/83).
