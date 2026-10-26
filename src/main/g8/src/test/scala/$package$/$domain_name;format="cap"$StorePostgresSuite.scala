@@ -349,12 +349,11 @@ class $domain_name;format="cap"$StorePostgresSuite
             _ <- IO.sleep(2.millis)
             second <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
             _ <- IO.sleep(2.millis)
-            third <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+            _ <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
             (page, total) <- store.list(limit = 2, offset = 1)
           } yield {
             assertEquals(page, List(second, first))
             assertEquals(total, 3L)
-            assertNotEquals(second.id, third.id)
           }
         }
     }

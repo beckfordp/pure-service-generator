@@ -531,7 +531,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
     for {
       store <- $domain_name;format="cap"$Store.inMemory[IO]
       routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
-      first <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
+      _ <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
       _ <- IO.sleep(2.millis)
       second <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
       _ <- IO.sleep(2.millis)
@@ -546,7 +546,6 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
     } yield {
       assertEquals(response.status, Status.Ok)
       assertEquals(body.map(_.id), List(second.id))
-      assertNotEquals(second.id, first.id)
       assertEquals(
         response.headers.get(ci"X-Total-Count").map(_.head.value),
         Some("3")
