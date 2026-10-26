@@ -34,6 +34,11 @@ curl -X POST http://localhost:8080/$domain_name$s \
 # Read it back (substitute the id from the response above)
 curl http://localhost:8080/$domain_name$s/<id>
 
+# List a page of them, newest first. limit defaults to 20 (max 100), offset
+# defaults to 0; the collection's total size comes back in the X-Total-Count
+# response header. Out-of-range limit/offset values return 400.
+curl -i "http://localhost:8080/$domain_name$s?limit=10&offset=0"
+
 # Partially update it (quantity/status)
 curl -X PATCH http://localhost:8080/$domain_name$s/<id> \
   -H "Content-Type: application/json" -d '{"quantity":5,"status":"shipped"}'

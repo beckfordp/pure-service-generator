@@ -2,7 +2,8 @@
 
 A generator for new [purerest](https://github.com/beckfordp/purerest)-based microservices: point
 it at a domain name (and, optionally, a field-spec), and it produces a production-quality,
-fully-tested Scala 3 / Cats Effect / http4s / Skunk service — full CRUD, health checks, Postgres
+fully-tested Scala 3 / Cats Effect / http4s / Skunk service — full CRUD plus a paginated list
+endpoint, health checks, Postgres
 persistence, observability, and CI — ready to push as its own repo.
 
 The generator is a [giter8](http://www.foundweekends.org/giter8/) template (`src/main/g8/`) plus
@@ -149,9 +150,10 @@ Every generated service sends CORS headers on every response (success and error 
 `Cors.middleware` (`src/main/g8/src/main/scala/$package$/Cors.scala`) wraps the fully-composed
 routes in `Main.scala`, before `.withHttpApp(routes.orNotFound)`. The default policy is
 deliberately permissive: allow **all origins**, methods restricted to the five the template's
-own CRUD routes expose (`GET`/`POST`/`PATCH`/`PUT`/`DELETE`), the `Content-Type` header (needed
-for JSON request bodies), and **credentials disallowed** — required anyway alongside an
-allow-all-origins policy, since browsers reject credentialed requests against a wildcard origin.
+own routes expose (`GET`/`POST`/`PATCH`/`PUT`/`DELETE`), the `Content-Type` header (needed for
+JSON request bodies), `X-Total-Count` exposed to browser JS (the list endpoint's pagination
+total), and **credentials disallowed** — required anyway alongside an allow-all-origins policy,
+since browsers reject credentialed requests against a wildcard origin.
 This matches a freshly generated service's no-auth, no-decided-frontend-origin posture; tighten
 it (a real origin allow-list, credentialed requests) once a service actually needs to.
 

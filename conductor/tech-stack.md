@@ -20,8 +20,9 @@
   purerest's resilient-client pattern for whoever adapts a generated service to add one.
 - **CORS** — `org.http4s.server.middleware.CORS` (ships in `http4s-server`, no new dependency)
   wraps every response. Default policy: allow all origins, methods limited to the template's own
-  five CRUD routes, `Content-Type` header allowed, credentials disallowed. See `README.md`'s
-  "CORS" section for the rationale.
+  CRUD routes plus the paginated `GET /<resource>s` list endpoint, `Content-Type` header allowed,
+  `X-Total-Count` exposed via `Access-Control-Expose-Headers`, credentials disallowed. See
+  `README.md`'s "CORS" section for the rationale.
 
 ## API Documentation
 - **tapir** — endpoints described once as tapir values; purerest's `purerest.docs.Docs`
