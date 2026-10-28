@@ -15,3 +15,5 @@ priorities change. When ready to work on one, run `/conductor:newTrack <title>` 
 through the spec/plan questions and promote it into a real track below.
 
 ---
+
+- TD-12 — generator `--profile`/`--no-crud` mode so non-CRUD services don't generate placeholder CRUD (see `gluon/TECHNICAL_DEBT.md` TD-12)
