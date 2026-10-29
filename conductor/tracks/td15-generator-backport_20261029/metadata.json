@@ -1,7 +1,7 @@
 {
   "track_id": "td15-generator-backport_20261029",
   "type": "refactor",
-  "status": "new",
+  "status": "completed",
   "created_at": "2026-10-29T00:00:00Z",
   "updated_at": "2026-10-29T00:00:00Z",
   "description": "Backport TD-15 pure-FP patterns into pure-service-generator's template"

@@ -2,7 +2,7 @@
 
 This file tracks all major tracks for the project.
 
-- [ ] **Track: TD-15 generator backport**
+- [x] **Track: TD-15 generator backport**
   *Link: [./tracks/td15-generator-backport_20261029/](./tracks/td15-generator-backport_20261029/)*
 
 - [~] **Track: Add a --private flag to the publish pipeline (scripts/generate-and-publish-service.sh)**
