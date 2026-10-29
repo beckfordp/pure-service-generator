@@ -4,6 +4,7 @@ import cats.effect.{Async, Ref, Resource, Sync}
 import cats.effect.std.Console
 import cats.syntax.all._
 import fs2.io.net.Network
+import $package$.domain.$domain_name;format="cap"$Id
 import org.typelevel.otel4s.Attribute
 import org.typelevel.otel4s.metrics.Meter
 import skunk.Session
@@ -15,7 +16,7 @@ import java.util.UUID
 import scala.concurrent.duration.SECONDS
 
 final case class $domain_name;format="cap"$(
-    id: String,
+    id: $domain_name;format="cap"$Id,
     // codegen:fields:CASE_CLASS_FIELD
     createdAt: java.time.Instant,
     updatedAt: java.time.Instant
@@ -23,9 +24,9 @@ final case class $domain_name;format="cap"$(
 
 trait $domain_name;format="cap"$Store[F[_]] {
   def create(/* codegen:fields:CREATE_PARAMS */): F[$domain_name;format="cap"$]
-  def get(id: String): F[Option[$domain_name;format="cap"$]]
-  def update(id: String/* codegen:fields:UPDATE_PARAMS */): F[Option[$domain_name;format="cap"$]]
-  def delete(id: String): F[Boolean]
+  def get(id: $domain_name;format="cap"$Id): F[Option[$domain_name;format="cap"$]]
+  def update(id: $domain_name;format="cap"$Id/* codegen:fields:UPDATE_PARAMS */): F[Option[$domain_name;format="cap"$]]
+  def delete(id: $domain_name;format="cap"$Id): F[Boolean]
   def list(limit: Int, offset: Int): F[(List[$domain_name;format="cap"$], Long)]
   def ping: F[Boolean]
 }
@@ -35,20 +36,24 @@ object $domain_name;format="cap"$Store {
   // codegen:fields:DEFAULT_VALUE_DECLS
 
   def inMemory[F[_]: Sync]: F[$domain_name;format="cap"$Store[F]] =
-    Ref.of[F, Map[String, $domain_name;format="cap"$]](Map.empty).map { ref =>
+    Ref.of[F, Map[$domain_name;format="cap"$Id, $domain_name;format="cap"$]](Map.empty).map { ref =>
       new $domain_name;format="cap"$Store[F] {
         def create(/* codegen:fields:CREATE_PARAMS */): F[$domain_name;format="cap"$] =
           for {
-            id <- Sync[F].delay(java.util.UUID.randomUUID().toString)
+            id <- Sync[F].delay(
+              $domain_name;format="cap"$Id.fromUuid(
+                java.util.UUID.randomUUID()
+              )
+            )
             now <- Sync[F].realTimeInstant
             entity = $domain_name;format="cap"$(id, /* codegen:fields:CONSTRUCT_ARGS */now, now)
             _ <- ref.update(_ + (id -> entity))
           } yield entity
 
-        def get(id: String): F[Option[$domain_name;format="cap"$]] = ref.get.map(_.get(id))
+        def get(id: $domain_name;format="cap"$Id): F[Option[$domain_name;format="cap"$]] = ref.get.map(_.get(id))
 
         def update(
-            id: String
+            id: $domain_name;format="cap"$Id
             /* codegen:fields:UPDATE_PARAMS */
         ): F[Option[$domain_name;format="cap"$]] =
           for {
@@ -67,7 +72,7 @@ object $domain_name;format="cap"$Store {
             }
           } yield updated
 
-        def delete(id: String): F[Boolean] =
+        def delete(id: $domain_name;format="cap"$Id): F[Boolean] =
           ref.modify { entities =>
             if (entities.contains(id)) (entities - id, true) else (entities, false)
           }
@@ -205,72 +210,69 @@ object $domain_name;format="cap"$Store {
                 } yield {
                   val (createdAt, updatedAt) = timestamps
                   $domain_name;format="cap"$(
-                    id.toString,
+                    $domain_name;format="cap"$Id.fromUuid(id),
                     /* codegen:fields:CONSTRUCT_ARGS */
                     createdAt.toInstant,
                     updatedAt.toInstant
                   )
                 }
 
-              def get(id: String): F[Option[$domain_name;format="cap"$]] =
-                scala.util.Try(UUID.fromString(id)).toOption match {
-                  case None       => Sync[F].pure(None)
-                  case Some(uuid) =>
-                    for {
-                      row <- timed("select") {
-                        pool.use { session =>
-                          session.prepare(select$domain_name;format="cap"$).flatMap(_.option(uuid))
-                        }
-                      }
-                    } yield row.map {
-                      case (/* codegen:fields:SQL_SELECT_PATTERN_VARS */createdAt, updatedAt) =>
-                        $domain_name;format="cap"$(
-                          id,
-                          /* codegen:fields:SQL_SELECT_CONSTRUCT_ARGS */
-                          createdAt.toInstant,
-                          updatedAt.toInstant
-                        )
-                    }
-                }
+              def get(id: $domain_name;format="cap"$Id): F[Option[$domain_name;format="cap"$]] =
+                timed("select") {
+                  pool.use { session =>
+                    session
+                      .prepare(select$domain_name;format="cap"$)
+                      .flatMap(
+                        _.option($domain_name;format="cap"$Id.uuid(id))
+                      )
+                  }
+                }.map(_.map {
+                  case (/* codegen:fields:SQL_SELECT_PATTERN_VARS */createdAt, updatedAt) =>
+                    $domain_name;format="cap"$(
+                      id,
+                      /* codegen:fields:SQL_SELECT_CONSTRUCT_ARGS */
+                      createdAt.toInstant,
+                      updatedAt.toInstant
+                    )
+                })
 
               def update(
-                  id: String
+                  id: $domain_name;format="cap"$Id
                   /* codegen:fields:UPDATE_PARAMS */
               ): F[Option[$domain_name;format="cap"$]] =
-                scala.util.Try(UUID.fromString(id)).toOption match {
-                  case None       => Sync[F].pure(None)
-                  case Some(uuid) =>
-                    for {
-                      row <- timed("update") {
-                        pool.use { session =>
-                          session
-                            .prepare(update$domain_name;format="cap"$)
-                            .flatMap(_.option((/* codegen:fields:SQL_UPDATE_TUPLE_ARGS */uuid)))
-                        }
-                      }
-                    } yield row.map {
-                      case (/* codegen:fields:SQL_SELECT_PATTERN_VARS */createdAt, updatedAt) =>
-                        $domain_name;format="cap"$(
-                          id,
-                          /* codegen:fields:SQL_SELECT_CONSTRUCT_ARGS */
-                          createdAt.toInstant,
-                          updatedAt.toInstant
+                timed("update") {
+                  pool.use { session =>
+                    session
+                      .prepare(update$domain_name;format="cap"$)
+                      .flatMap(
+                        _.option(
+                          (
+                            /* codegen:fields:SQL_UPDATE_TUPLE_ARGS */$domain_name;format="cap"$Id
+                              .uuid(id)
+                          )
                         )
-                    }
-                }
+                      )
+                  }
+                }.map(_.map {
+                  case (/* codegen:fields:SQL_SELECT_PATTERN_VARS */createdAt, updatedAt) =>
+                    $domain_name;format="cap"$(
+                      id,
+                      /* codegen:fields:SQL_SELECT_CONSTRUCT_ARGS */
+                      createdAt.toInstant,
+                      updatedAt.toInstant
+                    )
+                })
 
-              def delete(id: String): F[Boolean] =
-                scala.util.Try(UUID.fromString(id)).toOption match {
-                  case None       => Sync[F].pure(false)
-                  case Some(uuid) =>
-                    timed("delete") {
-                      pool.use { session =>
-                        session
-                          .prepare(delete$domain_name;format="cap"$)
-                          .flatMap(_.option(uuid))
-                          .map(_.isDefined)
-                      }
-                    }
+              def delete(id: $domain_name;format="cap"$Id): F[Boolean] =
+                timed("delete") {
+                  pool.use { session =>
+                    session
+                      .prepare(delete$domain_name;format="cap"$)
+                      .flatMap(
+                        _.option($domain_name;format="cap"$Id.uuid(id))
+                      )
+                      .map(_.isDefined)
+                  }
                 }
 
               def list(
@@ -306,7 +308,7 @@ object $domain_name;format="cap"$Store {
                         _
                       ) =>
                     $domain_name;format="cap"$(
-                      id.toString,
+                      $domain_name;format="cap"$Id.fromUuid(id),
                       /* codegen:fields:SQL_SELECT_CONSTRUCT_ARGS */
                       createdAt.toInstant,
                       updatedAt.toInstant

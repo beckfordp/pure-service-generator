@@ -11,6 +11,7 @@ class $domain_name;format="cap"$ServiceConfigSuite extends CatsEffectSuite {
       |port = 8080
       |metrics-port = 9090
       |service-name = "$domain_name$-service"
+      |async-api-html-dir = "target/asyncapi-docs"
       |postgres {
       |  host = "localhost"
       |  port = 5432
@@ -30,6 +31,7 @@ class $domain_name;format="cap"$ServiceConfigSuite extends CatsEffectSuite {
           port = 8080,
           metricsPort = 9090,
           serviceName = "$domain_name$-service",
+          asyncApiHtmlDir = "target/asyncapi-docs",
           postgres = PostgresConfig(
             host = "localhost",
             port = 5432,
@@ -68,6 +70,7 @@ class $domain_name;format="cap"$ServiceConfigSuite extends CatsEffectSuite {
       assertEquals(config.port, 8080)
       assertEquals(config.metricsPort, 9090)
       assertEquals(config.serviceName, "$domain_name$-service")
+      assertEquals(config.asyncApiHtmlDir, "target/asyncapi-docs")
       assertEquals(
         config.postgres,
         PostgresConfig(

@@ -1,9 +1,11 @@
 package $package$
 
+import cats.{Monad, MonadThrow}
 import cats.effect.Async
 import cats.syntax.all._
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
+import $package$.domain.$domain_name;format="cap"$Id
 import org.http4s.HttpRoutes
 import org.typelevel.log4cats.StructuredLogger
 import sttp.model.StatusCode
@@ -37,7 +39,7 @@ object $domain_name;format="cap"$Response {
 
   def apply(entity: $domain_name;format="cap"$): $domain_name;format="cap"$Response =
     $domain_name;format="cap"$Response(
-      entity.id,
+      $domain_name;format="cap"$Id.render(entity.id),
       /* codegen:fields:RESPONSE_APPLY_ARGS */
       entity.createdAt,
       entity.updatedAt
@@ -93,48 +95,48 @@ object $domain_name;format="cap"$Routes {
       .errorOut(invalidPaginationOutput)
 
   private val get$domain_name;format="cap"$Endpoint: PublicEndpoint[
-    String,
+    $domain_name;format="cap"$Id,
     $domain_name;format="cap"$Error,
     $domain_name;format="cap"$Response,
     Any
   ] =
     endpoint.get
-      .in("$domain_name$s" / path[String]("id"))
+      .in("$domain_name$s" / path[$domain_name;format="cap"$Id]("id"))
       .out(jsonBody[$domain_name;format="cap"$Response])
       .errorOut(notFoundOutput)
 
   private val update$domain_name;format="cap"$Endpoint: PublicEndpoint[
-    (String, Update$domain_name;format="cap"$Request),
+    ($domain_name;format="cap"$Id, Update$domain_name;format="cap"$Request),
     $domain_name;format="cap"$Error,
     $domain_name;format="cap"$Response,
     Any
   ] =
     endpoint.patch
-      .in("$domain_name$s" / path[String]("id"))
+      .in("$domain_name$s" / path[$domain_name;format="cap"$Id]("id"))
       .in(jsonBody[Update$domain_name;format="cap"$Request])
       .out(jsonBody[$domain_name;format="cap"$Response])
       .errorOut(notFoundOutput)
 
   private val replace$domain_name;format="cap"$Endpoint: PublicEndpoint[
-    (String, Update$domain_name;format="cap"$Request),
+    ($domain_name;format="cap"$Id, Update$domain_name;format="cap"$Request),
     $domain_name;format="cap"$Error,
     $domain_name;format="cap"$Response,
     Any
   ] =
     endpoint.put
-      .in("$domain_name$s" / path[String]("id"))
+      .in("$domain_name$s" / path[$domain_name;format="cap"$Id]("id"))
       .in(jsonBody[Update$domain_name;format="cap"$Request])
       .out(jsonBody[$domain_name;format="cap"$Response])
       .errorOut(notFoundOutput)
 
   private val delete$domain_name;format="cap"$Endpoint
-      : PublicEndpoint[String, $domain_name;format="cap"$Error, Unit, Any] =
+      : PublicEndpoint[$domain_name;format="cap"$Id, $domain_name;format="cap"$Error, Unit, Any] =
     endpoint.delete
-      .in("$domain_name$s" / path[String]("id"))
+      .in("$domain_name$s" / path[$domain_name;format="cap"$Id]("id"))
       .out(statusCode(StatusCode.NoContent))
       .errorOut(notFoundOutput)
 
-  def serverEndpoint[F[_]: Async](
+  def serverEndpoint[F[_]: MonadThrow](
       store: $domain_name;format="cap"$Store[F],
       logger: StructuredLogger[F]
   ): ServerEndpoint[Any, F] =
@@ -150,30 +152,33 @@ object $domain_name;format="cap"$Routes {
           logger.error(Map.empty, error)("Persisting the $domain_name$ failed")
         }
         _ <- logger.info(
-          Map("$domain_name$_id" -> entity.id)
+          Map("$domain_name$_id" -> $domain_name;format="cap"$Id.render(entity.id))
         )("Request completed")
       } yield $domain_name;format="cap"$Response(entity)
     }
 
-  def get$domain_name;format="cap"$ServerEndpoint[F[_]: Async](
+  def get$domain_name;format="cap"$ServerEndpoint[F[_]: Monad](
       store: $domain_name;format="cap"$Store[F],
       logger: StructuredLogger[F]
   ): ServerEndpoint[Any, F] =
     get$domain_name;format="cap"$Endpoint.serverLogic[F] { id =>
+      val renderedId = $domain_name;format="cap"$Id.render(id)
       for {
         _ <- logger.info(
-          Map("method" -> "GET", "path" -> s"/$domain_name$s/\$id", "$domain_name$_id" -> id)
-        )(
-          "Received request"
-        )
+          Map(
+            "method" -> "GET",
+            "path" -> s"/$domain_name$s/\$renderedId",
+            "$domain_name$_id" -> renderedId
+          )
+        )("Received request")
         result <- store.get(id).flatMap {
           case Some(entity) =>
             logger
-              .info(Map("$domain_name$_id" -> id))("Request completed")
+              .info(Map("$domain_name$_id" -> renderedId))("Request completed")
               .as(Right($domain_name;format="cap"$Response(entity)))
           case None =>
             logger
-              .warn(Map("$domain_name$_id" -> id))("$domain_name;format="cap"$ not found")
+              .warn(Map("$domain_name$_id" -> renderedId))("$domain_name;format="cap"$ not found")
               .as(Left($domain_name;format="cap"$NotFound))
         }
       } yield result
@@ -183,35 +188,37 @@ object $domain_name;format="cap"$Routes {
     * both call `$domain_name;format="cap"$Store.update` with the same required
     * update body; only the logged HTTP method differs.
     */
-  private def updateLogic[F[_]: Async](
+  private def updateLogic[F[_]: Monad](
       store: $domain_name;format="cap"$Store[F],
       logger: StructuredLogger[F],
       httpMethod: String
   )(
-      id: String,
+      id: $domain_name;format="cap"$Id,
       req: Update$domain_name;format="cap"$Request
-  ): F[Either[$domain_name;format="cap"$Error, $domain_name;format="cap"$Response]] =
+  ): F[Either[$domain_name;format="cap"$Error, $domain_name;format="cap"$Response]] = {
+    val renderedId = $domain_name;format="cap"$Id.render(id)
     for {
       _ <- logger.info(
         Map(
           "method" -> httpMethod,
-          "path" -> s"/$domain_name$s/\$id",
-          "$domain_name$_id" -> id
+          "path" -> s"/$domain_name$s/\$renderedId",
+          "$domain_name$_id" -> renderedId
         )
       )("Received request")
       result <- store.update(id/* codegen:fields:UPDATE_CALL_ARGS */).flatMap {
         case Some(entity) =>
           logger
-            .info(Map("$domain_name$_id" -> id))("Request completed")
+            .info(Map("$domain_name$_id" -> renderedId))("Request completed")
             .as(Right($domain_name;format="cap"$Response(entity)))
         case None =>
           logger
-            .warn(Map("$domain_name$_id" -> id))("$domain_name;format="cap"$ not found")
+            .warn(Map("$domain_name$_id" -> renderedId))("$domain_name;format="cap"$ not found")
             .as(Left($domain_name;format="cap"$NotFound))
       }
     } yield result
+  }
 
-  def update$domain_name;format="cap"$ServerEndpoint[F[_]: Async](
+  def update$domain_name;format="cap"$ServerEndpoint[F[_]: Monad](
       store: $domain_name;format="cap"$Store[F],
       logger: StructuredLogger[F]
   ): ServerEndpoint[Any, F] =
@@ -219,7 +226,7 @@ object $domain_name;format="cap"$Routes {
       updateLogic(store, logger, "PATCH")(id, req)
     }
 
-  def replace$domain_name;format="cap"$ServerEndpoint[F[_]: Async](
+  def replace$domain_name;format="cap"$ServerEndpoint[F[_]: Monad](
       store: $domain_name;format="cap"$Store[F],
       logger: StructuredLogger[F]
   ): ServerEndpoint[Any, F] =
@@ -227,23 +234,28 @@ object $domain_name;format="cap"$Routes {
       updateLogic(store, logger, "PUT")(id, req)
     }
 
-  def delete$domain_name;format="cap"$ServerEndpoint[F[_]: Async](
+  def delete$domain_name;format="cap"$ServerEndpoint[F[_]: Monad](
       store: $domain_name;format="cap"$Store[F],
       logger: StructuredLogger[F]
   ): ServerEndpoint[Any, F] =
     delete$domain_name;format="cap"$Endpoint.serverLogic[F] { id =>
+      val renderedId = $domain_name;format="cap"$Id.render(id)
       for {
         _ <- logger.info(
-          Map("method" -> "DELETE", "path" -> s"/$domain_name$s/\$id", "$domain_name$_id" -> id)
+          Map(
+            "method" -> "DELETE",
+            "path" -> s"/$domain_name$s/\$renderedId",
+            "$domain_name$_id" -> renderedId
+          )
         )("Received request")
         result <- store.delete(id).flatMap {
           case true =>
             logger
-              .info(Map("$domain_name$_id" -> id))("Request completed")
+              .info(Map("$domain_name$_id" -> renderedId))("Request completed")
               .as(Right(()))
           case false =>
             logger
-              .warn(Map("$domain_name$_id" -> id))("$domain_name;format="cap"$ not found")
+              .warn(Map("$domain_name$_id" -> renderedId))("$domain_name;format="cap"$ not found")
               .as(Left($domain_name;format="cap"$NotFound))
         }
       } yield result
@@ -252,7 +264,7 @@ object $domain_name;format="cap"$Routes {
   private val defaultLimit = 20
   private val maxLimit = 100
 
-  def list$domain_name;format="cap"$sServerEndpoint[F[_]: Async](
+  def list$domain_name;format="cap"$sServerEndpoint[F[_]: Monad](
       store: $domain_name;format="cap"$Store[F],
       logger: StructuredLogger[F]
   ): ServerEndpoint[Any, F] =

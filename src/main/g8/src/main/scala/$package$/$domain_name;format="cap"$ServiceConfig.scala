@@ -17,6 +17,7 @@ final case class $domain_name;format="cap"$ServiceConfig(
     port: Int,
     metricsPort: Int,
     serviceName: String,
+    asyncApiHtmlDir: String,
     postgres: PostgresConfig
 ) derives ConfigReader
 

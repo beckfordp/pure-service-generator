@@ -5,6 +5,9 @@ import cats.syntax.all._
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.dimafeng.testcontainers.munit.TestContainerForAll
 import munit.CatsEffectSuite
+import $package$.domain.$domain_name;format="cap"$Id
+
+import java.util.UUID
 import org.testcontainers.utility.DockerImageName
 import org.typelevel.otel4s.metrics.Meter
 import purerest.metrics.Metrics
@@ -57,7 +60,7 @@ class $domain_name;format="cap"$StorePostgresSuite
         .postgres[IO](config, Meter.noop[IO])
         .use { store =>
           store.create(/* codegen:fields:TEST_CREATE_ARGS */).map { entity =>
-            assert(entity.id.nonEmpty)
+            assert($domain_name;format="cap"$Id.render(entity.id).nonEmpty)
           }
         }
     }
@@ -99,19 +102,8 @@ class $domain_name;format="cap"$StorePostgresSuite
         .postgres[IO](config, Meter.noop[IO])
         .use { store =>
           store
-            .get(java.util.UUID.randomUUID().toString)
+            .get($domain_name;format="cap"$Id.fromUuid(UUID.randomUUID()))
             .map(assertEquals(_, None))
-        }
-    }
-  }
-
-  test("get returns None for a malformed (non-UUID) id") {
-    withContainers { postgres =>
-      val config = configFor(postgres)
-      Migrations.run[IO](config) *> $domain_name;format="cap"$Store
-        .postgres[IO](config, Meter.noop[IO])
-        .use { store =>
-          store.get("not-a-uuid").map(assertEquals(_, None))
         }
     }
   }
@@ -143,19 +135,8 @@ class $domain_name;format="cap"$StorePostgresSuite
         .postgres[IO](config, Meter.noop[IO])
         .use { store =>
           store
-            .update(java.util.UUID.randomUUID().toString/* codegen:fields:TEST_UPDATE_ARGS */)
+            .update($domain_name;format="cap"$Id.fromUuid(UUID.randomUUID())/* codegen:fields:TEST_UPDATE_ARGS */)
             .map(assertEquals(_, None))
-        }
-    }
-  }
-
-  test("update returns None for a malformed (non-UUID) id") {
-    withContainers { postgres =>
-      val config = configFor(postgres)
-      Migrations.run[IO](config) *> $domain_name;format="cap"$Store
-        .postgres[IO](config, Meter.noop[IO])
-        .use { store =>
-          store.update("not-a-uuid"/* codegen:fields:TEST_UPDATE_ARGS */).map(assertEquals(_, None))
         }
     }
   }
@@ -185,19 +166,8 @@ class $domain_name;format="cap"$StorePostgresSuite
         .postgres[IO](config, Meter.noop[IO])
         .use { store =>
           store
-            .delete(java.util.UUID.randomUUID().toString)
+            .delete($domain_name;format="cap"$Id.fromUuid(UUID.randomUUID()))
             .map(deleted => assert(!deleted))
-        }
-    }
-  }
-
-  test("delete returns false for a malformed (non-UUID) id") {
-    withContainers { postgres =>
-      val config = configFor(postgres)
-      Migrations.run[IO](config) *> $domain_name;format="cap"$Store
-        .postgres[IO](config, Meter.noop[IO])
-        .use { store =>
-          store.delete("not-a-uuid").map(deleted => assert(!deleted))
         }
     }
   }

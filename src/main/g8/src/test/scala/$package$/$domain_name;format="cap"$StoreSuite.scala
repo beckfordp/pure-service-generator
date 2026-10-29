@@ -2,6 +2,9 @@ package $package$
 
 import cats.effect.IO
 import munit.CatsEffectSuite
+import $package$.domain.$domain_name;format="cap"$Id
+
+import java.util.UUID
 
 import scala.concurrent.duration._
 
@@ -11,7 +14,7 @@ class $domain_name;format="cap"$StoreSuite extends CatsEffectSuite {
     for {
       store <- $domain_name;format="cap"$Store.inMemory[IO]
       entity <- store.create(/* codegen:fields:TEST_CREATE_ARGS */)
-    } yield assert(entity.id.nonEmpty)
+    } yield assert($domain_name;format="cap"$Id.render(entity.id).nonEmpty)
   }
 
   test("get returns the persisted entity") {
@@ -25,7 +28,7 @@ class $domain_name;format="cap"$StoreSuite extends CatsEffectSuite {
   test("get returns None for an unknown id") {
     for {
       store <- $domain_name;format="cap"$Store.inMemory[IO]
-      found <- store.get("unknown-id")
+      found <- store.get($domain_name;format="cap"$Id.fromUuid(UUID.randomUUID()))
     } yield assertEquals(found, None)
   }
 
@@ -54,7 +57,7 @@ class $domain_name;format="cap"$StoreSuite extends CatsEffectSuite {
   test("update returns None for an unknown id") {
     for {
       store <- $domain_name;format="cap"$Store.inMemory[IO]
-      result <- store.update("unknown-id"/* codegen:fields:TEST_UPDATE_ARGS */)
+      result <- store.update($domain_name;format="cap"$Id.fromUuid(UUID.randomUUID())/* codegen:fields:TEST_UPDATE_ARGS */)
     } yield assertEquals(result, None)
   }
 
@@ -73,7 +76,7 @@ class $domain_name;format="cap"$StoreSuite extends CatsEffectSuite {
   test("delete returns false for an unknown id") {
     for {
       store <- $domain_name;format="cap"$Store.inMemory[IO]
-      deleted <- store.delete("unknown-id")
+      deleted <- store.delete($domain_name;format="cap"$Id.fromUuid(UUID.randomUUID()))
     } yield assert(!deleted)
   }
 

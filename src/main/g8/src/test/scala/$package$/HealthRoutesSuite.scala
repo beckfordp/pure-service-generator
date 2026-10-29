@@ -2,6 +2,7 @@ package $package$
 
 import cats.effect.IO
 import munit.CatsEffectSuite
+import $package$.domain.$domain_name;format="cap"$Id
 import org.http4s.implicits._
 import org.http4s.{Method, Request, Status}
 
@@ -11,12 +12,12 @@ class HealthRoutesSuite extends CatsEffectSuite {
     new $domain_name;format="cap"$Store[IO] {
       def create(/* codegen:fields:CREATE_PARAMS */): IO[$domain_name;format="cap"$] =
         IO.raiseError(new NotImplementedError())
-      def get(id: String): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
+      def get(id: $domain_name;format="cap"$Id): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
       def update(
-          id: String
+          id: $domain_name;format="cap"$Id
           /* codegen:fields:UPDATE_PARAMS */
       ): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
-      def delete(id: String): IO[Boolean] = IO.pure(false)
+      def delete(id: $domain_name;format="cap"$Id): IO[Boolean] = IO.pure(false)
       def list(limit: Int, offset: Int): IO[(List[$domain_name;format="cap"$], Long)] =
         IO.pure((Nil, 0L))
       def ping: IO[Boolean] = IO.pure(true)
@@ -26,12 +27,12 @@ class HealthRoutesSuite extends CatsEffectSuite {
     new $domain_name;format="cap"$Store[IO] {
       def create(/* codegen:fields:CREATE_PARAMS */): IO[$domain_name;format="cap"$] =
         IO.raiseError(new NotImplementedError())
-      def get(id: String): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
+      def get(id: $domain_name;format="cap"$Id): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
       def update(
-          id: String
+          id: $domain_name;format="cap"$Id
           /* codegen:fields:UPDATE_PARAMS */
       ): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
-      def delete(id: String): IO[Boolean] = IO.pure(false)
+      def delete(id: $domain_name;format="cap"$Id): IO[Boolean] = IO.pure(false)
       def list(limit: Int, offset: Int): IO[(List[$domain_name;format="cap"$], Long)] =
         IO.pure((Nil, 0L))
       def ping: IO[Boolean] = IO.pure(false)

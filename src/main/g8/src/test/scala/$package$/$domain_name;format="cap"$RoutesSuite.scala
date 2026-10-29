@@ -3,6 +3,7 @@ package $package$
 import cats.effect.IO
 import cats.syntax.all._
 import munit.CatsEffectSuite
+import $package$.domain.$domain_name;format="cap"$Id
 import org.http4s.circe.CirceEntityCodec._
 import org.http4s.implicits._
 import org.http4s.{Method, Request, Status}
@@ -20,17 +21,19 @@ import scala.concurrent.duration._
 
 class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
 
+  private val unknownId = java.util.UUID.randomUUID().toString
+
   private def failingStore(error: Throwable): $domain_name;format="cap"$Store[IO] =
     new $domain_name;format="cap"$Store[IO] {
       def create(/* codegen:fields:CREATE_PARAMS */): IO[$domain_name;format="cap"$] =
         IO.raiseError(error)
-      def get(id: String): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
+      def get(id: $domain_name;format="cap"$Id): IO[Option[$domain_name;format="cap"$]] = IO.pure(None)
       def update(
-          id: String
+          id: $domain_name;format="cap"$Id
           /* codegen:fields:UPDATE_PARAMS */
       ): IO[Option[$domain_name;format="cap"$]] =
         IO.raiseError(error)
-      def delete(id: String): IO[Boolean] = IO.raiseError(error)
+      def delete(id: $domain_name;format="cap"$Id): IO[Boolean] = IO.raiseError(error)
       def list(
           limit: Int,
           offset: Int
@@ -79,7 +82,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       store <- $domain_name;format="cap"$Store.inMemory[IO]
       routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
       response <- routes.orNotFound.run(
-        Request[IO](Method.GET, uri"/$domain_name$s" / "unknown-id")
+        Request[IO](Method.GET, uri"/$domain_name$s" / unknownId)
       )
       body <- response.as[io.circe.Json]
     } yield {
@@ -89,6 +92,16 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
         s"expected a JSON error body, got: \$body"
       )
     }
+  }
+
+  test("GET /$domain_name$s/{id} returns 400 for a malformed (non-UUID) id") {
+    for {
+      store <- $domain_name;format="cap"$Store.inMemory[IO]
+      routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
+      response <- routes.orNotFound.run(
+        Request[IO](Method.GET, uri"/$domain_name$s" / "not-a-uuid")
+      )
+    } yield assertEquals(response.status, Status.BadRequest)
   }
 
   test(
@@ -190,7 +203,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       testLogger = StructuredTestingLogger.impl[IO]()
       routes = $domain_name;format="cap"$Routes.routes[IO](store, testLogger)
       response <- routes.orNotFound.run(
-        Request[IO](Method.GET, uri"/$domain_name$s" / "unknown-id")
+        Request[IO](Method.GET, uri"/$domain_name$s" / unknownId)
       )
       logged <- testLogger.logged
     } yield {
@@ -199,7 +212,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       assert(
         warns.exists(m =>
           m.message.toLowerCase.contains("not found") &&
-            m.ctx.get("$domain_name$_id").contains("unknown-id")
+            m.ctx.get("$domain_name$_id").contains(unknownId)
         ),
         s"expected a 'not found' WARN line with id context, got: \$warns"
       )
@@ -223,7 +236,10 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       updated <- patchResponse.as[$domain_name;format="cap"$Response]
     } yield {
       assertEquals(patchResponse.status, Status.Ok)
-      assertEquals(updated.id, created.id)
+      assertEquals(
+        updated.id,
+        created.id
+      )
     }
   }
 
@@ -234,7 +250,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       store <- $domain_name;format="cap"$Store.inMemory[IO]
       routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
       response <- routes.orNotFound.run(
-        Request[IO](Method.PATCH, uri"/$domain_name$s" / "unknown-id")
+        Request[IO](Method.PATCH, uri"/$domain_name$s" / unknownId)
           .withEntity(Update$domain_name;format="cap"$Request(/* codegen:fields:TEST_UPDATE_REQUEST_ARGS */))
       )
       body <- response.as[io.circe.Json]
@@ -293,7 +309,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       testLogger = StructuredTestingLogger.impl[IO]()
       routes = $domain_name;format="cap"$Routes.routes[IO](store, testLogger)
       response <- routes.orNotFound.run(
-        Request[IO](Method.PATCH, uri"/$domain_name$s" / "unknown-id")
+        Request[IO](Method.PATCH, uri"/$domain_name$s" / unknownId)
           .withEntity(Update$domain_name;format="cap"$Request(/* codegen:fields:TEST_UPDATE_REQUEST_ARGS */))
       )
       logged <- testLogger.logged
@@ -303,7 +319,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       assert(
         warns.exists(m =>
           m.message.toLowerCase.contains("not found") &&
-            m.ctx.get("$domain_name$_id").contains("unknown-id")
+            m.ctx.get("$domain_name$_id").contains(unknownId)
         ),
         s"expected a 'not found' WARN line with id context, got: \$warns"
       )
@@ -341,7 +357,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       store <- $domain_name;format="cap"$Store.inMemory[IO]
       routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
       response <- routes.orNotFound.run(
-        Request[IO](Method.DELETE, uri"/$domain_name$s" / "unknown-id")
+        Request[IO](Method.DELETE, uri"/$domain_name$s" / unknownId)
       )
       body <- response.as[io.circe.Json]
     } yield {
@@ -398,7 +414,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       testLogger = StructuredTestingLogger.impl[IO]()
       routes = $domain_name;format="cap"$Routes.routes[IO](store, testLogger)
       response <- routes.orNotFound.run(
-        Request[IO](Method.DELETE, uri"/$domain_name$s" / "unknown-id")
+        Request[IO](Method.DELETE, uri"/$domain_name$s" / unknownId)
       )
       logged <- testLogger.logged
     } yield {
@@ -407,7 +423,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       assert(
         warns.exists(m =>
           m.message.toLowerCase.contains("not found") &&
-            m.ctx.get("$domain_name$_id").contains("unknown-id")
+            m.ctx.get("$domain_name$_id").contains(unknownId)
         ),
         s"expected a 'not found' WARN line with id context, got: \$warns"
       )
@@ -442,7 +458,7 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       store <- $domain_name;format="cap"$Store.inMemory[IO]
       routes = $domain_name;format="cap"$Routes.routes[IO](store, NoOpLogger[IO])
       response <- routes.orNotFound.run(
-        Request[IO](Method.PUT, uri"/$domain_name$s" / "unknown-id")
+        Request[IO](Method.PUT, uri"/$domain_name$s" / unknownId)
           .withEntity(Update$domain_name;format="cap"$Request(/* codegen:fields:TEST_UPDATE_REQUEST_ARGS */))
       )
       body <- response.as[io.circe.Json]
@@ -545,7 +561,10 @@ class $domain_name;format="cap"$RoutesSuite extends CatsEffectSuite {
       body <- response.as[List[$domain_name;format="cap"$Response]]
     } yield {
       assertEquals(response.status, Status.Ok)
-      assertEquals(body.map(_.id), List(second.id))
+      assertEquals(
+        body.map(_.id),
+        List($domain_name;format="cap"$Id.render(second.id))
+      )
       assertEquals(
         response.headers.get(ci"X-Total-Count").map(_.head.value),
         Some("3")
