@@ -1,8 +1,8 @@
 # Plan — Template: REST docs convention (gluon TD-20.2)
 
-## Phase 1: purerestlib 0.7.3
-- [ ] Task: bump template `purerestlibVersion` 0.4.0 → 0.7.3 (+ any aligned tapir/purekafka pins); regenerate devcheck-service, fix API drift until its suite is green
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: purerestlib 0.7.3' (Protocol in workflow.md)
+## Phase 1: purerestlib 0.7.3 [checkpoint: 98b073a]
+- [x] Task: bump template `purerestlibVersion` 0.4.0 → 0.7.3 (+ any aligned tapir/purekafka pins); regenerate devcheck-service, fix API drift until its suite is green — no drift, 89/89 98b073a
+- [x] Task: Conductor - User Manual Verification 'Phase 1: purerestlib 0.7.3' (Protocol in workflow.md) — covered by the regenerated suite
 
 ## Phase 2: Codegen `description`
 - [ ] Task: tests first (FieldSpecParserSuite: `description` required, missing → error; FieldRenderersSuite: annotated cells per type incl. Instant-as-ISO-string; CodegenToolSuite fixtures) → add `description` to `Field`/parser, annotate CASE_CLASS_FIELD/CREATE_PARAMS/UPDATE_PARAMS; codegen README
