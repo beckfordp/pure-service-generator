@@ -5,8 +5,6 @@ This file tracks all major tracks for the project.
 - [~] **Track: Add a --private flag to the publish pipeline (scripts/generate-and-publish-service.sh)**
   *Link: [./tracks/private-repo-flag_20260930/](./tracks/private-repo-flag_20260930/)*
 
-- [x] **Track: Template: AsyncAPI 3.0 docs, described example consumed event (gluon TD-19.5)**
-  *Link: [./tracks/asyncapi-v3_20261101/](./tracks/asyncapi-v3_20261101/)*
 
 ---
 
