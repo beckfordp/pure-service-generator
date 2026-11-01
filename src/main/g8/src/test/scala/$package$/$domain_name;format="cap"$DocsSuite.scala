@@ -42,4 +42,25 @@ class $domain_name;format="cap"$DocsSuite extends CatsEffectSuite {
       assert(clue(docsBody).contains("X-Total-Count"))
     }
   }
+
+  test("every endpoint is documented") {
+    for store <- $domain_name;format="cap"$Store.inMemory[IO]
+    yield {
+      val logger = NoOpLogger[IO]
+      val endpoints = List(
+        $domain_name;format="cap"$Routes.serverEndpoint[IO](store, logger),
+        $domain_name;format="cap"$Routes.get$domain_name;format="cap"$ServerEndpoint[IO](store, logger),
+        $domain_name;format="cap"$Routes.update$domain_name;format="cap"$ServerEndpoint[IO](store, logger),
+        $domain_name;format="cap"$Routes.replace$domain_name;format="cap"$ServerEndpoint[IO](store, logger),
+        $domain_name;format="cap"$Routes.delete$domain_name;format="cap"$ServerEndpoint[IO](store, logger),
+        $domain_name;format="cap"$Routes.list$domain_name;format="cap"$sServerEndpoint[IO](store, logger),
+        HealthRoutes.healthServerEndpoint[IO],
+        HealthRoutes.readyServerEndpoint[IO](store)
+      )
+      assertEquals(
+        Docs.undocumented(endpoints.map(_.endpoint)).map(_.render),
+        Nil
+      )
+    }
+  }
 }

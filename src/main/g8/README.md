@@ -59,6 +59,11 @@ curl http://localhost:8080/health/ready
 Swagger UI (generated from the same tapir endpoint definitions as the real routes — see
 `purerest.docs.Docs`) is browsable at **http://localhost:8080/docs**.
 
+Every endpoint, parameter, DTO field and error carries a summary/description and example,
+following purerest's README "Documenting endpoints" convention. `$domain_name;format="cap"$DocsSuite`'s
+"every endpoint is documented" test runs `Docs.undocumented` over all endpoints and fails on
+any gap, so describe each new endpoint the same way (and add it to that test's list).
+
 ## View Kafka AsyncAPI docs
 
 This service registers one illustrative Kafka channel (`ExampleEvent` on `$domain_name$-events`)
