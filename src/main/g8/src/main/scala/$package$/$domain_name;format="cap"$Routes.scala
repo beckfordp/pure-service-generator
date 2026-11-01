@@ -73,6 +73,10 @@ object $domain_name;format="cap"$Routes {
   // $domain_name;format="cap"$DocsSuite asserts Docs.undocumented finds no gaps.
   private val tag = "$domain_name$s"
 
+  // Each error's body, shared by its documented example and its real mapping.
+  private val notFound = ErrorResponse("$domain_name;format="cap"$ not found")
+  private val invalidPagination = ErrorResponse("Invalid pagination parameters")
+
   private val idPath: EndpointInput.PathCapture[$domain_name;format="cap"$Id] =
     path[$domain_name;format="cap"$Id]("id")
       .description("$domain_name;format="cap"$ id (UUID). A malformed id returns 400.")
@@ -110,22 +114,18 @@ object $domain_name;format="cap"$Routes {
       .and(
         jsonBody[ErrorResponse]
           .description("No $domain_name$ with this id.")
-          .example(ErrorResponse("$domain_name;format="cap"$ not found"))
+          .example(notFound)
       )
-      .map[$domain_name;format="cap"$Error](_ => $domain_name;format="cap"$NotFound)(_ =>
-        ErrorResponse("$domain_name;format="cap"$ not found")
-      )
+      .map[$domain_name;format="cap"$Error](_ => $domain_name;format="cap"$NotFound)(_ => notFound)
 
   private val invalidPaginationOutput: EndpointOutput[$domain_name;format="cap"$Error] =
     statusCode(StatusCode.BadRequest)
       .and(
         jsonBody[ErrorResponse]
           .description("`limit` outside 1–100 or `offset` negative.")
-          .example(ErrorResponse("Invalid pagination parameters"))
+          .example(invalidPagination)
       )
-      .map[$domain_name;format="cap"$Error](_ => InvalidPagination)(_ =>
-        ErrorResponse("Invalid pagination parameters")
-      )
+      .map[$domain_name;format="cap"$Error](_ => InvalidPagination)(_ => invalidPagination)
 
   private val list$domain_name;format="cap"$sEndpoint: PublicEndpoint[
     (Option[Int], Option[Int]),
