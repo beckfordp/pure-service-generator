@@ -102,9 +102,9 @@ This pipeline runs two ways: `sbt compile` regenerates
 `/docs/asyncapi.json`, plus the rendered HTML at `/docs/asyncapi/index.html` (from
 `target/asyncapi-docs`, overridable with `ASYNCAPI_HTML_DIR`).
 
-The document is AsyncAPI 3.0 (purekafka 0.6.0, gluon TD-19): each topic gets a `send` operation
+The document is AsyncAPI 3.0 (purekafka 0.6.1, gluon TD-19): each topic gets a `send` operation
 (events this service produces) or `receive` (events it consumes), read from the service's own
-side. `ExampleEvent` is registered as consumed, so its `@description`/`@encodedExample`
+side. Sends are listed before receives, each in the order `AsyncApiChannels` registers them. `ExampleEvent` is registered as consumed, so its `@description`/`@encodedExample`
 annotations show what a consumed event should carry: the producer's own. Generate real consumed
 events with gluon's `bin/registry-scala <EventType>`, paste, and delete unused fields (see
 gluon's `registry/README.md`, "Writing a mirror").
