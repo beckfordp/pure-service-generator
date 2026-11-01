@@ -16,3 +16,6 @@
 ## Phase 4: Smoke test [checkpoint: c8c29bb]
 - [x] Task: regenerate devcheck-service, suite green + zero gaps; run codegen with a sample field-spec (descriptions), suite green + zero gaps; `/docs/docs.yaml` shows summaries/descriptions/examples; scalafmtCheck — bare 90/90, field-spec 90/90, `scripts/verify-rest-docs.sh` PASS c8c29bb
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Smoke test' (Protocol in workflow.md) — `scripts/verify-rest-docs.sh` PASS
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions 7583d99
