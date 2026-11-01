@@ -1,7 +1,7 @@
 # Plan — Template: AsyncAPI sends first (purekafka 0.6.1)
 
 ## Phase 1: Template
-- [ ] Task: purekafka 0.6.1 + plugin 0.6.1-dev, `docs/examples.md`
+- [x] Task: purekafka 0.6.1 + plugin 0.6.1-dev, `docs/examples.md` cbe65a1
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Template' (Protocol in workflow.md) — covered by the Phase 2 generated suite
 
 ## Phase 2: Smoke test
