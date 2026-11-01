@@ -2,9 +2,6 @@
 
 This file tracks all major tracks for the project.
 
-- [x] **Track: Template: REST docs convention (gluon TD-20.2)**
-  *Link: [./tracks/rest-docs_20261101/](./tracks/rest-docs_20261101/)*
-
 
 ---
 
