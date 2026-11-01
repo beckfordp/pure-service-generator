@@ -5,6 +5,9 @@ This file tracks all major tracks for the project.
 - [~] **Track: Add a --private flag to the publish pipeline (scripts/generate-and-publish-service.sh)**
   *Link: [./tracks/private-repo-flag_20260930/](./tracks/private-repo-flag_20260930/)*
 
+- [~] **Track: Template: AsyncAPI sends first (purekafka 0.6.1)**
+  *Link: [./tracks/asyncapi-ordering_20261101/](./tracks/asyncapi-ordering_20261101/)*
+
 
 ---
 
