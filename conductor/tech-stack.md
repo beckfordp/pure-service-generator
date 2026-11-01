@@ -27,6 +27,10 @@
 ## API Documentation
 - **tapir** — endpoints described once as tapir values; purerest's `purerest.docs.Docs`
   interprets that into both real `HttpRoutes[F]` and a generated OpenAPI spec + Swagger UI.
+  Every endpoint, parameter, DTO field and error is described per purerest's "Documenting
+  endpoints" convention (purerestlib 0.7.3+); the generated `<Domain>DocsSuite` asserts
+  `Docs.undocumented` finds no gaps, and field-codegen's required per-field `description`
+  keeps that true as fields are added.
 
 ## Kafka (optional)
 - **purekafka** (`io.github.beckfordp`) and **fs2-kafka** — resolved as published GitHub
