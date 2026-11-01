@@ -45,6 +45,7 @@ final case class Field(
     name: String,
     `type`: FieldType,
     example: String,
+    description: String,
     visibility: Visibility = Visibility.CreateAndUpdate,
     default: Option[String] = None
 )

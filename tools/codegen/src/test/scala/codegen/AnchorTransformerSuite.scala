@@ -5,8 +5,8 @@ import munit.FunSuite
 class AnchorTransformerSuite extends FunSuite {
 
   private val fields = List(
-    Field("color", FieldType.StringType, "red"),
-    Field("weight", FieldType.IntType, "42")
+    Field("color", FieldType.StringType, "red", "Colour of the widget."),
+    Field("weight", FieldType.IntType, "42", "Weight in grams.")
   )
 
   test(
@@ -122,13 +122,26 @@ class AnchorTransformerSuite extends FunSuite {
   }
 
   private val createOnlyItem =
-    Field("item", FieldType.StringType, "widget", Visibility.CreateOnly)
+    Field(
+      "item",
+      FieldType.StringType,
+      "widget",
+      "What was ordered.",
+      Visibility.CreateOnly
+    )
   private val createAndUpdateQty =
-    Field("quantity", FieldType.IntType, "5", Visibility.CreateAndUpdate)
+    Field(
+      "quantity",
+      FieldType.IntType,
+      "5",
+      "Units ordered.",
+      Visibility.CreateAndUpdate
+    )
   private val serverDefaultedStatus = Field(
     "status",
     FieldType.StringType,
     "shipped",
+    "Where it is in its lifecycle.",
     Visibility.ServerDefaulted,
     Some("created")
   )

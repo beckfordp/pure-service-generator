@@ -4,11 +4,18 @@ import munit.FunSuite
 
 class FieldRenderersSuite extends FunSuite {
 
-  private val str = Field("color", FieldType.StringType, "red")
-  private val int = Field("weight", FieldType.IntType, "42")
-  private val bool = Field("fragile", FieldType.BooleanType, "true")
+  private val str =
+    Field("color", FieldType.StringType, "red", "Colour of the widget.")
+  private val int = Field("weight", FieldType.IntType, "42", "Weight in grams.")
+  private val bool =
+    Field("fragile", FieldType.BooleanType, "true", "Whether it breaks easily.")
   private val instant =
-    Field("expiresAt", FieldType.InstantType, "2026-01-01T00:00:00Z")
+    Field(
+      "expiresAt",
+      FieldType.InstantType,
+      "2026-01-01T00:00:00Z",
+      "When it expires (UTC)."
+    )
 
   test("scalaType maps each FieldType to its Scala type name") {
     assertEquals(FieldRenderers.scalaType(str), "String")
@@ -65,7 +72,9 @@ class FieldRenderersSuite extends FunSuite {
   test("literalExample quotes a String example and escapes embedded quotes") {
     assertEquals(FieldRenderers.literalExample(str), "\"red\"")
     assertEquals(
-      FieldRenderers.literalExample(Field("n", FieldType.StringType, "a\"b")),
+      FieldRenderers.literalExample(
+        Field("n", FieldType.StringType, "a\"b", "A name.")
+      ),
       "\"a\\\"b\""
     )
   }
@@ -116,14 +125,17 @@ class FieldRenderersSuite extends FunSuite {
     "TEST_UPDATE_REQUEST_ARGS",
     "TEST_MIGRATION_COLUMN",
     "TEST_LIFECYCLE_ASSERT",
-    "DEFAULT_VALUE_DECLS"
+    "DEFAULT_VALUE_DECLS",
+    "DTO_CREATE_FIELD",
+    "DTO_UPDATE_FIELD",
+    "DTO_RESPONSE_FIELD"
   )
 
   test(
-    "cellRenderers covers exactly the 28 anchor tags placed in the g8 template, and visibilityFilters covers the same set"
+    "cellRenderers covers exactly the 31 anchor tags placed in the g8 template, and visibilityFilters covers the same set"
   ) {
     assertEquals(FieldRenderers.cellRenderers.keySet, expectedTags.toSet)
-    assertEquals(FieldRenderers.cellRenderers.size, 28)
+    assertEquals(FieldRenderers.cellRenderers.size, 31)
     assertEquals(FieldRenderers.visibilityFilters.keySet, expectedTags.toSet)
   }
 
@@ -142,13 +154,26 @@ class FieldRenderersSuite extends FunSuite {
   }
 
   private val createOnlyItem =
-    Field("item", FieldType.StringType, "widget", Visibility.CreateOnly)
+    Field(
+      "item",
+      FieldType.StringType,
+      "widget",
+      "What was ordered.",
+      Visibility.CreateOnly
+    )
   private val createAndUpdateQty =
-    Field("quantity", FieldType.IntType, "5", Visibility.CreateAndUpdate)
+    Field(
+      "quantity",
+      FieldType.IntType,
+      "5",
+      "Units ordered.",
+      Visibility.CreateAndUpdate
+    )
   private val serverDefaultedStatus = Field(
     "status",
     FieldType.StringType,
     "shipped",
+    "Where it is in its lifecycle.",
     Visibility.ServerDefaulted,
     Some("created")
   )
@@ -158,7 +183,8 @@ class FieldRenderersSuite extends FunSuite {
       "CREATE_PARAMS",
       "CREATE_CALL_ARGS",
       "TEST_CREATE_ARGS",
-      "TEST_CREATE_REQUEST_ARGS"
+      "TEST_CREATE_REQUEST_ARGS",
+      "DTO_CREATE_FIELD"
     )
       .foreach { tag =>
         val filtered =
@@ -181,7 +207,8 @@ class FieldRenderersSuite extends FunSuite {
       "SQL_UPDATE_SET",
       "SQL_UPDATE_TUPLE_ARGS",
       "TEST_UPDATE_ARGS",
-      "TEST_UPDATE_REQUEST_ARGS"
+      "TEST_UPDATE_REQUEST_ARGS",
+      "DTO_UPDATE_FIELD"
     ).foreach { tag =>
       val filtered =
         List(createOnlyItem, createAndUpdateQty, serverDefaultedStatus)
@@ -212,7 +239,8 @@ class FieldRenderersSuite extends FunSuite {
       "SQL_SELECT_CONSTRUCT_ARGS",
       "SQL_SELECT_PATTERN_VARS",
       "TEST_MIGRATION_COLUMN",
-      "TEST_LIFECYCLE_ASSERT"
+      "TEST_LIFECYCLE_ASSERT",
+      "DTO_RESPONSE_FIELD"
     ).foreach { tag =>
       val filtered =
         List(createOnlyItem, createAndUpdateQty, serverDefaultedStatus)
@@ -259,6 +287,7 @@ class FieldRenderersSuite extends FunSuite {
       "expiresAt",
       FieldType.InstantType,
       "2026-01-01T00:00:00Z",
+      "When it expires (UTC).",
       Visibility.ServerDefaulted,
       Some("2030-01-01T00:00:00Z")
     )
@@ -283,6 +312,7 @@ class FieldRenderersSuite extends FunSuite {
       "retries",
       FieldType.IntType,
       "3",
+      "Delivery attempts so far.",
       Visibility.ServerDefaulted,
       Some("0")
     )
@@ -341,6 +371,43 @@ class FieldRenderersSuite extends FunSuite {
     assertEquals(
       FieldRenderers.cellRenderers("TEST_LIFECYCLE_ASSERT")(int),
       "assertEquals(updated.map(_.weight), Some(42))"
+    )
+  }
+
+  test(
+    "DTO field cells annotate the field with its description and an encoded example"
+  ) {
+    List("DTO_CREATE_FIELD", "DTO_UPDATE_FIELD", "DTO_RESPONSE_FIELD")
+      .foreach { tag =>
+        assertEquals(
+          FieldRenderers.cellRenderers(tag)(str),
+          "@description(\"Colour of the widget.\") @encodedExample(\"red\") color: String",
+          s"tag: $tag"
+        )
+      }
+    assertEquals(
+      FieldRenderers.cellRenderers("DTO_RESPONSE_FIELD")(int),
+      "@description(\"Weight in grams.\") @encodedExample(42) weight: Int"
+    )
+    assertEquals(
+      FieldRenderers.cellRenderers("DTO_RESPONSE_FIELD")(bool),
+      "@description(\"Whether it breaks easily.\") @encodedExample(true) fragile: Boolean"
+    )
+  }
+
+  test("DTO field cells encode an Instant example as its ISO-8601 string") {
+    assertEquals(
+      FieldRenderers.cellRenderers("DTO_RESPONSE_FIELD")(instant),
+      "@description(\"When it expires (UTC).\") @encodedExample(\"2026-01-01T00:00:00Z\") expiresAt: java.time.Instant"
+    )
+  }
+
+  test("DTO field cells escape quotes in the description") {
+    assertEquals(
+      FieldRenderers.cellRenderers("DTO_CREATE_FIELD")(
+        Field("n", FieldType.StringType, "x", "A \"name\".")
+      ),
+      "@description(\"A \\\"name\\\".\") @encodedExample(\"x\") n: String"
     )
   }
 }

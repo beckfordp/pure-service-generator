@@ -12,6 +12,7 @@ class CodegenToolSuite extends FunSuite {
       |  - name: color
       |    type: String
       |    example: "red"
+      |    description: "Colour of the widget."
       |""".stripMargin
 
   private val storeFixture =

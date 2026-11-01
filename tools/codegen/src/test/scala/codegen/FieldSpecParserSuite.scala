@@ -9,15 +9,19 @@ class FieldSpecParserSuite extends FunSuite {
       |  - name: color
       |    type: String
       |    example: "red"
+      |    description: "Colour of the widget."
       |  - name: weight
       |    type: Int
       |    example: "42"
+      |    description: "Weight in grams."
       |  - name: fragile
       |    type: Boolean
       |    example: "true"
+      |    description: "Whether it breaks easily."
       |  - name: expiresAt
       |    type: Instant
       |    example: "2026-01-01T00:00:00Z"
+      |    description: "When it expires (UTC)."
       |""".stripMargin
 
   test("parses a well-formed field-spec YAML document into a FieldSpec") {
@@ -27,10 +31,25 @@ class FieldSpecParserSuite extends FunSuite {
       Right(
         FieldSpec(
           List(
-            Field("color", FieldType.StringType, "red"),
-            Field("weight", FieldType.IntType, "42"),
-            Field("fragile", FieldType.BooleanType, "true"),
-            Field("expiresAt", FieldType.InstantType, "2026-01-01T00:00:00Z")
+            Field(
+              "color",
+              FieldType.StringType,
+              "red",
+              "Colour of the widget."
+            ),
+            Field("weight", FieldType.IntType, "42", "Weight in grams."),
+            Field(
+              "fragile",
+              FieldType.BooleanType,
+              "true",
+              "Whether it breaks easily."
+            ),
+            Field(
+              "expiresAt",
+              FieldType.InstantType,
+              "2026-01-01T00:00:00Z",
+              "When it expires (UTC)."
+            )
           )
         )
       )
@@ -48,6 +67,7 @@ class FieldSpecParserSuite extends FunSuite {
         |  - name: color
         |    type: Float
         |    example: "1.5"
+        |    description: "Colour of the widget."
         |""".stripMargin
     )
     assert(result.isLeft, s"expected a Left, got: $result")
@@ -64,16 +84,19 @@ class FieldSpecParserSuite extends FunSuite {
         |  - name: weight
         |    type: Int
         |    example: "not-a-number"
+        |    description: "Weight in grams."
         |""".stripMargin,
       """fields:
         |  - name: fragile
         |    type: Boolean
         |    example: "yes"
+        |    description: "Whether it breaks easily."
         |""".stripMargin,
       """fields:
         |  - name: expiresAt
         |    type: Instant
         |    example: "not-a-timestamp"
+        |    description: "When it expires (UTC)."
         |""".stripMargin
     )
     badExamples.foreach { yaml =>
@@ -90,6 +113,7 @@ class FieldSpecParserSuite extends FunSuite {
         |  - name: color
         |    type: String
         |    example: "anything at all, even 42"
+        |    description: "Colour of the widget."
         |""".stripMargin
     )
     assert(result.isRight, s"expected a Right, got: $result")
@@ -103,11 +127,18 @@ class FieldSpecParserSuite extends FunSuite {
         |  - name: color
         |    type: String
         |    example: "red"
+        |    description: "Colour of the widget."
         |""".stripMargin
     )
     assertEquals(
       result,
-      Right(FieldSpec(List(Field("color", FieldType.StringType, "red"))))
+      Right(
+        FieldSpec(
+          List(
+            Field("color", FieldType.StringType, "red", "Colour of the widget.")
+          )
+        )
+      )
     )
     assertEquals(
       result.toOption.get.fields.head.visibility,
@@ -122,6 +153,7 @@ class FieldSpecParserSuite extends FunSuite {
         |  - name: item
         |    type: String
         |    example: "widget"
+        |    description: "What was ordered."
         |    visibility: create-only
         |""".stripMargin
     )
@@ -130,7 +162,13 @@ class FieldSpecParserSuite extends FunSuite {
       Right(
         FieldSpec(
           List(
-            Field("item", FieldType.StringType, "widget", Visibility.CreateOnly)
+            Field(
+              "item",
+              FieldType.StringType,
+              "widget",
+              "What was ordered.",
+              Visibility.CreateOnly
+            )
           )
         )
       )
@@ -143,6 +181,7 @@ class FieldSpecParserSuite extends FunSuite {
         |  - name: status
         |    type: String
         |    example: "shipped"
+        |    description: "Where it is in its lifecycle."
         |    visibility: server-defaulted
         |    default: "created"
         |""".stripMargin
@@ -156,6 +195,7 @@ class FieldSpecParserSuite extends FunSuite {
               "status",
               FieldType.StringType,
               "shipped",
+              "Where it is in its lifecycle.",
               Visibility.ServerDefaulted,
               Some("created")
             )
@@ -171,6 +211,7 @@ class FieldSpecParserSuite extends FunSuite {
         |  - name: status
         |    type: String
         |    example: "shipped"
+        |    description: "Where it is in its lifecycle."
         |    visibility: server-defaulted
         |""".stripMargin
     )
@@ -183,6 +224,7 @@ class FieldSpecParserSuite extends FunSuite {
         |  - name: quantity
         |    type: Int
         |    example: "5"
+        |    description: "Units ordered."
         |    default: "1"
         |""".stripMargin
     )
@@ -195,6 +237,7 @@ class FieldSpecParserSuite extends FunSuite {
         |  - name: color
         |    type: String
         |    example: "red"
+        |    description: "Colour of the widget."
         |    visibility: read-only
         |""".stripMargin
     )
@@ -207,8 +250,20 @@ class FieldSpecParserSuite extends FunSuite {
         |  - name: weight
         |    type: Int
         |    example: "5"
+        |    description: "Weight in grams."
         |    visibility: server-defaulted
         |    default: "not-a-number"
+        |""".stripMargin
+    )
+    assert(result.isLeft, s"expected a Left, got: $result")
+  }
+
+  test("rejects a field missing its description") {
+    val result = FieldSpecParser.parse(
+      """fields:
+        |  - name: color
+        |    type: String
+        |    example: "red"
         |""".stripMargin
     )
     assert(result.isLeft, s"expected a Left, got: $result")

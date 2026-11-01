@@ -10,18 +10,19 @@ import org.http4s.HttpRoutes
 import org.typelevel.log4cats.StructuredLogger
 import sttp.model.StatusCode
 import sttp.tapir._
+import sttp.tapir.Schema.annotations.{description, encodedExample}
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 
-final case class Create$domain_name;format="cap"$Request(/* codegen:fields:CREATE_PARAMS */)
+final case class Create$domain_name;format="cap"$Request(/* codegen:fields:DTO_CREATE_FIELD */)
 
 object Create$domain_name;format="cap"$Request {
   implicit val codec: Codec[Create$domain_name;format="cap"$Request] = deriveCodec
 }
 
-final case class Update$domain_name;format="cap"$Request(/* codegen:fields:UPDATE_PARAMS */)
+final case class Update$domain_name;format="cap"$Request(/* codegen:fields:DTO_UPDATE_FIELD */)
 
 object Update$domain_name;format="cap"$Request {
   implicit val codec: Codec[Update$domain_name;format="cap"$Request] = deriveCodec
@@ -29,7 +30,7 @@ object Update$domain_name;format="cap"$Request {
 
 final case class $domain_name;format="cap"$Response(
     id: String,
-    // codegen:fields:CASE_CLASS_FIELD
+    // codegen:fields:DTO_RESPONSE_FIELD
     createdAt: java.time.Instant,
     updatedAt: java.time.Instant
 )

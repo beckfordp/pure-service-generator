@@ -16,13 +16,14 @@ object FieldSpecParser:
       fieldType <- c.downField("type").as[FieldType]
       example <- c.downField("example").as[String]
       _ <- validateLiteral("example", fieldType, example, c)
+      description <- c.downField("description").as[String]
       visibility <- c
         .downField("visibility")
         .as[Option[Visibility]]
         .map(_.getOrElse(Visibility.CreateAndUpdate))
       defaultOpt <- c.downField("default").as[Option[String]]
       _ <- validateDefault(fieldType, visibility, defaultOpt, c)
-    yield Field(name, fieldType, example, visibility, defaultOpt)
+    yield Field(name, fieldType, example, description, visibility, defaultOpt)
 
   /** Fails fast, at field-spec parse time, when a literal (`example`, or a
     * `server-defaulted` field's `default`) doesn't parse as its declared `type` -

@@ -16,13 +16,16 @@ fields:
   - name: item
     type: String
     example: "widget"
+    description: "What was ordered."
     visibility: create-only
   - name: quantity
     type: Int
     example: "4"
+    description: "Units ordered."
   - name: status
     type: String
     example: "shipped"
+    description: "Where the order is in its lifecycle."
     visibility: server-defaulted
     default: "created"
 ```
@@ -32,7 +35,11 @@ fields:
 - `type` — one of `String`, `Int`, `Boolean`, `Instant` (`java.time.Instant`, stored as
   `TIMESTAMPTZ`). No other types are supported.
 - `example` — a literal value (as a string) used to rewrite existing test call sites whose arity
-  changes when the field is added, and to assert on in the full-lifecycle test.
+  changes when the field is added, and to assert on in the full-lifecycle test. It is also the
+  field's `@encodedExample` in the service's OpenAPI doc (an `Instant` as its ISO-8601 string).
+- `description` — what the field means, one short sentence. Rendered as the field's
+  `@description` on the request/response DTOs (never the domain entity), so the service's
+  `/docs` stays fully documented (purerest's "Documenting endpoints" convention).
 - `visibility` (optional, default `create-and-update`) — how the field participates in
   `create`/`update`:
   - `create-and-update` — the client sets it at create, and can change it via update (the

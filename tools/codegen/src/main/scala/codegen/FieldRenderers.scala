@@ -70,6 +70,23 @@ object FieldRenderers:
 
   def literalExample(f: Field): String = literalOf(f.`type`, f.example)
 
+  /** The `@encodedExample` argument for a field: its example as the JSON value
+    * circe encodes it to - a String literal for `Instant` (ISO-8601), the typed
+    * literal otherwise.
+    */
+  def encodedExampleLiteral(f: Field): String = f.`type` match
+    case FieldType.InstantType => literalOf(FieldType.StringType, f.example)
+    case other                 => literalOf(other, f.example)
+
+  /** A request/response DTO field: annotated with its `description` and
+    * example, so the service's OpenAPI doc explains it (purerest's REST docs
+    * convention). Only the DTO-side tags use it - the domain entity and store
+    * signatures stay unannotated.
+    */
+  private def dtoField(f: Field): String =
+    s"@description(${literalOf(FieldType.StringType, f.description)}) " +
+      s"@encodedExample(${encodedExampleLiteral(f)}) ${f.name}: ${scalaType(f)}"
+
   def literalDefault(f: Field): String =
     literalOf(f.`type`, f.default.getOrElse(""))
 
@@ -124,6 +141,9 @@ object FieldRenderers:
   /** Which fields a given anchor tag renders, out of the full field-spec. */
   val visibilityFilters: Map[String, Field => Boolean] = Map(
     "CASE_CLASS_FIELD" -> allFields,
+    "DTO_CREATE_FIELD" -> excludeServerDefaulted,
+    "DTO_UPDATE_FIELD" -> excludeCreateOnly,
+    "DTO_RESPONSE_FIELD" -> allFields,
     "CREATE_PARAMS" -> excludeServerDefaulted,
     "UPDATE_PARAMS" -> excludeCreateOnly,
     "CONSTRUCT_ARGS" -> allFields,
@@ -155,6 +175,9 @@ object FieldRenderers:
 
   val cellRenderers: Map[String, Field => String] = Map(
     "CASE_CLASS_FIELD" -> (f => s"${f.name}: ${scalaType(f)}"),
+    "DTO_CREATE_FIELD" -> dtoField,
+    "DTO_UPDATE_FIELD" -> dtoField,
+    "DTO_RESPONSE_FIELD" -> dtoField,
     "CREATE_PARAMS" -> (f => s"${f.name}: ${scalaType(f)}"),
     "UPDATE_PARAMS" -> (f => s"${f.name}: ${scalaType(f)}"),
     "CONSTRUCT_ARGS" -> constructArg,
