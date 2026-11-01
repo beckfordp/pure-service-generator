@@ -105,10 +105,9 @@ This pipeline runs two ways: `sbt compile` regenerates
 The document is AsyncAPI 3.0 (purekafka 0.6.0, gluon TD-19): each topic gets a `send` operation
 (events this service produces) or `receive` (events it consumes), read from the service's own
 side. `ExampleEvent` is registered as consumed, so its `@description`/`@encodedExample`
-annotations show what a consumed event should carry: the producer's own descriptions and
-examples, copied from its artifact in gluon's `registry/<producer>/registry.json` (the event
-`description`, and each field's `description` and first `examples` value). Nothing checks the
-copies stay current.
+annotations show what a consumed event should carry: the producer's own. Generate real consumed
+events with gluon's `bin/registry-scala <EventType>`, paste, and delete unused fields (see
+gluon's `registry/README.md`, "Writing a mirror").
 
 A third task, `schemaRegistryCheck` (Rework 5 step 3/4, ADR 0003), reuses the same
 `ExampleAsyncApiChannels` registration to check/register each channel's JSON Schema against an

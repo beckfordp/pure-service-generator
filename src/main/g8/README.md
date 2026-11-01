@@ -84,8 +84,8 @@ sbt asyncApiGenerate
 
 The document is AsyncAPI 3.0: each topic shows `SEND` (events this service produces) or `RECEIVE`
 (events it consumes), from this service's own side. `/docs/asyncapi` redirects to
-`/docs/asyncapi/`. Give consumed events the producer's descriptions and examples by copying them
-from its artifact in gluon's `registry/` (see `ExampleEvent`).
+`/docs/asyncapi/`. Generate consumed events from gluon's `registry/` with
+`bin/registry-scala <EventType>` so they carry the producer's descriptions and examples.
 
 The HTML renderer needs Node.js >= 24.11/npm. If the Node toolchain is unavailable, the plugin logs a
 warning and skips HTML generation (the JSON spec is still generated), so
