@@ -1,0 +1,9 @@
+# Plan — Template: AsyncAPI 3.0 docs, described example consumed event
+
+## Phase 1: Template
+- [ ] Task: purekafka 0.6.0 + plugin 0.6.0-dev, described `ExampleEvent`, example suite 3.0 test, README/docs
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Template' (Protocol in workflow.md)
+
+## Phase 2: Smoke test
+- [ ] Task: generate a scratch service, compile + test, generated spec 3.0.0 validates
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Smoke test' (Protocol in workflow.md)
