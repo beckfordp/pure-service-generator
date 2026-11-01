@@ -1,8 +1,8 @@
 {
   "track_id": "asyncapi-v3_20261101",
   "type": "fix",
-  "status": "new",
+  "status": "completed",
   "created_at": "2026-11-01T11:00:00Z",
-  "updated_at": "2026-11-01T11:00:00Z",
+  "updated_at": "2026-11-01T12:30:00Z",
   "description": "Template: purekafka 0.6.0 AsyncAPI 3.0 docs, described example consumed event (gluon TD-19.5)"
 }
