@@ -13,6 +13,6 @@
 - [x] Task: Outbox example codegen-aware — pre-existing: `OutboxExampleSuite` inserts only `id`, so NOT NULL codegen fields fail it; new `SQL_INSERT_EXAMPLE_ARGS` tag (example literals, all fields) + insert anchors (user decision 2026-11-01) 75e251e
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Template docs' (Protocol in workflow.md) — covered by Phase 4's verify script
 
-## Phase 4: Smoke test
-- [ ] Task: regenerate devcheck-service, suite green + zero gaps; run codegen with a sample field-spec (descriptions), suite green + zero gaps; `/docs/docs.yaml` shows summaries/descriptions/examples; scalafmtCheck
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Smoke test' (Protocol in workflow.md)
+## Phase 4: Smoke test [checkpoint: c8c29bb]
+- [x] Task: regenerate devcheck-service, suite green + zero gaps; run codegen with a sample field-spec (descriptions), suite green + zero gaps; `/docs/docs.yaml` shows summaries/descriptions/examples; scalafmtCheck — bare 90/90, field-spec 90/90, `scripts/verify-rest-docs.sh` PASS c8c29bb
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Smoke test' (Protocol in workflow.md) — `scripts/verify-rest-docs.sh` PASS
