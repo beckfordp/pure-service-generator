@@ -102,6 +102,14 @@ This pipeline runs two ways: `sbt compile` regenerates
 `/docs/asyncapi.json`, plus the rendered HTML at `/docs/asyncapi/index.html` (from
 `target/asyncapi-docs`, overridable with `ASYNCAPI_HTML_DIR`).
 
+The document is AsyncAPI 3.0 (purekafka 0.6.0, gluon TD-19): each topic gets a `send` operation
+(events this service produces) or `receive` (events it consumes), read from the service's own
+side. `ExampleEvent` is registered as consumed, so its `@description`/`@encodedExample`
+annotations show what a consumed event should carry: the producer's own descriptions and
+examples, copied from its artifact in gluon's `registry/<producer>/registry.json` (the event
+`description`, and each field's `description` and first `examples` value). Nothing checks the
+copies stay current.
+
 A third task, `schemaRegistryCheck` (Rework 5 step 3/4, ADR 0003), reuses the same
 `ExampleAsyncApiChannels` registration to check/register each channel's JSON Schema against an
 Apicurio Registry instance (`schemaRegistryUrl`/`schemaRegistryGroupId` in `build.sbt`), failing

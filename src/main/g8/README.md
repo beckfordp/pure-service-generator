@@ -82,7 +82,12 @@ sbt asyncApiGenerate
   (`open target/asyncapi-docs/index.html`); also served live at
   http://localhost:8080/docs/asyncapi/index.html while the service is running.
 
-The HTML renderer needs Node.js/npm. If the Node toolchain is unavailable, the plugin logs a
+The document is AsyncAPI 3.0: each topic shows `SEND` (events this service produces) or `RECEIVE`
+(events it consumes), from this service's own side. `/docs/asyncapi` redirects to
+`/docs/asyncapi/`. Give consumed events the producer's descriptions and examples by copying them
+from its artifact in gluon's `registry/` (see `ExampleEvent`).
+
+The HTML renderer needs Node.js >= 24.11/npm. If the Node toolchain is unavailable, the plugin logs a
 warning and skips HTML generation (the JSON spec is still generated), so
 `/docs/asyncapi/index.html` returns 404 until a successful `sbt asyncApiGenerate`.
 

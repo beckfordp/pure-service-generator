@@ -3,6 +3,7 @@ package $package$.examples
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 import purekafka.docs.{AsyncApiChannel, AsyncApiChannelsProvider, ChannelDirection}
+import sttp.tapir.Schema.annotations.{description, encodedExample}
 import sttp.tapir.{Schema, Validator}
 
 import java.time.Instant
@@ -18,10 +19,26 @@ import java.time.Instant
   * constrained to a fixed set in the generated JSON Schema. See
   * `docs/examples.md` for how to replace this with your own real event type,
   * or remove it entirely.
+  *
+  * Registered as consumed (`Subscribe`), so these descriptions/examples stand
+  * in for ones copied from the producer: for a real consumed event, copy them
+  * from the producer's artifact in gluon's `registry/<producer>/registry.json`
+  * (the event `description`, and each field's `description` + first
+  * `examples` value) so the docs read the same on both sides. Nothing checks
+  * the copies stay current (gluon TD-19).
   */
+@description(
+  "Illustrative example event: something happened to a $domain_name$."
+)
 final case class ExampleEvent(
+    @description("$domain_name;format="cap"$ UUID.")
+    @encodedExample("3f2b8c1e-5d4a-4e7b-9c6f-1a2b3c4d5e6f")
     id: String,
+    @description("What happened to it.")
+    @encodedExample("created")
     status: String,
+    @description("When it happened (ISO-8601 instant).")
+    @encodedExample("2026-10-31T10:15:30Z")
     occurredAt: Instant
 )
 

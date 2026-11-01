@@ -64,16 +64,57 @@ class AsyncApiChannelsExampleSuite extends FunSuite {
       ExampleAsyncApiChannels.channels
     )
 
-    // String-based, not a guessed cursor path through channels/subscribe/
-    // message/oneOf - robust to exactly how AsyncApiDoc nests a
-    // single-message channel's schema, while still proving the enum
-    // constraint reaches the real generated document, not just the Scala-side
-    // Validator/Schema values.
-    assert(
-      doc.noSpaces.contains(
-        """"status":{"type":"string","enum":["created","updated","deleted"]}"""
-      ),
+    // Read from the real generated document, not just the Scala-side
+    // Validator/Schema values - proves the enum constraint reaches it.
+    val status = doc.hcursor
+      .downField("channels")
+      .downField("$domain_name$-events")
+      .downField("messages")
+      .downField("ExampleEvent")
+      .downField("payload")
+      .downField("properties")
+      .downField("status")
+    assertEquals(
+      status.downField("enum").as[List[String]].toOption,
+      Some(List("created", "updated", "deleted")),
       s"expected the generated doc to constrain status to the enum, got: \$doc"
+    )
+  }
+
+  test(
+    "the generated AsyncAPI 3.0 document receives ExampleEvent, with a description and field examples"
+  ) {
+    val doc = AsyncApiDoc.generate(
+      "$domain_name;format="cap"$ Service",
+      "1.0",
+      ExampleAsyncApiChannels.channels
+    )
+    val root = doc.hcursor
+
+    assertEquals(root.downField("asyncapi").as[String].toOption, Some("3.0.0"))
+    assertEquals(
+      root
+        .downField("operations")
+        .downField("$domain_name$-events")
+        .downField("action")
+        .as[String]
+        .toOption,
+      Some("receive")
+    )
+    val payload = root
+      .downField("channels")
+      .downField("$domain_name$-events")
+      .downField("messages")
+      .downField("ExampleEvent")
+      .downField("payload")
+    assert(payload.downField("description").as[String].isRight)
+    assert(
+      payload
+        .downField("properties")
+        .downField("id")
+        .downField("examples")
+        .succeeded,
+      s"expected an example on ExampleEvent.id, got: \$doc"
     )
   }
 }
