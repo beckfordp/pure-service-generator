@@ -2,6 +2,9 @@
 
 This file tracks all major tracks for the project.
 
+- [ ] **Track: Template: REST docs convention (gluon TD-20.2)**
+  *Link: [./tracks/rest-docs_20261101/](./tracks/rest-docs_20261101/)*
+
 
 ---
 
@@ -15,4 +18,3 @@ through the spec/plan questions and promote it into a real track below.
 ---
 
 - TD-12 — generator `--profile`/`--no-crud` mode so non-CRUD services don't generate placeholder CRUD (see `gluon/TECHNICAL_DEBT.md` TD-12)
-- TD-20.2 — REST docs: endpoint/parameter/DTO descriptions and examples in the g8 template, coverage test (see `gluon/TECHNICAL_DEBT.md` TD-20.2)
