@@ -128,14 +128,15 @@ class FieldRenderersSuite extends FunSuite {
     "DEFAULT_VALUE_DECLS",
     "DTO_CREATE_FIELD",
     "DTO_UPDATE_FIELD",
-    "DTO_RESPONSE_FIELD"
+    "DTO_RESPONSE_FIELD",
+    "SQL_INSERT_EXAMPLE_ARGS"
   )
 
   test(
-    "cellRenderers covers exactly the 31 anchor tags placed in the g8 template, and visibilityFilters covers the same set"
+    "cellRenderers covers exactly the 32 anchor tags placed in the g8 template, and visibilityFilters covers the same set"
   ) {
     assertEquals(FieldRenderers.cellRenderers.keySet, expectedTags.toSet)
-    assertEquals(FieldRenderers.cellRenderers.size, 31)
+    assertEquals(FieldRenderers.cellRenderers.size, 32)
     assertEquals(FieldRenderers.visibilityFilters.keySet, expectedTags.toSet)
   }
 
@@ -240,7 +241,8 @@ class FieldRenderersSuite extends FunSuite {
       "SQL_SELECT_PATTERN_VARS",
       "TEST_MIGRATION_COLUMN",
       "TEST_LIFECYCLE_ASSERT",
-      "DTO_RESPONSE_FIELD"
+      "DTO_RESPONSE_FIELD",
+      "SQL_INSERT_EXAMPLE_ARGS"
     ).foreach { tag =>
       val filtered =
         List(createOnlyItem, createAndUpdateQty, serverDefaultedStatus)
@@ -408,6 +410,25 @@ class FieldRenderersSuite extends FunSuite {
         Field("n", FieldType.StringType, "x", "A \"name\".")
       ),
       "@description(\"A \\\"name\\\".\") @encodedExample(\"x\") n: String"
+    )
+  }
+
+  test(
+    "SQL_INSERT_EXAMPLE_ARGS writes every field's example literal, server-defaulted ones too"
+  ) {
+    assertEquals(
+      FieldRenderers.cellRenderers("SQL_INSERT_EXAMPLE_ARGS")(str),
+      "\"red\""
+    )
+    assertEquals(
+      FieldRenderers.cellRenderers("SQL_INSERT_EXAMPLE_ARGS")(
+        serverDefaultedStatus
+      ),
+      "\"shipped\""
+    )
+    assertEquals(
+      FieldRenderers.cellRenderers("SQL_INSERT_EXAMPLE_ARGS")(instant),
+      "java.time.Instant.parse(\"2026-01-01T00:00:00Z\").atOffset(java.time.ZoneOffset.UTC)"
     )
   }
 }

@@ -15,6 +15,7 @@ import skunk.Session
 import skunk.codec.all._
 import skunk.implicits._
 
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import $package$.{Migrations, PostgresConfig}
@@ -49,8 +50,14 @@ class OutboxExampleSuite extends CatsEffectSuite with TestContainerForAll {
       password = postgres.password
     )
 
-  private val insertEntity: skunk.Command[UUID] =
-    sql"""INSERT INTO "$domain_name$" (id) VALUES (\$uuid)""".command
+  // Codegen-anchored like $domain_name;format="cap"$Store's own insert, so the
+  // row still satisfies the table's NOT NULL columns once fields are added.
+  private val insertEntity
+      : skunk.Command[(UUID/* codegen:fields:SQL_INSERT_TUPLE_TYPE */)] =
+    sql"""
+      INSERT INTO "$domain_name$" (id/* codegen:fields:SQL_INSERT_COLUMNS */)
+      VALUES (\$uuid/* codegen:fields:SQL_INSERT_PARAMS */)
+    """.command
 
   private val insertOutboxEvent
       : skunk.Command[(UUID, String, String, String)] =
@@ -76,7 +83,11 @@ class OutboxExampleSuite extends CatsEffectSuite with TestContainerForAll {
       payload: String
   ): IO[Unit] =
     session.transaction.use { _ =>
-      session.prepare(insertEntity).flatMap(_.execute(entityId)) *>
+      session
+        .prepare(insertEntity)
+        .flatMap(
+          _.execute((entityId/* codegen:fields:SQL_INSERT_EXAMPLE_ARGS */))
+        ) *>
         session
           .prepare(insertOutboxEvent)
           .flatMap(

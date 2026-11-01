@@ -156,6 +156,7 @@ object FieldRenderers:
     "SQL_INSERT_PARAMS" -> allFields,
     "SQL_INSERT_TUPLE_TYPE" -> allFields,
     "SQL_INSERT_TUPLE_ARGS" -> allFields,
+    "SQL_INSERT_EXAMPLE_ARGS" -> allFields,
     "SQL_SELECT_TUPLE_TYPE" -> allFields,
     "SQL_SELECT_COLUMNS" -> allFields,
     "SQL_SELECT_CODEC" -> allFields,
@@ -192,6 +193,9 @@ object FieldRenderers:
     "SQL_INSERT_PARAMS" -> (f => s"$$${codecName(f)}"),
     "SQL_INSERT_TUPLE_TYPE" -> (f => sqlParamScalaType(f)),
     "SQL_INSERT_TUPLE_ARGS" -> sqlInsertTupleArg,
+    // Example values for a raw insert outside the store (OutboxExampleSuite),
+    // where neither the create params nor the default<Field> constants exist.
+    "SQL_INSERT_EXAMPLE_ARGS" -> (f => sqlWriteExpr(f, literalExample(f))),
     "SQL_SELECT_TUPLE_TYPE" -> (f => sqlParamScalaType(f)),
     "SQL_SELECT_COLUMNS" -> (f => snakeCase(f.name)),
     "SQL_SELECT_CODEC" -> (f => codecName(f)),
