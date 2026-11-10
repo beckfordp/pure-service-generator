@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package codegen
 
 import scala.collection.mutable.ArrayBuffer

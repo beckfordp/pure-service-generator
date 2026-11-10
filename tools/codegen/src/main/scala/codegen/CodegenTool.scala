@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package codegen
 
 import java.nio.file.{Files, Path}

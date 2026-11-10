@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package codegen
 
 import io.circe.{Decoder, DecodingFailure, HCursor}

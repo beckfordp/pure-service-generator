@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package $package$.domain
 
 import cats.syntax.all._

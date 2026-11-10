@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package $package$
 
 import $package$.domain.$domain_name;format="cap"$Id

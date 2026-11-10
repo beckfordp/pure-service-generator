@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package codegen
 
 /** Per-type syntax primitives and the per-anchor-tag cell renderers used by

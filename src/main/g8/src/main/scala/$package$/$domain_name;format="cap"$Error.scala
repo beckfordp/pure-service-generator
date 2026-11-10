@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package $package$
 
 sealed trait $domain_name;format="cap"$Error

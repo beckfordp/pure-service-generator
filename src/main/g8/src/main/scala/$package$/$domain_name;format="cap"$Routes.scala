@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package $package$
 
 import cats.{Monad, MonadThrow}

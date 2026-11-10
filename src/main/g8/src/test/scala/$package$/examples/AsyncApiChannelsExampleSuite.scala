@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package $package$.examples
 
 import io.circe.parser.parse

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
+
 set -euo pipefail
 
 # Shows exactly what you've changed in a scripts/dev-regenerate.sh scratch
